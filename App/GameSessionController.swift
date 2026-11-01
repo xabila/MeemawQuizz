@@ -56,6 +56,8 @@ final class GameSessionController {
 
     private var registry = PlayerLobbyRegistry()
     private var connectionToPlayerID: [UUID: String] = [:]
+    private var usedQuestionIDs: Set<String> = []
+    private var usedDisOrDatIDs: Set<String> = []
     private var activeDeck: ShowGameDeck = QuestionBank.buildShowDeck(for: .grandMix)
     private var phaseQueue: [ShowPhaseStep] = []
     private var currentStepIndex: Int = -1
@@ -349,7 +351,22 @@ final class GameSessionController {
         stopTimers()
         registry.resetForNewShow()
 
-        activeDeck = QuestionBank.buildShowDeck(for: selectedPack)
+        let totalAvailableInPack = QuestionBank.questions(for: selectedPack).count
+        if usedQuestionIDs.count >= max(7, totalAvailableInPack - 6) {
+            usedQuestionIDs.removeAll()
+        }
+        if usedDisOrDatIDs.count >= QuestionBank.allDisOrDatRounds.count {
+            usedDisOrDatIDs.removeAll()
+        }
+
+        activeDeck = QuestionBank.buildShowDeck(
+            for: selectedPack,
+            excludingQuestionIDs: usedQuestionIDs,
+            excludingDisOrDatIDs: usedDisOrDatIDs
+        )
+        usedQuestionIDs.formUnion(activeDeck.allMCQIDs)
+        usedDisOrDatIDs.insert(activeDeck.couciCoucaRound.id)
+
         phaseQueue = [
             .roundIntro(.cashSpeed),
             .cashQuestion(activeDeck.cashQuestions[0], isDoubleFinale: false),
@@ -461,7 +478,7 @@ final class GameSessionController {
         broadcastState()
 
         audio.playMeemawStudioOrFallback(studioFilename: studioFile, fallbackText: text) { [weak self] in
-            self?.scheduleDelayed(seconds: 1.0) {
+            self?.scheduleDelayed(seconds: 2.2) {
                 self?.advanceToNextPhaseStep()
             }
         }
@@ -477,8 +494,8 @@ final class GameSessionController {
         soloBuzzerPlayerID = nil
         soloBuzzerPlayerName = nil
         stage = .cashAnswering
-        totalTimerSec = 13.0
-        timeRemainingSec = 13.0
+        totalTimerSec = 26.0
+        timeRemainingSec = 26.0
         questionOpenedAt = Date()
         meemawPose = "meemaw_dictation_talk"
         meemawSpeech = "« \(question.funnyTitle) » — \(question.prompt)"
@@ -491,7 +508,7 @@ final class GameSessionController {
         )
 
         scheduleBotsForCashQuestion(question)
-        startCountdown(duration: 13.0) { [weak self] in
+        startCountdown(duration: 26.0) { [weak self] in
             self?.revealCashQuestionResult(question, isDoubleFinale: isDoubleFinale)
         }
     }
@@ -550,13 +567,13 @@ final class GameSessionController {
             }
             let isCorrect = (chosen == question.correctIndex)
             let rankIdx = correctPlayerIDs.firstIndex(of: player.id)
-            let ms = player.reactionTimeMs ?? 12000
+            let ms = player.reactionTimeMs ?? 25000
             let delta = QuizScoringEngine.scoreCashAnswer(
                 baseValue: question.baseValue,
                 isCorrect: isCorrect,
                 correctRankIndex: rankIdx,
                 reactionTimeMs: ms,
-                totalTimeMs: 13000,
+                totalTimeMs: 26000,
                 isDoubleFinale: isDoubleFinale
             )
             registry.updatePlayer(id: player.id) { p in
@@ -587,7 +604,7 @@ final class GameSessionController {
             broadcastState()
 
             audio.speakDynamicPlayerCallout(praise) { [weak self] in
-                self?.scheduleDelayed(seconds: 3.2) {
+                self?.scheduleDelayed(seconds: 7.0) {
                     self?.advanceToNextPhaseStep()
                 }
             }
@@ -602,7 +619,7 @@ final class GameSessionController {
                 studioFilename: roastFile,
                 fallbackText: question.meemawRoastOnWrong
             ) { [weak self] in
-                self?.scheduleDelayed(seconds: 3.2) {
+                self?.scheduleDelayed(seconds: 7.0) {
                     self?.advanceToNextPhaseStep()
                 }
             }
@@ -619,8 +636,8 @@ final class GameSessionController {
         soloBuzzerPlayerID = nil
         soloBuzzerPlayerName = nil
         stage = .soloBuzzOpen
-        totalTimerSec = 12.0
-        timeRemainingSec = 12.0
+        totalTimerSec = 24.0
+        timeRemainingSec = 24.0
         questionOpenedAt = Date()
         meemawPose = "meemaw_boxing_referee"
         meemawSpeech = "🚨 LE SOLO ! Le 1er qui buzze prend la main pour \(question.baseValue * 2) PTS : « \(question.funnyTitle) »"
@@ -633,14 +650,14 @@ final class GameSessionController {
         )
 
         scheduleBotsForSoloBuzz(question)
-        startCountdown(duration: 12.0) { [weak self] in
+        startCountdown(duration: 24.0) { [weak self] in
             // Nobody buzzed in time!
             guard let self else { return }
             self.stage = .questionReveal
             self.revealedCorrectIndex = question.correctIndex
             self.meemawSpeech = "Personne n'a osé appuyer sur le buzzer du SOLO ! Bande de poules mouillées ! \(question.explanation)"
             self.broadcastState()
-            self.scheduleDelayed(seconds: 3.5) {
+            self.scheduleDelayed(seconds: 7.0) {
                 self.advanceToNextPhaseStep()
             }
         }
@@ -655,8 +672,8 @@ final class GameSessionController {
         soloBuzzerPlayerID = player.id
         soloBuzzerPlayerName = player.name
         stage = .soloPlayerAnswering
-        totalTimerSec = 6.0
-        timeRemainingSec = 6.0
+        totalTimerSec = 12.0
+        timeRemainingSec = 12.0
         questionOpenedAt = Date()
 
         let callout = MeemawPunchlines.dynamicSoloBuzzCallout(playerName: player.name)
@@ -666,17 +683,17 @@ final class GameSessionController {
 
         audio.speakDynamicPlayerCallout(callout)
 
-        // If a bot buzzed, make the bot answer after 1.6s
+        // If a bot buzzed, make the bot answer after 3.2s
         if player.id.hasPrefix("bot_") {
             botActionTask = Task { @MainActor [weak self] in
-                try? await Task.sleep(for: .milliseconds(1600))
+                try? await Task.sleep(for: .milliseconds(3200))
                 guard let self, self.stage == .soloPlayerAnswering else { return }
                 let botPick = Bool.random() ? q.correctIndex : Int.random(in: 0..<4)
                 self.handlePlayerChoice(playerID: player.id, choiceIndex: botPick)
             }
         }
 
-        startCountdown(duration: 6.0) { [weak self] in
+        startCountdown(duration: 12.0) { [weak self] in
             guard let self, self.stage == .soloPlayerAnswering else { return }
             self.revealSoloQuestionResult(q, buzzerPlayerID: player.id, chosenIndex: nil)
         }
@@ -710,7 +727,7 @@ final class GameSessionController {
         broadcastState()
 
         audio.speakDynamicPlayerCallout(line) { [weak self] in
-            self?.scheduleDelayed(seconds: 3.4) {
+            self?.scheduleDelayed(seconds: 7.0) {
                 self?.advanceToNextPhaseStep()
             }
         }
@@ -747,14 +764,14 @@ final class GameSessionController {
         registry.resetRoundLocks()
         activeDisOrDatItemIndex = index
         stage = .couciCoucaItem
-        totalTimerSec = 5.0
-        timeRemainingSec = 5.0
+        totalTimerSec = 10.0
+        timeRemainingSec = 10.0
         let item = round.items[index]
         meemawSpeech = "Item \(index + 1)/\(round.items.count) : « \(item.text) »"
         broadcastState()
 
         scheduleBotsForCouciItem(item)
-        startCountdown(duration: 5.0) { [weak self] in
+        startCountdown(duration: 10.0) { [weak self] in
             self?.scoreAndAdvanceCouciItem(at: index)
         }
     }
@@ -804,7 +821,7 @@ final class GameSessionController {
         audio.playJingle(anyCorrect ? "sfx_correct.wav" : "sfx_wrong.wav")
         broadcastState()
 
-        scheduleDelayed(seconds: 1.1) { [weak self] in
+        scheduleDelayed(seconds: 2.5) { [weak self] in
             self?.startCouciCoucaItem(at: index + 1)
         }
     }
@@ -814,7 +831,7 @@ final class GameSessionController {
         meemawPose = "meemaw_celebrate"
         meemawSpeech = "Fin du Couci-Couça ! Regardez les scores avant la Rafale Finale à points doublés !"
         broadcastState()
-        scheduleDelayed(seconds: 3.0) { [weak self] in
+        scheduleDelayed(seconds: 6.0) { [weak self] in
             self?.advanceToNextPhaseStep()
         }
     }
@@ -868,7 +885,7 @@ final class GameSessionController {
         botActionTask?.cancel()
         botActionTask = Task { @MainActor [weak self] in
             for bot in bots {
-                let delayMs = Int.random(in: 2200...5500)
+                let delayMs = Int.random(in: 5500...14000)
                 try? await Task.sleep(for: .milliseconds(delayMs))
                 guard let self, !Task.isCancelled, self.stage == .cashAnswering else { return }
                 let pick = (Int.random(in: 0..<100) < 68) ? q.correctIndex : Int.random(in: 0..<4)
@@ -882,7 +899,7 @@ final class GameSessionController {
         guard let randomBot = bots.randomElement() else { return }
         botActionTask?.cancel()
         botActionTask = Task { @MainActor [weak self] in
-            let delayMs = Int.random(in: 4200...7800)
+            let delayMs = Int.random(in: 8500...16000)
             try? await Task.sleep(for: .milliseconds(delayMs))
             guard let self, !Task.isCancelled, self.stage == .soloBuzzOpen else { return }
             self.handlePlayerSoloBuzz(playerID: randomBot.id)
@@ -895,7 +912,7 @@ final class GameSessionController {
         botActionTask?.cancel()
         botActionTask = Task { @MainActor [weak self] in
             for bot in bots {
-                let delayMs = Int.random(in: 900...2400)
+                let delayMs = Int.random(in: 2500...6000)
                 try? await Task.sleep(for: .milliseconds(delayMs))
                 guard let self, !Task.isCancelled, self.stage == .couciCoucaItem else { return }
                 let pick = (Int.random(in: 0..<100) < 75) ? item.correctSide : (item.correctSide == "left" ? "right" : "left")

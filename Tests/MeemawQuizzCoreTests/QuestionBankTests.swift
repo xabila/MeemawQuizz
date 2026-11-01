@@ -34,5 +34,28 @@ final class QuestionBankTests: XCTestCase {
         XCTAssertEqual(deck.soloQuestions.count, 2)
         XCTAssertEqual(deck.finaleDoubleQuestions.count, 2)
         XCTAssertNotNil(deck.couciCoucaRound)
+        XCTAssertEqual(QuestionBank.questions(for: .grandMix).count, 96)
+        XCTAssertEqual(QuestionBank.allDisOrDatRounds.count, 12)
+    }
+
+    func testWholeEveningSessionNeverRepeatsQuestionsAcrossTwelveConsecutiveGames() {
+        var usedMCQs: Set<String> = []
+        var usedCouci: Set<String> = []
+
+        for _ in 0..<12 {
+            let deck = QuestionBank.buildShowDeck(
+                for: .grandMix,
+                excludingQuestionIDs: usedMCQs,
+                excludingDisOrDatIDs: usedCouci
+            )
+            for qid in deck.allMCQIDs {
+                XCTAssertFalse(usedMCQs.contains(qid), "Question \(qid) should not repeat during an evening session")
+                usedMCQs.insert(qid)
+            }
+            XCTAssertFalse(usedCouci.contains(deck.couciCoucaRound.id), "Couci-Couça \(deck.couciCoucaRound.id) should not repeat")
+            usedCouci.insert(deck.couciCoucaRound.id)
+        }
+        XCTAssertEqual(usedMCQs.count, 84) // 12 games * 7 MCQs
+        XCTAssertEqual(usedCouci.count, 12) // 12 games * 1 Couci-Couça round
     }
 }

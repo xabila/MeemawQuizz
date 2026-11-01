@@ -256,7 +256,9 @@ enum AudioGenMain {
 
         for cue in MeemawPunchlines.studioCues {
             let url = outDir.appendingPathComponent(cue.filename)
-            try synth.synthesizeToM4A(text: cue.text, outputURL: url)
+            if !FileManager.default.fileExists(atPath: url.path) {
+                try synth.synthesizeToM4A(text: cue.text, outputURL: url)
+            }
             count += 1
         }
 
@@ -264,11 +266,15 @@ enum AudioGenMain {
         for q in allQuestions {
             if let cueID = q.audioCueID {
                 let promptURL = outDir.appendingPathComponent("\(cueID).m4a")
-                let fullSpoken = "\(q.funnyTitle). \(q.prompt)"
-                try synth.synthesizeToM4A(text: fullSpoken, outputURL: promptURL)
+                if !FileManager.default.fileExists(atPath: promptURL.path) {
+                    let fullSpoken = "\(q.funnyTitle). \(q.prompt)"
+                    try synth.synthesizeToM4A(text: fullSpoken, outputURL: promptURL)
+                }
 
                 let roastURL = outDir.appendingPathComponent("\(cueID)_roast.m4a")
-                try synth.synthesizeToM4A(text: q.meemawRoastOnWrong, outputURL: roastURL)
+                if !FileManager.default.fileExists(atPath: roastURL.path) {
+                    try synth.synthesizeToM4A(text: q.meemawRoastOnWrong, outputURL: roastURL)
+                }
                 count += 2
             }
         }
@@ -276,8 +282,10 @@ enum AudioGenMain {
         for dod in QuestionBank.allDisOrDatRounds {
             if let cueID = dod.audioCueID {
                 let dodURL = outDir.appendingPathComponent("\(cueID).m4a")
-                let fullSpoken = "\(dod.funnyTitle). \(dod.prompt)"
-                try synth.synthesizeToM4A(text: fullSpoken, outputURL: dodURL)
+                if !FileManager.default.fileExists(atPath: dodURL.path) {
+                    let fullSpoken = "\(dod.funnyTitle). \(dod.prompt)"
+                    try synth.synthesizeToM4A(text: fullSpoken, outputURL: dodURL)
+                }
                 count += 1
             }
         }

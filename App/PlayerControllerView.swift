@@ -549,7 +549,7 @@ struct PlayerControllerView: View {
         VStack(spacing: 14) {
             if snap.soloBuzzerPlayerID == session.localPlayerID {
                 PopArtCard(cornerRadius: 18, borderWidth: 3.5, backgroundColor: PopArt.redError) {
-                    Text("🔥 TU AS PRIS LE SOLO ! 6 SECONDES POUR RÉPONDRE !")
+                    Text("🔥 TU AS PRIS LE SOLO ! 12 SECONDES POUR RÉPONDRE !")
                         .font(.system(size: 17, weight: .black, design: .rounded))
                         .foregroundStyle(.white)
                         .multilineTextAlignment(.center)

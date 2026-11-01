@@ -152,28 +152,104 @@ struct PopArtActionButtonStyle: ButtonStyle {
     }
 }
 
-// MARK: - Meemaw Guest Star Animated Avatar
+// MARK: - Smooth Meemaw Video Loop Player (Single Layer, Zero Flicker, Single Character)
+
+struct MascotVideoLoopView: UIViewRepresentable {
+    let url: URL
+    var isPlaying: Bool = true
+    var rate: Float = 0.72
+
+    func makeUIView(context: Context) -> MascotPlayerUIView {
+        let view = MascotPlayerUIView()
+        view.configure(url: url, isPlaying: isPlaying, rate: rate)
+        return view
+    }
+
+    func updateUIView(_ uiView: MascotPlayerUIView, context: Context) {
+        uiView.configure(url: url, isPlaying: isPlaying, rate: rate)
+    }
+
+    static func dismantleUIView(_ uiView: MascotPlayerUIView, coordinator: ()) {
+        uiView.tearDown()
+    }
+}
+
+@MainActor
+final class MascotPlayerUIView: UIView {
+    override static var layerClass: AnyClass { AVPlayerLayer.self }
+    var playerLayer: AVPlayerLayer { layer as! AVPlayerLayer }
+
+    private var queuePlayer: AVQueuePlayer?
+    private var looper: AVPlayerLooper?
+    private var currentURL: URL?
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        backgroundColor = .clear
+        isOpaque = false
+        playerLayer.backgroundColor = UIColor.clear.cgColor
+        playerLayer.videoGravity = .resizeAspectFill
+        playerLayer.pixelBufferAttributes = [
+            kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA
+        ]
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    func configure(url: URL, isPlaying: Bool, rate: Float) {
+        if currentURL != url {
+            tearDown()
+            currentURL = url
+            let asset = AVURLAsset(url: url)
+            let item = AVPlayerItem(asset: asset)
+            let qp = AVQueuePlayer()
+            qp.isMuted = true
+            qp.preventsDisplaySleepDuringVideoPlayback = false
+            qp.defaultRate = rate
+            looper = AVPlayerLooper(player: qp, templateItem: item)
+            queuePlayer = qp
+            playerLayer.player = qp
+            // Advance to first frame immediately so layer is ready even when paused
+            qp.playImmediately(atRate: rate)
+            if !isPlaying {
+                qp.pause()
+            }
+            return
+        }
+        guard let queuePlayer else { return }
+        if isPlaying {
+            if queuePlayer.timeControlStatus != .playing {
+                queuePlayer.playImmediately(atRate: rate)
+            }
+        } else {
+            if queuePlayer.timeControlStatus == .playing {
+                queuePlayer.pause()
+            }
+        }
+    }
+
+    func tearDown() {
+        queuePlayer?.pause()
+        looper?.disableLooping()
+        looper = nil
+        queuePlayer = nil
+        playerLayer.player = nil
+        currentURL = nil
+    }
+}
+
+// MARK: - Meemaw Guest Star Animated Avatar (Single Stable Portrait / Video Loop)
 
 struct MeemawGuestStarAvatar: View {
     let pose: String
     let isSpeaking: Bool
     var size: CGFloat = 130
 
-    private var resolvedAssetName: String {
-        let candidates = [
-            pose,
-            "meemaw_salut",
-            "meemaw_fun",
-            "meemaw_holding_trophy",
-            "meemaw_boxing_referee",
-            "meemaw_duel_challenge",
-            "meemaw_vitesse"
-        ]
-        for name in candidates where UIImage(named: name) != nil {
-            return name
-        }
-        return "meemaw_salut"
-    }
+    private static let talkVideoURL: URL? = MeemawShowAudioEngine.shared.resolveAudioURL(
+        named: "meemaw_dictation_talk_talk.mov"
+    )
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
@@ -187,34 +263,32 @@ struct MeemawGuestStarAvatar: View {
                     )
                 )
                 .frame(width: size, height: size)
-                .overlay(
-                    Circle().strokeBorder(PopArt.ink, lineWidth: 4.5)
-                )
-                .shadow(color: PopArt.ink, radius: 0, x: 0, y: 6)
 
-            Image(resolvedAssetName)
-                .resizable()
-                .scaledToFill()
-                .frame(width: size - 10, height: size - 10)
-                .clipShape(Circle())
-                .scaleEffect(isSpeaking ? 1.05 : 1.0)
-                .animation(
-                    isSpeaking
-                        ? .easeInOut(duration: 0.28).repeatForever(autoreverses: true)
-                        : .default,
-                    value: isSpeaking
-                )
+            if let url = Self.talkVideoURL {
+                MascotVideoLoopView(url: url, isPlaying: isSpeaking, rate: 0.72)
+                    .frame(width: size - 8, height: size - 8)
+                    .clipShape(Circle())
+            } else {
+                Image("meemaw_salut")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: size - 8, height: size - 8)
+                    .clipShape(Circle())
+            }
+
+            Circle()
+                .strokeBorder(PopArt.ink, lineWidth: 4)
+                .frame(width: size, height: size)
 
             if isSpeaking {
-                Text("🎙️ ON AIR")
-                    .font(.system(size: max(10, size * 0.09), weight: .black, design: .rounded))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(PopArt.redError, in: Capsule())
-                    .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
-                    .offset(x: 4, y: 4)
+                Text("🎙️")
+                    .font(.system(size: max(12, size * 0.16)))
+                    .padding(4)
+                    .background(PopArt.redError, in: Circle())
+                    .overlay(Circle().strokeBorder(PopArt.ink, lineWidth: 2))
+                    .offset(x: 2, y: 2)
             }
         }
+        .frame(width: size, height: size)
     }
 }
