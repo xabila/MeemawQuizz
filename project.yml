@@ -1,6 +1,6 @@
 name: MeemawQuizz
 options:
-  bundleIdPrefix: com.meemaw
+  bundleIdPrefix: com.xlarrodeapp
   deploymentTarget:
     iOS: "17.0"
   developmentLanguage: fr
@@ -34,7 +34,7 @@ targets:
         product: MeemawQuizzCore
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.meemaw.quizz
+        PRODUCT_BUNDLE_IDENTIFIER: com.xlarrodeapp.meemawquizz
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: App/Info.plist
         INFOPLIST_KEY_UIApplicationSupportsMultipleScenes: "YES"
