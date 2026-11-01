@@ -51,6 +51,10 @@ struct PlayerControllerView: View {
                         case .finalPodium:
                             finalPodiumControllerSection
                         }
+
+                        if snap.stage != .lobby && snap.stage != .finalPodium {
+                            inGameQuitAndStopFooter
+                        }
                     }
                     .padding(.bottom, 20)
                 }
@@ -129,6 +133,18 @@ struct PlayerControllerView: View {
                     Spacer()
 
                     if snap.stage == .lobby {
+                        if snap.players.contains(where: { $0.id.hasPrefix("bot_") }) {
+                            Button {
+                                session.removeAllBots()
+                            } label: {
+                                Text("🧹 Bots")
+                                    .font(.system(size: 12, weight: .black))
+                                    .padding(.horizontal, 9)
+                                    .padding(.vertical, 6)
+                            }
+                            .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.white, cornerRadius: 10))
+                        }
+
                         Button {
                             session.addDemoBotPlayers()
                         } label: {
@@ -154,21 +170,58 @@ struct PlayerControllerView: View {
                         } label: {
                             Text("⏭️ Suivant")
                                 .font(.system(size: 12, weight: .black))
-                                .padding(.horizontal, 10)
+                                .padding(.horizontal, 9)
                                 .padding(.vertical, 6)
                         }
                         .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.yellow, cornerRadius: 10))
 
+                        if snap.stage != .finalPodium {
+                            Button {
+                                session.finishGameToPodiumNow()
+                            } label: {
+                                Text("🏆 Podium")
+                                    .font(.system(size: 12, weight: .black))
+                                    .padding(.horizontal, 9)
+                                    .padding(.vertical, 6)
+                            }
+                            .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.white, cornerRadius: 10))
+                        }
+
                         Button {
                             session.returnToLobby()
                         } label: {
-                            Text("🔄 Salon")
+                            Text("⏹️ Arrêter")
                                 .font(.system(size: 12, weight: .black))
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 6)
                         }
-                        .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.white, cornerRadius: 10))
+                        .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.redError, foregroundColor: .white, cornerRadius: 10))
                     }
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(Color.white.opacity(0.88), in: RoundedRectangle(cornerRadius: 14))
+                .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(PopArt.ink, lineWidth: 2))
+            } else {
+                HStack(spacing: 8) {
+                    Label(
+                        session.isBonjourConnectedToRemoteHost ? "Connecté au salon AirPlay" : "Recherche du salon...",
+                        systemImage: "bonjour"
+                    )
+                    .font(.system(size: 12, weight: .black, design: .rounded))
+                    .foregroundStyle(PopArt.ink)
+
+                    Spacer()
+
+                    Button {
+                        session.leaveRemoteSession()
+                    } label: {
+                        Text("🚪 Quitter la partie")
+                            .font(.system(size: 12, weight: .black))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                    }
+                    .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.redError, foregroundColor: .white, cornerRadius: 10))
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
@@ -832,8 +885,65 @@ struct PlayerControllerView: View {
                         .padding(.vertical, 16)
                 }
                 .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.orange, cornerRadius: 18))
+
+                Button {
+                    session.returnToLobby()
+                } label: {
+                    Text("🏠 QUITTER VERS LE SALON (CHANGER THÈME)")
+                        .font(.system(size: 15, weight: .black, design: .rounded))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                }
+                .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.white, cornerRadius: 16))
+            } else {
+                Button {
+                    session.leaveRemoteSession()
+                } label: {
+                    Text("🚪 QUITTER LA PARTIE")
+                        .font(.system(size: 16, weight: .black, design: .rounded))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 15)
+                }
+                .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.redError, foregroundColor: .white, cornerRadius: 16))
             }
         }
+    }
+
+    private var inGameQuitAndStopFooter: some View {
+        HStack(spacing: 10) {
+            if session.role == .hostAndPlayer1 {
+                Button {
+                    session.finishGameToPodiumNow()
+                } label: {
+                    Text("🏆 Finir sur le Podium")
+                        .font(.system(size: 13, weight: .black, design: .rounded))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                }
+                .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.white, cornerRadius: 14))
+
+                Button {
+                    session.returnToLobby()
+                } label: {
+                    Text("⏹️ Arrêter / Quitter")
+                        .font(.system(size: 13, weight: .black, design: .rounded))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                }
+                .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.redError, foregroundColor: .white, cornerRadius: 14))
+            } else {
+                Button {
+                    session.leaveRemoteSession()
+                } label: {
+                    Text("🚪 Quitter la partie")
+                        .font(.system(size: 14, weight: .black, design: .rounded))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                }
+                .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.redError, foregroundColor: .white, cornerRadius: 14))
+            }
+        }
+        .padding(.top, 6)
     }
 
     // MARK: - 8. Bisou Baveux Sabotage Overlay

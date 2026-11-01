@@ -108,7 +108,10 @@ public enum WebControllerHTML {
         <body>
           <div class="header">
             <div>👵 MEEMAW QUIZZ</div>
-            <div class="badge" id="scoreBadge">0 PTS</div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div class="badge" id="scoreBadge">0 PTS</div>
+              <button class="badge" style="background:#E11D48;color:#fff;cursor:pointer;" onclick="leaveGame()">🚪 Quitter</button>
+            </div>
           </div>
 
           <div id="bisouOverlay" class="bisou-overlay" onclick="wipeBisou()">
@@ -199,6 +202,14 @@ public enum WebControllerHTML {
             function wipeBisou() {
               beep(740, 45);
               sendMsg({ action: 'wipe_bisou' });
+            }
+
+            function leaveGame() {
+              beep(320, 90);
+              sendMsg({ action: 'leave_game' });
+              document.getElementById('profileCard').style.display = 'block';
+              document.getElementById('stageTitle').innerText = '👋 Tu as quitté la partie. Entre ton pseudo pour revenir !';
+              document.getElementById('stageContent').innerHTML = '';
             }
 
             function updateUI(st) {

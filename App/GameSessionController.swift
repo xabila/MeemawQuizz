@@ -187,6 +187,30 @@ final class GameSessionController {
         bonjourClient.startAutoDiscovery()
     }
 
+    func removeAllBots() {
+        guard role == .hostAndPlayer1 else { return }
+        for botID in ["bot_tonton", "bot_tata", "bot_kevin"] {
+            registry.removePlayer(id: botID)
+        }
+        audio.triggerControllerHaptic(style: .light)
+        broadcastState()
+    }
+
+    func leaveRemoteSession() {
+        if role == .bonjourClient {
+            bonjourClient.send(ClientToHostMessage(
+                playerID: localPlayerID,
+                action: .leaveGame
+            ))
+            bonjourClient.stop()
+            clientSnapshot = nil
+            isBonjourConnectedToRemoteHost = false
+            startHostingSession()
+        } else {
+            returnToLobby()
+        }
+    }
+
     func addDemoBotPlayers() {
         guard role == .hostAndPlayer1 else { return }
         let botCatalog: [(String, String, PlayerColor, String)] = [
@@ -319,6 +343,12 @@ final class GameSessionController {
             }
             broadcastState()
 
+        case .leaveGame:
+            if !isHostPlayer {
+                registry.removePlayer(id: msg.playerID)
+                broadcastState()
+            }
+
         case .ping:
             broadcastState()
         }
@@ -394,6 +424,7 @@ final class GameSessionController {
         guard role == .hostAndPlayer1 else { return }
         stopTimers()
         audio.stopVoiceOnly()
+        registry.resetRoundLocks()
         stage = .lobby
         activeQuestion = nil
         activeDisOrDat = nil
@@ -402,8 +433,15 @@ final class GameSessionController {
         soloBuzzerPlayerName = nil
         podiumAwards = []
         meemawPose = "meemaw_salut"
-        meemawSpeech = "Prêts pour une nouvelle manche ? Choisissez votre thème et vos couleurs !"
+        meemawSpeech = "Partie arrêtée ! De retour au salon : choisissez votre thème et vos couleurs !"
         broadcastState()
+    }
+
+    func finishGameToPodiumNow() {
+        guard role == .hostAndPlayer1 else { return }
+        stopTimers()
+        audio.stopVoiceOnly()
+        enterFinalPodium()
     }
 
     func skipToNextStep() {

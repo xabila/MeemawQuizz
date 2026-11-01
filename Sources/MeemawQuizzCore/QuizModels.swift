@@ -443,6 +443,7 @@ public struct ClientToHostMessage: Codable, Equatable, Sendable {
         case selectBinarySide = "select_binary"
         case sendBisouTrap = "send_bisou"
         case wipeBisouScreen = "wipe_bisou"
+        case leaveGame = "leave_game"
         case ping = "ping"
     }
 
