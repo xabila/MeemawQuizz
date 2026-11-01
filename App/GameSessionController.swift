@@ -324,6 +324,19 @@ final class GameSessionController {
 
     // MARK: - Show Flow Orchestration (Host Only)
 
+    func startSoloTestShow(withBots: Bool = false) {
+        guard role == .hostAndPlayer1 else { return }
+        // Remove bots if solo pure, or add 2 bots if requested
+        for botID in ["bot_tonton", "bot_tata", "bot_kevin"] {
+            registry.removePlayer(id: botID)
+        }
+        if withBots {
+            addDemoBotPlayers()
+            addDemoBotPlayers()
+        }
+        startNewShow()
+    }
+
     func selectThemePack(_ pack: QuizThemePack) {
         guard role == .hostAndPlayer1 else { return }
         selectedPack = pack

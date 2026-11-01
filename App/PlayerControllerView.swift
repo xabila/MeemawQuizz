@@ -29,6 +29,8 @@ struct PlayerControllerView: View {
                                 .strokeBorder(PopArt.ink, lineWidth: 3.5)
                         )
                         .shadow(color: PopArt.ink.opacity(0.35), radius: 6, x: 0, y: 4)
+                } else if !displayManager.isExternalTVSceneConnected {
+                    compactPhoneMeemawBanner
                 }
 
                 ScrollView(.vertical, showsIndicators: false) {
@@ -173,6 +175,41 @@ struct PlayerControllerView: View {
                 .background(Color.white.opacity(0.88), in: RoundedRectangle(cornerRadius: 14))
                 .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(PopArt.ink, lineWidth: 2))
             }
+        }
+    }
+
+    // MARK: - 1B. Compact Meemaw Banner on Phone (when testing without AirPlay TV)
+
+    private var compactPhoneMeemawBanner: some View {
+        PopArtCard(cornerRadius: 18, borderWidth: 3, backgroundColor: PopArt.white, shadowOffset: 4) {
+            HStack(spacing: 12) {
+                MeemawGuestStarAvatar(
+                    pose: snap.meemawPose,
+                    isSpeaking: MeemawShowAudioEngine.shared.isMeemawSpeaking,
+                    size: 62
+                )
+
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(snap.stage == .lobby ? "🎙️ MEEMAW QUIZZ" : snap.roundKind.badgeTitle)
+                            .font(.system(size: 11, weight: .black, design: .rounded))
+                            .foregroundStyle(PopArt.orange)
+                        Spacer()
+                        if snap.timeRemainingSec > 0 && (snap.stage == .cashAnswering || snap.stage == .soloBuzzOpen || snap.stage == .soloPlayerAnswering || snap.stage == .couciCoucaItem) {
+                            Text(String(format: "⏱️ %.1fs", snap.timeRemainingSec))
+                                .font(.system(size: 12, weight: .black, design: .monospaced))
+                                .foregroundStyle(snap.timeRemainingSec <= 3.5 ? PopArt.redError : PopArt.ink)
+                        }
+                    }
+
+                    Text(snap.meemawSpeech)
+                        .font(.system(size: 13, weight: .heavy, design: .rounded))
+                        .foregroundStyle(PopArt.ink)
+                        .lineLimit(3)
+                        .minimumScaleFactor(0.8)
+                }
+            }
+            .padding(10)
         }
     }
 
@@ -341,17 +378,75 @@ struct PlayerControllerView: View {
                             .buttonStyle(.plain)
                         }
 
-                        Button {
-                            session.startNewShow()
-                        } label: {
-                            HStack {
-                                Text("🎬 LANCER LE GRAND QUIZZ DE MEEMAW !")
-                                    .font(.system(size: 17, weight: .black, design: .rounded))
+                        VStack(spacing: 10) {
+                            HStack(spacing: 8) {
+                                Button {
+                                    session.startSoloTestShow(withBots: false)
+                                } label: {
+                                    HStack(spacing: 6) {
+                                        Text("🕹️ Tester Seul")
+                                            .font(.system(size: 14, weight: .black, design: .rounded))
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 13)
+                                }
+                                .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.yellow, cornerRadius: 14))
+
+                                Button {
+                                    session.startSoloTestShow(withBots: true)
+                                } label: {
+                                    HStack(spacing: 6) {
+                                        Text("🤖 Seul + 2 Bots")
+                                            .font(.system(size: 14, weight: .black, design: .rounded))
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 13)
+                                }
+                                .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.cyan, foregroundColor: .white, cornerRadius: 14))
                             }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
+
+                            Button {
+                                session.startNewShow()
+                            } label: {
+                                HStack {
+                                    Text("👨‍👩‍👧‍👦 LANCER LE QUIZZ EN FAMILLE (\(snap.players.count) J.) !")
+                                        .font(.system(size: 16, weight: .black, design: .rounded))
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 16)
+                            }
+                            .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.orange, cornerRadius: 18))
                         }
-                        .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.orange, cornerRadius: 18))
+                        .padding(.top, 4)
+
+                        // QR Code & Lien Famille directement visible sur l'iPhone Hôte aussi
+                        HStack(spacing: 12) {
+                            if let qr = GameSessionController.makeQRCodeImage(from: snap.joinURL) {
+                                Image(uiImage: qr)
+                                    .interpolation(.none)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 72, height: 72)
+                                    .padding(4)
+                                    .background(Color.white, in: RoundedRectangle(cornerRadius: 10))
+                                    .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(PopArt.ink, lineWidth: 2))
+                            }
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("📲 Inviter la famille sur le Wi-Fi :")
+                                    .font(.system(size: 12, weight: .black))
+                                    .foregroundStyle(PopArt.ink)
+                                Text("• iPhone : Auto-connexion Bonjour\n• Android : Scanne ce QR ou ouvre :")
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundStyle(PopArt.ink.opacity(0.7))
+                                Text(snap.joinURL)
+                                    .font(.system(size: 12, weight: .black, design: .monospaced))
+                                    .foregroundStyle(PopArt.blue)
+                            }
+                            Spacer()
+                        }
+                        .padding(10)
+                        .background(PopArt.cream, in: RoundedRectangle(cornerRadius: 14))
+                        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(PopArt.ink.opacity(0.3), lineWidth: 2))
                         .padding(.top, 4)
                     }
                     .padding(16)
@@ -547,6 +642,40 @@ struct PlayerControllerView: View {
                     }
                     .buttonStyle(PopArtActionButtonStyle(backgroundColor: btnBg, cornerRadius: 18))
                     .disabled(me?.lockedChoiceIndex != nil || snap.stage == .questionReveal)
+                }
+
+                if snap.stage == .questionReveal {
+                    PopArtCard(
+                        cornerRadius: 18,
+                        borderWidth: 3.5,
+                        backgroundColor: (me?.lastDeltaScore ?? 0) > 0 ? Color(hex: "#D1FAE5") : Color(hex: "#FFE4E8")
+                    ) {
+                        VStack(spacing: 8) {
+                            let delta = me?.lastDeltaScore ?? 0
+                            Text(delta > 0 ? "✅ BIEN JOUÉ ! +\(delta) PTS" : "❌ AÏE ! \(delta) PTS")
+                                .font(.system(size: 18, weight: .black, design: .rounded))
+                                .foregroundStyle(delta > 0 ? PopArt.greenSuccess : PopArt.redError)
+
+                            Text(q.explanation)
+                                .font(.system(size: 14, weight: .bold, design: .rounded))
+                                .foregroundStyle(PopArt.ink)
+                                .multilineTextAlignment(.center)
+
+                            if session.role == .hostAndPlayer1 {
+                                Button {
+                                    session.skipToNextStep()
+                                } label: {
+                                    Text("Question suivante ➡️")
+                                        .font(.system(size: 14, weight: .black))
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 8)
+                                }
+                                .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.yellow, cornerRadius: 12))
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(14)
+                    }
                 }
 
                 // Joker : Le Bisou Baveux de Meemaw (1 fois par partie)
