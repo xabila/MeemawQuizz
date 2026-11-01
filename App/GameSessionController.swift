@@ -172,6 +172,7 @@ final class GameSessionController {
         bonjourClient.stop()
         role = .hostAndPlayer1
         lanServer.start(preferredPort: 8420)
+        audio.startBackgroundGroove(ducked: false)
         let hostPlayer = registry.upsertPlayer(
             id: localPlayerID,
             name: localPlayerName,

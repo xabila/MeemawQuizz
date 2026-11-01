@@ -113,6 +113,17 @@ struct PlayerControllerView: View {
                     .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2.5))
                 }
 
+                Button {
+                    session.audio.isMusicMuted.toggle()
+                } label: {
+                    Image(systemName: session.audio.isMusicMuted ? "speaker.slash.fill" : "music.note")
+                        .font(.system(size: 14, weight: .black))
+                        .foregroundStyle(PopArt.ink)
+                        .frame(width: 34, height: 34)
+                        .background(session.audio.isMusicMuted ? PopArt.white : PopArt.cyan, in: Circle())
+                        .overlay(Circle().strokeBorder(PopArt.ink, lineWidth: 2.5))
+                }
+
                 AirPlayRoutePickerButton(tintColor: .black)
                     .frame(width: 34, height: 34)
                     .background(PopArt.white, in: Circle())

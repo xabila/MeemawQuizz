@@ -71,15 +71,17 @@ final class MeemawShowAudioEngine: NSObject {
     func startBackgroundGroove(ducked: Bool = false) {
         ensureAudioSession()
         guard !isMusicMuted else { return }
-        let targetVol: Float = ducked ? 0.07 : 0.22
+        let targetVol: Float = ducked ? 0.08 : 0.26
         if let player = bgMusicPlayer {
-            player.volume = targetVol
             if !player.isPlaying {
+                player.volume = targetVol
                 player.play()
+            } else {
+                player.setVolume(targetVol, fadeDuration: 0.45)
             }
             return
         }
-        guard let url = resolveAudioURL(named: "Amber_Horizon.mp3"),
+        guard let url = resolveAudioURL(named: "The_Quiet_Podium.mp3"),
               let player = try? AVAudioPlayer(contentsOf: url) else { return }
         player.numberOfLoops = -1
         player.volume = targetVol
