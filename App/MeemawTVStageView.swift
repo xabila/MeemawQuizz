@@ -33,6 +33,10 @@ struct MeemawTVStageView: View {
                             tvLobbyStage(scale: scale)
                         case .roundIntro:
                             tvRoundIntroStage(scale: scale)
+                        case .ttmcBetting:
+                            if let question = snap.activeQuestion {
+                                tvTTMCBettingStage(question: question, scale: scale)
+                            }
                         case .questionReading, .cashAnswering, .soloBuzzOpen, .soloPlayerAnswering, .questionReveal:
                             if let question = snap.activeQuestion {
                                 tvMCQQuestionStage(question: question, scale: scale)
@@ -91,7 +95,7 @@ struct MeemawTVStageView: View {
 
             Spacer()
 
-            if snap.timeRemainingSec > 0 && (snap.stage == .cashAnswering || snap.stage == .soloBuzzOpen || snap.stage == .soloPlayerAnswering || snap.stage == .couciCoucaItem) {
+            if snap.timeRemainingSec > 0 && (snap.stage == .ttmcBetting || snap.stage == .cashAnswering || snap.stage == .soloBuzzOpen || snap.stage == .soloPlayerAnswering || snap.stage == .couciCoucaItem) {
                 HStack(spacing: 8 * scale) {
                     Image(systemName: "timer")
                         .font(.system(size: 20 * scale, weight: .black))
@@ -178,11 +182,13 @@ struct MeemawTVStageView: View {
 
                     Divider()
 
-                    VStack(alignment: .leading, spacing: 8 * scale) {
-                        lobbyRoundRow(badge: "MANCHE 1", title: "⚡ Cash Rapide (Rapidité + 🔩 Clouer le Bec façon Jack + 💋 Bisou)", scale: scale)
-                        lobbyRoundRow(badge: "MANCHE 2", title: "🚨 LE SOLO (Le 1er qui répond gagne le DOUBLE ou perd tout !)", scale: scale)
-                        lobbyRoundRow(badge: "MANCHE 3", title: "🧀 La Raclette Quizz (Gauche, Droite, ou 🧀 LES DEUX !)", scale: scale)
-                        lobbyRoundRow(badge: "MANCHE 4", title: "🔥 La Rafale Finale (Tous les points ×2 + Podium)", scale: scale)
+                    VStack(alignment: .leading, spacing: 6 * scale) {
+                        lobbyRoundRow(badge: "MANCHE 1", title: "⚡ Cash Rapide (Rapidité + 🔩 Clouer le Bec + 💋 Bisou)", scale: scale)
+                        lobbyRoundRow(badge: "MANCHE 2", title: "🎯 Tu Te Mets Combien ? (Misez de ⭐ à ⭐⭐⭐⭐ avant la question !)", scale: scale)
+                        lobbyRoundRow(badge: "MANCHE 3", title: "🎧 Le Jukebox Express (Paroles Coupées & Tubes)", scale: scale)
+                        lobbyRoundRow(badge: "MANCHE 4", title: "🚨 LE SOLO (Le 1er qui répond gagne le DOUBLE ou perd tout !)", scale: scale)
+                        lobbyRoundRow(badge: "MANCHE 5", title: "🧀 La Raclette Quizz (Gauche, Droite, ou 🧀 LES DEUX !)", scale: scale)
+                        lobbyRoundRow(badge: "MANCHE 6", title: "🔥 La Rafale Finale (Tous les points ×2 + Podium)", scale: scale)
                     }
 
                     Spacer()
@@ -294,6 +300,71 @@ struct MeemawTVStageView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding(30 * scale)
+        }
+    }
+
+    // MARK: - 3B-bis. 🎯 « Tu Te Mets Combien ? » Betting Stage on TV
+
+    private func tvTTMCBettingStage(question: QuizMCQQuestion, scale: CGFloat) -> some View {
+        VStack(spacing: 16 * scale) {
+            PopArtCard(
+                cornerRadius: 28 * scale,
+                borderWidth: 5,
+                backgroundColor: Color(hex: "#FEF9C3"),
+                shadowOffset: 8 * scale
+            ) {
+                VStack(spacing: 12 * scale) {
+                    Text("🎯 TU TE METS COMBIEN (DE 1 À 4 ÉTOILES) SUR CE SUJET ?")
+                        .font(.system(size: 20 * scale, weight: .black, design: .rounded))
+                        .foregroundStyle(PopArt.purple)
+
+                    Text("« \(question.funnyTitle) »")
+                        .font(.system(size: 38 * scale, weight: .black, design: .rounded))
+                        .foregroundStyle(PopArt.ink)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 24 * scale)
+
+                    Text("Choisissez votre niveau de confiance sur vos téléphones AVANT de découvrir la question !")
+                        .font(.system(size: 18 * scale, weight: .heavy, design: .rounded))
+                        .foregroundStyle(PopArt.ink.opacity(0.75))
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 22 * scale)
+            }
+
+            HStack(spacing: 14 * scale) {
+                tvTTMCStarCard(stars: 1, title: "PETIT JOUEUR", win: "+1 000", loss: "-250", color: PopArt.cyan, scale: scale)
+                tvTTMCStarCard(stars: 2, title: "TRANQUILLE", win: "+2 000", loss: "-500", color: PopArt.greenSuccess, scale: scale)
+                tvTTMCStarCard(stars: 3, title: "CHAUD BOUILLANT", win: "+3 500", loss: "-1 000", color: PopArt.orange, scale: scale)
+                tvTTMCStarCard(stars: 4, title: "LE MELON TOTAL !", win: "+5 000", loss: "-2 500", color: PopArt.redError, scale: scale)
+            }
+            .frame(maxHeight: .infinity)
+        }
+    }
+
+    private func tvTTMCStarCard(stars: Int, title: String, win: String, loss: String, color: Color, scale: CGFloat) -> some View {
+        PopArtCard(
+            cornerRadius: 22 * scale,
+            borderWidth: 4,
+            backgroundColor: color,
+            shadowOffset: 6 * scale
+        ) {
+            VStack(spacing: 8 * scale) {
+                Text(String(repeating: "⭐", count: stars))
+                    .font(.system(size: 28 * scale))
+                Text(title)
+                    .font(.system(size: 18 * scale, weight: .black, design: .rounded))
+                    .foregroundStyle(.white)
+                    .multilineTextAlignment(.center)
+                Text("\(win) PTS")
+                    .font(.system(size: 24 * scale, weight: .black, design: .monospaced))
+                    .foregroundStyle(PopArt.yellow)
+                Text("(\(loss) si faux)")
+                    .font(.system(size: 14 * scale, weight: .bold))
+                    .foregroundStyle(.white.opacity(0.9))
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(12 * scale)
         }
     }
 
@@ -663,6 +734,10 @@ struct MeemawTVStageView: View {
                                 .font(.system(size: 16 * scale, weight: .black, design: .rounded))
                                 .foregroundStyle(PopArt.ink)
                                 .lineLimit(1)
+                            if snap.roundKind == .tuTeMetsCombien, let stars = player.lockedBetStars {
+                                Text(String(repeating: "⭐", count: stars))
+                                    .font(.system(size: 12 * scale))
+                            }
                             if player.streak >= 2 {
                                 Text("🔥\(player.streak)")
                                     .font(.system(size: 12 * scale, weight: .black))

@@ -39,6 +39,36 @@ public enum QuizScoringEngine {
         return rankBase + speedBonus
     }
 
+    /// Renvoie le gain et la perte pour 1 à 4 étoiles dans la manche « Tu Te Mets Combien ? »
+    public static func ttmcStakes(for stars: Int) -> (win: Int, loss: Int) {
+        switch stars {
+        case 1: return (1000, -250)
+        case 2: return (2000, -500)
+        case 3: return (3500, -1000)
+        case 4: return (5000, -2500)
+        default: return (2000, -500)
+        }
+    }
+
+    /// Calcule les points de la manche « Tu Te Mets Combien ? » (de 1 à 4 étoiles) :
+    /// - 1 ⭐ : +1 000 / -250
+    /// - 2 ⭐⭐ : +2 000 / -500
+    /// - 3 ⭐⭐⭐ : +3 500 / -1 000
+    /// - 4 ⭐⭐⭐⭐ (Le Melon) : +5 000 / -2 500
+    /// +300 pts de bonus éclair pour le plus rapide qui a bon !
+    public static func scoreTTMCAnswer(
+        stars: Int,
+        isCorrect: Bool,
+        isFastest: Bool
+    ) -> Int {
+        let stakes = ttmcStakes(for: stars)
+        if isCorrect {
+            return stakes.win + (isFastest ? 300 : 0)
+        } else {
+            return stakes.loss
+        }
+    }
+
     /// Calcule les points d'une manche « LE SOLO » (style YDKJ Buzzer) :
     /// - Bonne réponse : Double Jackpot (×2)
     /// - Mauvaise réponse ou temps écoulé : Perte sèche (-1×)

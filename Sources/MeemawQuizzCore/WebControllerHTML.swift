@@ -159,6 +159,7 @@ public enum WebControllerHTML {
             let optimisticChoice = null;
             let optimisticItemKey = null;
             let optimisticSide = null;
+            let optimisticStars = null;
 
             const savedName = localStorage.getItem('mq_name') || '';
             document.getElementById('playerName').value = savedName;
@@ -229,6 +230,15 @@ public enum WebControllerHTML {
               if (lastState) updateUI(lastState);
             }
 
+            function pickBetStars(stars, qid) {
+              optimisticQuestionID = qid;
+              optimisticStars = stars;
+              lastRenderKey = '';
+              beep(720, 65);
+              sendMsg({ action: 'select_bet_stars', betStars: stars });
+              if (lastState) updateUI(lastState);
+            }
+
             function pickBinary(side, itemKey) {
               optimisticItemKey = itemKey;
               optimisticSide = side;
@@ -282,6 +292,7 @@ public enum WebControllerHTML {
               if (optimisticQuestionID !== qid) {
                 optimisticQuestionID = qid;
                 optimisticChoice = null;
+                optimisticStars = null;
               }
               const itemKey = st.activeDisOrDat ? `${st.activeDisOrDat.id}_${st.activeDisOrDatItemIndex || 0}` : '';
               if (optimisticItemKey !== itemKey) {
@@ -295,8 +306,12 @@ public enum WebControllerHTML {
               const effectiveSide = (me && me.lockedSide)
                 ? me.lockedSide
                 : optimisticSide;
+              const effectiveStars = (me && me.lockedBetStars)
+                ? me.lockedBetStars
+                : optimisticStars;
 
               const answeredCount = (st.players || []).filter(p => p.lockedChoiceIndex !== null && p.lockedChoiceIndex !== undefined || p.lockedSide).length;
+              const betCount = (st.players || []).filter(p => p.lockedBetStars).length;
               const renderKey = [
                 st.stage,
                 st.roundKind,
@@ -304,11 +319,13 @@ public enum WebControllerHTML {
                 itemKey,
                 effectiveChoice,
                 effectiveSide,
+                effectiveStars,
                 st.revealedCorrectIndex,
                 st.revealedBinarySide,
                 st.soloBuzzerPlayerID,
                 st.screwAttackerName,
                 answeredCount,
+                betCount,
                 (st.players || []).length,
                 me ? me.hasUsedScrew : false,
                 me ? me.hasUsedBisouTrap : false
@@ -335,14 +352,44 @@ public enum WebControllerHTML {
                 return;
               }
 
+              if (st.stage === 'ttmc_betting' && st.activeQuestion) {
+                stageCard.style.background = '#FEF9C3';
+                titleEl.innerText = `🎯 TU TE METS COMBIEN SUR : « ${st.activeQuestion.funnyTitle} » ?`;
+                const opts = [
+                  { s: 1, t: '⭐ 1 ÉTOILE • PETIT JOUEUR', sub: '+1 000 PTS si bon • -250 si faux', bg: '#00ACC1' },
+                  { s: 2, t: '⭐⭐ 2 ÉTOILES • TRANQUILLE', sub: '+2 000 PTS si bon • -500 si faux', bg: '#10B981' },
+                  { s: 3, t: '⭐⭐⭐ 3 ÉTOILES • CHAUD BOUILLANT', sub: '+3 500 PTS si bon • -1 000 si faux', bg: '#FF8C42' },
+                  { s: 4, t: '⭐⭐⭐⭐ 4 ÉTOILES • LE MELON TOTAL !', sub: '+5 000 PTS si bon • -2 500 si faux !', bg: '#E11D48' }
+                ];
+                const lockBanner = effectiveStars
+                  ? `<div style="background:#FFD700;color:#1A1A1A;padding:10px;border-radius:14px;border:3px solid #1A1A1A;font-weight:900;text-align:center;margin-bottom:10px;">🔒 PARI VERROUILLÉ : ${'⭐'.repeat(effectiveStars)}<br><span style="font-size:12px;">⏳ En attente des autres (${betCount}/${(st.players || []).length})...</span></div>`
+                  : '';
+                contentEl.innerHTML = lockBanner + '<div class="choices-grid">' + opts.map(o => {
+                  const isSel = (effectiveStars === o.s);
+                  const style = isSel
+                    ? 'background:#FFD700;color:#1A1A1A;'
+                    : `background:${o.bg};color:#fff;${effectiveStars ? 'opacity:0.35;' : ''}`;
+                  return `<button class="choice-btn" style="${style};flex-direction:column;align-items:flex-start;gap:4px;" ${effectiveStars ? 'disabled' : ''} onclick="pickBetStars(${o.s},'${st.activeQuestion.id}')">
+                    <div style="font-size:17px;font-weight:900;">${o.t} ${isSel ? '🔒' : ''}</div>
+                    <div style="font-size:13px;font-weight:700;opacity:0.92;">${o.sub}</div>
+                  </button>`;
+                }).join('') + '</div>';
+                return;
+              }
+
               if ((st.stage === 'solo_buzz_open' || st.stage === 'cash_answering' || st.stage === 'question_reading' || st.stage === 'question_reveal') && st.activeQuestion) {
                 const isSolo = (st.roundKind === 'le_solo');
                 let topBanner = '';
+                if (st.roundKind === 'tu_te_mets_combien' && effectiveStars) {
+                  topBanner += `<div style="background:#8E44AD;color:#FFD700;padding:8px 12px;border-radius:12px;border:3px solid #1A1A1A;font-weight:900;text-align:center;margin-bottom:8px;">🎯 TON PARI : ${'⭐'.repeat(effectiveStars)}</div>`;
+                } else if (st.roundKind === 'jukebox_express') {
+                  topBanner += `<div style="background:#FF4D94;color:#fff;padding:8px 12px;border-radius:12px;border:3px solid #1A1A1A;font-weight:900;text-align:center;margin-bottom:8px;">🎧 JUKEBOX EXPRESS • COMPLÈTE LES PAROLES !</div>`;
+                }
                 if (st.stage === 'solo_buzz_open') {
-                  topBanner = `<div style="background:#E11D48;color:#fff;padding:10px;border-radius:14px;border:3px solid #1A1A1A;font-weight:900;text-align:center;margin-bottom:10px;">🚨 LE SOLO : LE 1er QUI RÉPOND PREND TOUT (DOUBLE OU GAMELLE) !</div>`;
+                  topBanner += `<div style="background:#E11D48;color:#fff;padding:10px;border-radius:14px;border:3px solid #1A1A1A;font-weight:900;text-align:center;margin-bottom:10px;">🚨 LE SOLO : LE 1er QUI RÉPOND PREND TOUT (DOUBLE OU GAMELLE) !</div>`;
                 } else if (st.stage === 'cash_answering' && effectiveChoice !== null && effectiveChoice !== undefined) {
                   const letters = ['A', 'B', 'C', 'D'];
-                  topBanner = `<div style="background:#FFD700;color:#1A1A1A;padding:12px;border-radius:14px;border:3px solid #1A1A1A;font-weight:900;text-align:center;margin-bottom:10px;">🔒 TON CHOIX (${letters[effectiveChoice]}) EST ENREGISTRÉ !<br><span style="font-size:13px;">⏳ En attente des autres joueurs (${answeredCount}/${(st.players || []).length})...</span></div>`;
+                  topBanner += `<div style="background:#FFD700;color:#1A1A1A;padding:12px;border-radius:14px;border:3px solid #1A1A1A;font-weight:900;text-align:center;margin-bottom:10px;">🔒 TON CHOIX (${letters[effectiveChoice]}) EST ENREGISTRÉ !<br><span style="font-size:13px;">⏳ En attente des autres joueurs (${answeredCount}/${(st.players || []).length})...</span></div>`;
                 }
                 titleEl.innerText = `${st.activeQuestion.funnyTitle} — ${st.activeQuestion.prompt}`;
                 renderChoices(st.activeQuestion, me, effectiveChoice, st.stage === 'question_reveal', st.revealedCorrectIndex, topBanner, isSolo, st);

@@ -78,6 +78,7 @@ public struct QuizPlayer: Codable, Equatable, Identifiable, Sendable {
     public var bisouSenderName: String?
     public var lockedChoiceIndex: Int?
     public var lockedSide: String?
+    public var lockedBetStars: Int?
     public var reactionTimeMs: Int?
     public var lastDeltaScore: Int?
     public var totalReactionMsSum: Int
@@ -100,6 +101,7 @@ public struct QuizPlayer: Codable, Equatable, Identifiable, Sendable {
         bisouSenderName: String? = nil,
         lockedChoiceIndex: Int? = nil,
         lockedSide: String? = nil,
+        lockedBetStars: Int? = nil,
         reactionTimeMs: Int? = nil,
         lastDeltaScore: Int? = nil,
         totalReactionMsSum: Int = 0,
@@ -121,6 +123,7 @@ public struct QuizPlayer: Codable, Equatable, Identifiable, Sendable {
         self.bisouSenderName = bisouSenderName
         self.lockedChoiceIndex = lockedChoiceIndex
         self.lockedSide = lockedSide
+        self.lockedBetStars = lockedBetStars
         self.reactionTimeMs = reactionTimeMs
         self.lastDeltaScore = lastDeltaScore
         self.totalReactionMsSum = totalReactionMsSum
@@ -207,6 +210,7 @@ public struct PlayerLobbyRegistry: Sendable {
         for idx in players.indices {
             players[idx].lockedChoiceIndex = nil
             players[idx].lockedSide = nil
+            players[idx].lockedBetStars = nil
             players[idx].reactionTimeMs = nil
             players[idx].lastDeltaScore = nil
             players[idx].activeBisouWipesRemaining = 0
@@ -224,6 +228,7 @@ public struct PlayerLobbyRegistry: Sendable {
             players[idx].bisouSenderName = nil
             players[idx].lockedChoiceIndex = nil
             players[idx].lockedSide = nil
+            players[idx].lockedBetStars = nil
             players[idx].reactionTimeMs = nil
             players[idx].lastDeltaScore = nil
             players[idx].totalReactionMsSum = 0
@@ -299,6 +304,8 @@ public enum QuizThemePack: String, CaseIterable, Codable, Identifiable, Sendable
 
 public enum QuizRoundKind: String, Codable, Sendable {
     case cashSpeed = "cash_speed"
+    case tuTeMetsCombien = "tu_te_mets_combien"
+    case jukeboxExpress = "jukebox_express"
     case leSolo = "le_solo"
     case couciCouca = "couci_couca"
     case quoizziQuoissa = "quoizzi_quoissa"
@@ -307,16 +314,20 @@ public enum QuizRoundKind: String, Codable, Sendable {
     public var badgeTitle: String {
         switch self {
         case .cashSpeed: "⚡ MANCHE 1 • CASH RAPIDE"
-        case .leSolo: "🚨 MANCHE 2 • LE SOLO (1er QUI DÉGAINE)"
-        case .couciCouca: "🧀 MANCHE 3 • LA RACLETTE QUIZZ"
-        case .quoizziQuoissa: "🤪 MANCHE 4 • QUOIZZI-QUOISSA (JEUX DE MOTS)"
-        case .finaleDouble: "🔥 MANCHE 5 • RAFALE POINTS ×2"
+        case .tuTeMetsCombien: "🎯 MANCHE 2 • TU TE METS COMBIEN ?"
+        case .jukeboxExpress: "🎧 MANCHE 3 • LE JUKEBOX EXPRESS"
+        case .leSolo: "🚨 MANCHE 4 • LE SOLO (1er QUI DÉGAINE)"
+        case .couciCouca: "🧀 MANCHE 5 • LA RACLETTE QUIZZ"
+        case .quoizziQuoissa: "🤪 MANCHE • QUOIZZI-QUOISSA"
+        case .finaleDouble: "🔥 MANCHE 6 • RAFALE POINTS ×2"
         }
     }
 
     public var ruleSummary: String {
         switch self {
         case .cashSpeed: "Tout le monde répond sur son tel ! Le plus rapide rafle le jackpot !"
+        case .tuTeMetsCombien: "Avant de voir la question, mise de ⭐ (1 000 pts) à ⭐⭐⭐⭐ (5 000 pts) sur le sujet annoncé par Meemaw !"
+        case .jukeboxExpress: "N'oubliez pas les paroles de Meemaw : complète le refrain exact au moment où la musique coupe !"
         case .leSolo: "Pas besoin de buzzer : le 1er qui tape sa réponse coupe l'herbe sous le pied des autres (Double ou Gamelle) !"
         case .couciCouca: "Façon Burger Quiz version Savoie : tape Option A, Option B, ou 🧀 LES DEUX !"
         case .quoizziQuoissa: "6 jeux de mots et calembours tordus de Meemaw : réponds dès que ça s'affiche !"
@@ -437,6 +448,7 @@ public struct QuizDisOrDatRound: Codable, Equatable, Identifiable, Sendable {
 public enum ShowStageState: String, Codable, Sendable {
     case lobby = "lobby"
     case roundIntro = "round_intro"
+    case ttmcBetting = "ttmc_betting"
     case questionReading = "question_reading"
     case cashAnswering = "cash_answering"
     case soloBuzzOpen = "solo_buzz_open"
@@ -453,6 +465,7 @@ public struct ClientToHostMessage: Codable, Equatable, Sendable {
     public enum ActionKind: String, Codable, Sendable {
         case joinOrUpdateProfile = "join_profile"
         case selectChoice = "select_choice"
+        case selectBetStars = "select_bet_stars"
         case buzzSolo = "buzz_solo"
         case selectBinarySide = "select_binary"
         case sendBisouTrap = "send_bisou"
@@ -469,6 +482,7 @@ public struct ClientToHostMessage: Codable, Equatable, Sendable {
     public var avatarEmoji: String?
     public var platform: PlayerPlatform?
     public var choiceIndex: Int?
+    public var betStars: Int?
     public var binarySide: String?
     public var targetPlayerID: String?
 
@@ -480,6 +494,7 @@ public struct ClientToHostMessage: Codable, Equatable, Sendable {
         avatarEmoji: String? = nil,
         platform: PlayerPlatform? = nil,
         choiceIndex: Int? = nil,
+        betStars: Int? = nil,
         binarySide: String? = nil,
         targetPlayerID: String? = nil
     ) {
@@ -490,6 +505,7 @@ public struct ClientToHostMessage: Codable, Equatable, Sendable {
         self.avatarEmoji = avatarEmoji
         self.platform = platform
         self.choiceIndex = choiceIndex
+        self.betStars = betStars
         self.binarySide = binarySide
         self.targetPlayerID = targetPlayerID
     }

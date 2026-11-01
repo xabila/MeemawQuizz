@@ -40,6 +40,8 @@ struct PlayerControllerView: View {
                             lobbyControllerSection
                         case .roundIntro:
                             roundIntroControllerSection
+                        case .ttmcBetting:
+                            ttmcBettingControllerSection
                         case .soloBuzzOpen:
                             soloBuzzerControllerSection
                         case .soloPlayerAnswering:
@@ -266,7 +268,7 @@ struct PlayerControllerView: View {
                             .font(.system(size: 11, weight: .black, design: .rounded))
                             .foregroundStyle(PopArt.orange)
                         Spacer()
-                        if snap.timeRemainingSec > 0 && (snap.stage == .cashAnswering || snap.stage == .soloBuzzOpen || snap.stage == .soloPlayerAnswering || snap.stage == .couciCoucaItem) {
+                        if snap.timeRemainingSec > 0 && (snap.stage == .ttmcBetting || snap.stage == .cashAnswering || snap.stage == .soloBuzzOpen || snap.stage == .soloPlayerAnswering || snap.stage == .couciCoucaItem) {
                             Text(String(format: "⏱️ %.1fs", snap.timeRemainingSec))
                                 .font(.system(size: 12, weight: .black, design: .monospaced))
                                 .foregroundStyle(snap.timeRemainingSec <= 3.5 ? PopArt.redError : PopArt.ink)
@@ -589,7 +591,110 @@ struct PlayerControllerView: View {
         }
     }
 
-    // MARK: - 4. Manche 2 : « LE SOLO » ou « CLOUER LE BEC » (Style Jack)
+    // MARK: - 3B. Manche 2 : 🎯 « Tu Te Mets Combien ? » (Mise de 1 à 4 Étoiles avant de voir la question)
+
+    private var ttmcBettingControllerSection: some View {
+        VStack(spacing: 12) {
+            if let q = snap.activeQuestion {
+                PopArtCard(cornerRadius: 22, borderWidth: 4, backgroundColor: Color(hex: "#FEF9C3")) {
+                    VStack(spacing: 8) {
+                        HStack {
+                            Text("🎯 TU TE METS COMBIEN ?")
+                                .font(.system(size: 14, weight: .black, design: .rounded))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 5)
+                                .background(PopArt.purple, in: Capsule())
+                                .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
+                            Spacer()
+                            Text(q.theme.shortBadge)
+                                .font(.system(size: 12, weight: .black, design: .rounded))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 4)
+                                .background(Color(hex: q.theme.accentHex), in: Capsule())
+                        }
+
+                        Text("Sujet mystère de Meemaw :")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(PopArt.ink.opacity(0.75))
+
+                        Text("« \(q.funnyTitle) »")
+                            .font(.system(size: 22, weight: .black, design: .rounded))
+                            .foregroundStyle(PopArt.ink)
+                            .multilineTextAlignment(.center)
+                            .padding(.vertical, 4)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(16)
+                }
+
+                if let lockedStars = me?.lockedBetStars {
+                    let betCount = snap.players.filter { $0.lockedBetStars != nil }.count
+                    let stakes = QuizScoringEngine.ttmcStakes(for: lockedStars)
+                    PopArtCard(cornerRadius: 18, borderWidth: 3.5, backgroundColor: PopArt.yellow) {
+                        VStack(spacing: 4) {
+                            Text("🔒 PARI VERROUILLÉ : \(String(repeating: "⭐", count: lockedStars)) (+\(stakes.win) PTS / \(stakes.loss) PTS)")
+                                .font(.system(size: 16, weight: .black, design: .rounded))
+                                .foregroundStyle(PopArt.ink)
+                            Text("⏳ En attente des paris des autres joueurs (\(betCount)/\(snap.players.count))...")
+                                .font(.system(size: 13, weight: .heavy, design: .rounded))
+                                .foregroundStyle(PopArt.ink.opacity(0.8))
+                        }
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity)
+                        .padding(12)
+                    }
+                }
+
+                let starOptions: [(stars: Int, title: String, subtitle: String, color: Color)] = [
+                    (1, "⭐ 1 ÉTOILE • PETIT JOUEUR", "+1 000 PTS si bon  •  -250 PTS si faux", PopArt.cyan),
+                    (2, "⭐⭐ 2 ÉTOILES • TRANQUILLE", "+2 000 PTS si bon  •  -500 PTS si faux", PopArt.greenSuccess),
+                    (3, "⭐⭐⭐ 3 ÉTOILES • CHAUD BOUILLANT", "+3 500 PTS si bon  •  -1 000 PTS si faux", PopArt.orange),
+                    (4, "⭐⭐⭐⭐ 4 ÉTOILES • LE MELON TOTAL !", "+5 000 PTS si bon  •  -2 500 PTS si faux !", PopArt.redError)
+                ]
+
+                ForEach(starOptions, id: \.stars) { opt in
+                    let isSelected = (me?.lockedBetStars == opt.stars)
+                    let hasLocked = (me?.lockedBetStars != nil)
+                    Button {
+                        session.submitBetStars(opt.stars)
+                    } label: {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(opt.title)
+                                    .font(.system(size: 17, weight: .black, design: .rounded))
+                                    .foregroundStyle(isSelected ? PopArt.ink : .white)
+                                Text(opt.subtitle)
+                                    .font(.system(size: 13, weight: .heavy, design: .rounded))
+                                    .foregroundStyle(isSelected ? PopArt.ink.opacity(0.85) : .white.opacity(0.92))
+                            }
+                            Spacer()
+                            if isSelected {
+                                Text("🔒 MISÉ")
+                                    .font(.system(size: 13, weight: .black))
+                                    .foregroundStyle(PopArt.ink)
+                            }
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 14)
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(
+                        PopArtActionButtonStyle(
+                            backgroundColor: isSelected ? PopArt.yellow : opt.color,
+                            foregroundColor: isSelected ? PopArt.ink : .white,
+                            cornerRadius: 18
+                        )
+                    )
+                    .opacity((hasLocked && !isSelected) ? 0.35 : 1.0)
+                    .disabled(hasLocked)
+                }
+            }
+        }
+    }
+
+    // MARK: - 4. Manche 4 : « LE SOLO » ou « CLOUER LE BEC » (Style Jack)
 
     private var soloBuzzerControllerSection: some View {
         VStack(spacing: 12) {
@@ -673,6 +778,33 @@ struct PlayerControllerView: View {
         VStack(spacing: 12) {
             if let q = snap.activeQuestion {
                 let letters = ["A", "B", "C", "D"]
+
+                if snap.roundKind == .tuTeMetsCombien, let stars = me?.lockedBetStars {
+                    let stakes = QuizScoringEngine.ttmcStakes(for: stars)
+                    PopArtCard(cornerRadius: 16, borderWidth: 3, backgroundColor: PopArt.purple) {
+                        HStack {
+                            Text("🎯 TON PARI : \(String(repeating: "⭐", count: stars))")
+                                .font(.system(size: 14, weight: .black, design: .rounded))
+                                .foregroundStyle(PopArt.yellow)
+                            Spacer()
+                            Text("+\(stakes.win) PTS / \(stakes.loss) PTS")
+                                .font(.system(size: 13, weight: .black, design: .monospaced))
+                                .foregroundStyle(.white)
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                    }
+                } else if snap.roundKind == .jukeboxExpress {
+                    PopArtCard(cornerRadius: 16, borderWidth: 3, backgroundColor: PopArt.pink) {
+                        HStack {
+                            Text("🎧 JUKEBOX EXPRESS • N'OUBLIEZ PAS LES PAROLES !")
+                                .font(.system(size: 13, weight: .black, design: .rounded))
+                                .foregroundStyle(.white)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                    }
+                }
 
                 // 1) En attente des autres joueurs (évite l'impression que la question revient !)
                 if snap.stage == .cashAnswering, let myChosen = me?.lockedChoiceIndex {

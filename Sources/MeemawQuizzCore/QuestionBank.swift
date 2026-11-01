@@ -2,6 +2,8 @@ import Foundation
 
 public struct ShowGameDeck: Sendable {
     public var cashQuestions: [QuizMCQQuestion]
+    public var ttmcQuestions: [QuizMCQQuestion]
+    public var jukeboxQuestions: [QuizMCQQuestion]
     public var soloQuestions: [QuizMCQQuestion]
     public var couciCoucaRound: QuizDisOrDatRound
     public var quoizziPunRound: QuizDisOrDatRound
@@ -9,12 +11,16 @@ public struct ShowGameDeck: Sendable {
 
     public init(
         cashQuestions: [QuizMCQQuestion],
+        ttmcQuestions: [QuizMCQQuestion] = [],
+        jukeboxQuestions: [QuizMCQQuestion] = [],
         soloQuestions: [QuizMCQQuestion],
         couciCoucaRound: QuizDisOrDatRound,
         quoizziPunRound: QuizDisOrDatRound? = nil,
         finaleDoubleQuestions: [QuizMCQQuestion]
     ) {
         self.cashQuestions = cashQuestions
+        self.ttmcQuestions = ttmcQuestions
+        self.jukeboxQuestions = jukeboxQuestions
         self.soloQuestions = soloQuestions
         self.couciCoucaRound = couciCoucaRound
         self.quoizziPunRound = quoizziPunRound ?? couciCoucaRound
@@ -23,6 +29,10 @@ public struct ShowGameDeck: Sendable {
 
     public var allMCQIDs: [String] {
         (cashQuestions + soloQuestions + finaleDoubleQuestions).map(\.id)
+    }
+
+    public var allExtendedMCQIDs: [String] {
+        (cashQuestions + ttmcQuestions + jukeboxQuestions + soloQuestions + finaleDoubleQuestions).map(\.id)
     }
 }
 
@@ -79,19 +89,29 @@ public enum QuestionBank {
         let baseQuestions = questions(for: pack)
         var freshPool = baseQuestions.filter { !excludingQuestionIDs.contains($0.id) }.shuffled()
 
-        if freshPool.count < 7 {
+        if freshPool.count < 9 {
             let grandMixUnseen = questions(for: .grandMix)
                 .filter { !excludingQuestionIDs.contains($0.id) && !freshPool.map(\.id).contains($0.id) }
                 .shuffled()
             freshPool.append(contentsOf: grandMixUnseen)
         }
-        if freshPool.count < 7 {
+        if freshPool.count < 9 {
             freshPool = baseQuestions.shuffled()
         }
 
         let cash = Array(freshPool.prefix(3))
         let solo = Array(freshPool.dropFirst(3).prefix(2))
         let finale = Array(freshPool.dropFirst(5).prefix(2))
+        let ttmc = Array(freshPool.dropFirst(7).prefix(2))
+        let pickedIDs = Set((cash + solo + finale + ttmc).map(\.id))
+
+        let jukeboxPool = musiqueQuestions
+            .filter { $0.id.hasPrefix("JUK_") && !excludingQuestionIDs.contains($0.id) && !pickedIDs.contains($0.id) }
+            .shuffled()
+        let fallbackMusicPool = musiqueQuestions
+            .filter { !excludingQuestionIDs.contains($0.id) && !pickedIDs.contains($0.id) }
+            .shuffled()
+        let jukebox = Array((jukeboxPool + fallbackMusicPool + musiqueQuestions.shuffled()).prefix(2))
 
         let themeCouci = disOrDatRounds(for: pack)
         let unseenRaclette = themeCouci.filter { !excludingDisOrDatIDs.contains($0.id) && $0.optionBoth != nil }
@@ -108,6 +128,8 @@ public enum QuestionBank {
 
         return ShowGameDeck(
             cashQuestions: cash,
+            ttmcQuestions: ttmc.count == 2 ? ttmc : Array(freshPool.prefix(2)),
+            jukeboxQuestions: jukebox,
             soloQuestions: solo,
             couciCoucaRound: couci,
             quoizziPunRound: punRound,
@@ -1968,6 +1990,223 @@ public enum QuestionBank {
             meemawRoastOnWrong: "C'est Indochine ! Le seul groupe qui fait chanter ensemble les grands-parents, les parents et les ados !",
             explanation: "💡 Fondé en 1981, Indochine détient les records d'affluence dans les stades français.",
             audioCueID: "q_MUS_34"
+        ),
+        // MARK: - 🎧 Jukebox Express : Paroles Coupées & Hitster (12 QCM)
+        QuizMCQQuestion(
+            id: "JUK_01",
+            theme: .musiqueTubes,
+            preferredRound: .jukeboxExpress,
+            funnyTitle: "🎧 Paroles Coupées : Gims — « Spider »",
+            prompt: "Complète les paroles exactes du tube « Spider » de Gims & Dystinct quand la musique coupe : « Elle m'a dit : chéri, t'es ___ ... »",
+            choices: [
+                "« ... t'es mignon mais t'es pas mon style ! »",
+                "« ... t'esSpider-Man sur le plafond ! »",
+                "« ... t'es gentil mais t'as pas un rond ! »",
+                "« ... t'es beau mais t'as mis des claquettes ! »"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "« Elle m'a dit : chéri, t'es mignon mais t'es pas mon style ! » Tout le monde l'a chanté tout l'été !",
+            explanation: "💡 Tube numéro 1 de l'été 2024 signé Gims et Dystinct.",
+            audioCueID: "q_JUK_01"
+        ),
+        QuizMCQQuestion(
+            id: "JUK_02",
+            theme: .musiqueTubes,
+            preferredRound: .jukeboxExpress,
+            funnyTitle: "🎧 Paroles Coupées : Pierre Garnier — « Ceux qu'on était »",
+            prompt: "Complète le refrain que toute la France chante à tue-tête : « On garde le meilleur de ceux qu'on était, ___ ... »",
+            choices: [
+                "« ... je t'aimerai toujours même si c'est plus jamais ! »",
+                "« ... on oubliera le reste au fond du café ! »",
+                "« ... même si demain on change de quartier ! »",
+                "« ... promis juré j'ai rangé ma chambre ! »"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "C'est « On garde le meilleur de ceux qu'on était, je t'aimerai toujours même si c'est plus jamais » !",
+            explanation: "💡 L'hymne de Pierre Garnier est devenu disque de diamant en un temps record.",
+            audioCueID: "q_JUK_02"
+        ),
+        QuizMCQQuestion(
+            id: "JUK_03",
+            theme: .musiqueTubes,
+            preferredRound: .jukeboxExpress,
+            funnyTitle: "🎧 Paroles Coupées : Sabrina Carpenter — « Espresso »",
+            prompt: "Complète la phrase culte du refrain d'« Espresso » de Sabrina Carpenter : « Now he's thinkin' 'bout me every night, oh, is it that sweet? I guess so... ___ »",
+            choices: [
+                "« Say you can't sleep, baby, I know — that's that me, espresso ! »",
+                "« Drink your coffee with a croissant, espresso ! »",
+                "« Wake me up at seven o'clock, espresso ! »",
+                "« Put some sugar in the cup, espresso ! »"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "« Say you can't sleep, baby, I know, that's that me, espresso ! » Demande à la fille de Chabi, elle la connaît par cœur !",
+            explanation: "💡 Le refrain d'« Espresso » (2024) de Sabrina Carpenter est devenu l'un des plus viraux de la décennie.",
+            audioCueID: "q_JUK_03"
+        ),
+        QuizMCQQuestion(
+            id: "JUK_04",
+            theme: .musiqueTubes,
+            preferredRound: .jukeboxExpress,
+            funnyTitle: "🎧 Paroles Coupées : Indochine — « J'ai demandé à la lune »",
+            prompt: "Que répond la Lune dans la chanson d'Indochine : « J'ai demandé à la lune, et le soleil ne le sait pas, je lui ai montré mes brûlures... ___ » ?",
+            choices: [
+                "« ... et la lune s'est moquée de moi ! »",
+                "« ... et la lune m'a mis du Biafine ! »",
+                "« ... et la lune a pleuré tout bas ! »",
+                "« ... et la lune s'est couchée trop tard ! »"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "« Et la lune s'est moquée de moi ! » Sorti en 2002 sur l'album Paradize !",
+            explanation: "💡 Écrite par Mickaël Furnon (Mickey 3D) pour Indochine en 2002.",
+            audioCueID: "q_JUK_04"
+        ),
+        QuizMCQQuestion(
+            id: "JUK_05",
+            theme: .musiqueTubes,
+            preferredRound: .jukeboxExpress,
+            funnyTitle: "🎧 Paroles Coupées : Stromae — « Papaoutai »",
+            prompt: "Complète le couplet d'ouverture de « Papaoutai » de Stromae : « Dites-moi d'où il vient, enfin je saurai où je vais, Maman dit que lorsqu'on cherche bien... ___ »",
+            choices: [
+                "« ... on finit toujours par trouver ! »",
+                "« ... c'est rangé derrière le canapé ! »",
+                "« ... faut demander à Meemaw où il est ! »",
+                "« ... on tombe sur ses vieilles chaussettes ! »"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "« Maman dit que lorsqu'on cherche bien, on finit toujours par trouver ! »",
+            explanation: "💡 « Papaoutai » (2013) ouvre l'album « Racine carrée » de Stromae.",
+            audioCueID: "q_JUK_05"
+        ),
+        QuizMCQQuestion(
+            id: "JUK_06",
+            theme: .musiqueTubes,
+            preferredRound: .jukeboxExpress,
+            funnyTitle: "🎧 Paroles Coupées : Céline Dion — « Pour que tu m'aimes encore »",
+            prompt: "Complète les paroles écrites par Jean-Jacques Goldman : « J'irai chercher ton cœur si tu l'emportes ailleurs, même si dans tes danses... ___ »",
+            choices: [
+                "« ... d'autres dansent tes heures ! »",
+                "« ... d'autres marchent sur mes pieds ! »",
+                "« ... tu oublies les paroles ! »",
+                "« ... d'autres chantent en chœur ! »"
+            ],
+            correctIndex: 0,
+            baseValue: 2500,
+            meemawRoastOnWrong: "Attention au piège du yaourt : c'est « même si dans tes danses, d'autres dansent tes heures » !",
+            explanation: "💡 Tout le monde marmonne cette phrase, mais le texte exact de Goldman est bien « d'autres dansent tes heures ».",
+            audioCueID: "q_JUK_06"
+        ),
+        QuizMCQQuestion(
+            id: "JUK_07",
+            theme: .musiqueTubes,
+            preferredRound: .jukeboxExpress,
+            funnyTitle: "🎧 Paroles Coupées : Angèle — « Balance ton quoi »",
+            prompt: "Complète le refrain d'Angèle : « Donc laisse-moi te chanter d'aller te faire en... Hein, je passerai pas à la radio... ___ »",
+            choices: [
+                "« ... parce que mes mots ne sont pas très beaux ! »",
+                "« ... parce que j'ai oublié mon micro ! »",
+                "« ... parce que mon chien Pépite aboie trop ! »",
+                "« ... parce que la chanson va trop vite ! »"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "« Parce que mes mots ne sont pas très beaux ! » Extrait de son album Brol !",
+            explanation: "💡 Sorti en 2019 sur l'album « Brol », le titre d'Angèle joue avec l'autocensure radio.",
+            audioCueID: "q_JUK_07"
+        ),
+        QuizMCQQuestion(
+            id: "JUK_08",
+            theme: .musiqueTubes,
+            preferredRound: .jukeboxExpress,
+            funnyTitle: "🎧 Paroles Coupées : Manau — « La Tribu de Dana »",
+            prompt: "Complète la toute première phrase du couplet de Manau que tout le monde attaque à fond : « Le vent souffle sur les plaines de la Bretagne armoricaine, je jette un dernier regard... ___ »",
+            choices: [
+                "« ... sur ma femme, mon fils et mon domaine ! »",
+                "« ... sur ma crêpe, mon cidre et ma baleine ! »",
+                "« ... sur mon épée et mon dolmen ! »",
+                "« ... sur mon cheval et mabedaine ! »"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "« Sur ma femme, mon fils et mon domaine ! Akim, le fils du forgeron, est venu me chercher ! »",
+            explanation: "💡 Classique absolu de l'été 1998 que 99 % des Français connaissent dès la première note de harpe.",
+            audioCueID: "q_JUK_08"
+        ),
+        QuizMCQQuestion(
+            id: "JUK_09",
+            theme: .musiqueTubes,
+            preferredRound: .jukeboxExpress,
+            funnyTitle: "🎧 Hitster de Meemaw : Qui est sorti EN PREMIER ?",
+            prompt: "Parmi ces quatre énormes tubes francophones, lequel est sorti le PLUS TÔT (en premier dans le temps) ?",
+            choices: [
+                "« Alors on danse » de Stromae (2009)",
+                "« Djadja » d'Aya Nakamura (2018)",
+                "« Balance ton quoi » d'Angèle (2018)",
+                "« Bande organisée » de Jul & Marseille (2020)"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "« Alors on danse » de Stromae est sorti dès septembre 2009, presque 10 ans avant Djadja et Balance ton quoi !",
+            explanation: "💡 Chronologie : Alors on danse (2009) → Djadja (2018) → Balance ton quoi (2018) → Bande organisée (2020).",
+            audioCueID: "q_JUK_09"
+        ),
+        QuizMCQQuestion(
+            id: "JUK_10",
+            theme: .musiqueTubes,
+            preferredRound: .jukeboxExpress,
+            funnyTitle: "🎧 Paroles Coupées : Aya Nakamura — « Pookie »",
+            prompt: "Complète le refrain ultra-connu de « Pookie » d'Aya Nakamura : « Blah, blah, blah de la pookie, ___ ! »",
+            choices: [
+                "« Ferme la porte, t'as la pookie dans le sas ! »",
+                "« Mange un cookie dans la tasse ! »",
+                "« Ouvre la fenêtre, il fait trop chaud ! »",
+                "« Appelle Meemaw, y'a plus de glace ! »"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "« Ferme la porte, t'as la pookie dans le sas ! » (Et non pas « dans le sac » ou « dans la glace » !)",
+            explanation: "💡 L'une des phrases les plus déformées en soirée : Aya chante bien « t'as la pookie dans le sas » !",
+            audioCueID: "q_JUK_10"
+        ),
+        QuizMCQQuestion(
+            id: "JUK_11",
+            theme: .musiqueTubes,
+            preferredRound: .jukeboxExpress,
+            funnyTitle: "🎧 Paroles Coupées : Zaho de Sagazan — « La Symphonie des éclairs »",
+            prompt: "Complète le refrain poétique de Zaho de Sagazan : « Il fait toujours beau au-dessus des nuages, mais moi, si j'étais un oiseau... ___ »",
+            choices: [
+                "« ... j'irais danser sous l'orage ! »",
+                "« ... je mangerais tout le fromage ! »",
+                "« ... je partirais en voyage ! »",
+                "« ... je dormirais sur la plage ! »"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "« Mais moi, si j'étais un oiseau, j'irais danser sous l'orage ! »",
+            explanation: "💡 Chanson sacrée meilleure chanson originale aux Victoires de la Musique 2024.",
+            audioCueID: "q_JUK_11"
+        ),
+        QuizMCQQuestion(
+            id: "JUK_12",
+            theme: .musiqueTubes,
+            preferredRound: .jukeboxExpress,
+            funnyTitle: "🎧 Paroles Coupées : Diam's — « La Boulette »",
+            prompt: "Complète cette ouverture légendaire du rap français que toute une génération connaît par cœur : « Il y a comme un goût d'aigreur chez les jeunes de l'an 2000... ___ »",
+            choices: [
+                "« ... ça parle d'intégration mais ça nous pousse à l'exil ! »",
+                "« ... j'écoute du Kyo et je pleure dans mon lit ! »",
+                "« ... j'ai plus de forfait sur mon Nokia 3310 ! »",
+                "« ... laisse-moi kiffer la vibe avec mon mec ! »"
+            ],
+            correctIndex: 0,
+            baseValue: 2500,
+            meemawRoastOnWrong: "C'est « La Boulette (Génération nan nan) » de Diam's sortie en 2006 sur l'album Dans ma bulle !",
+            explanation: "💡 « La Boulette » et « Confessions nocturnes » (2006) de Diam's restent des classiques absolus des blind-tests.",
+            audioCueID: "q_JUK_12"
         )
     ]
 

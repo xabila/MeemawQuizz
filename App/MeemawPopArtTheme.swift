@@ -77,6 +77,8 @@ struct PopArtTVBackground: View {
     private var topColor: Color {
         switch roundKind {
         case .cashSpeed: Color(hex: "#FFF3E0")
+        case .tuTeMetsCombien: Color(hex: "#FEF9C3")
+        case .jukeboxExpress: Color(hex: "#FCE7F3")
         case .leSolo: Color(hex: "#FFE4E8")
         case .couciCouca: Color(hex: "#FFF8E1")
         case .quoizziQuoissa: Color(hex: "#E0F7FA")

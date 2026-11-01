@@ -107,6 +107,8 @@ final class GameSessionController {
     private enum ShowPhaseStep {
         case roundIntro(QuizRoundKind)
         case cashQuestion(QuizMCQQuestion, isDoubleFinale: Bool)
+        case ttmcQuestion(QuizMCQQuestion)
+        case jukeboxQuestion(QuizMCQQuestion)
         case soloQuestion(QuizMCQQuestion)
         case couciCouca(QuizDisOrDatRound, QuizRoundKind)
         case podium
@@ -304,6 +306,15 @@ final class GameSessionController {
         ))
     }
 
+    func submitBetStars(_ stars: Int) {
+        audio.triggerControllerHaptic(style: .heavy)
+        dispatchAction(ClientToHostMessage(
+            playerID: localPlayerID,
+            action: .selectBetStars,
+            betStars: stars
+        ))
+    }
+
     func submitSoloBuzz() {
         audio.triggerControllerHaptic(style: .heavy)
         dispatchAction(ClientToHostMessage(
@@ -378,6 +389,10 @@ final class GameSessionController {
             guard let choice = msg.choiceIndex else { return }
             handlePlayerChoice(playerID: msg.playerID, choiceIndex: choice)
 
+        case .selectBetStars:
+            guard let stars = msg.betStars else { return }
+            handlePlayerBetStars(playerID: msg.playerID, stars: stars)
+
         case .buzzSolo:
             handlePlayerSoloBuzz(playerID: msg.playerID)
 
@@ -442,7 +457,7 @@ final class GameSessionController {
 
         let packQuestions = QuestionBank.questions(for: selectedPack)
         let unseenInPack = packQuestions.filter { !usedQuestionIDs.contains($0.id) }
-        if unseenInPack.count < 7 {
+        if unseenInPack.count < 11 {
             usedQuestionIDs.subtract(packQuestions.map(\.id))
         }
         let packCouci = QuestionBank.disOrDatRounds(for: selectedPack)
@@ -455,17 +470,21 @@ final class GameSessionController {
             excludingQuestionIDs: usedQuestionIDs,
             excludingDisOrDatIDs: usedDisOrDatIDs
         )
-        usedQuestionIDs.formUnion(activeDeck.allMCQIDs)
+        usedQuestionIDs.formUnion(activeDeck.allExtendedMCQIDs)
         usedDisOrDatIDs.insert(activeDeck.couciCoucaRound.id)
 
         phaseQueue = [
             .roundIntro(.cashSpeed),
             .cashQuestion(activeDeck.cashQuestions[0], isDoubleFinale: false),
             .cashQuestion(activeDeck.cashQuestions[1], isDoubleFinale: false),
-            .cashQuestion(activeDeck.cashQuestions[2], isDoubleFinale: false),
+            .roundIntro(.tuTeMetsCombien),
+            .ttmcQuestion(activeDeck.ttmcQuestions[0]),
+            .ttmcQuestion(activeDeck.ttmcQuestions[1]),
+            .roundIntro(.jukeboxExpress),
+            .jukeboxQuestion(activeDeck.jukeboxQuestions[0]),
+            .jukeboxQuestion(activeDeck.jukeboxQuestions[1]),
             .roundIntro(.leSolo),
             .soloQuestion(activeDeck.soloQuestions[0]),
-            .soloQuestion(activeDeck.soloQuestions[1]),
             .roundIntro(.couciCouca),
             .couciCouca(activeDeck.couciCoucaRound, .couciCouca),
             .roundIntro(.finaleDouble),
@@ -473,7 +492,7 @@ final class GameSessionController {
             .cashQuestion(activeDeck.finaleDoubleQuestions[1], isDoubleFinale: true),
             .podium
         ]
-        totalQuestions = 8
+        totalQuestions = 10
         questionNumber = 0
         currentStepIndex = -1
 
@@ -512,6 +531,10 @@ final class GameSessionController {
     func skipToNextStep() {
         guard role == .hostAndPlayer1 else { return }
         stopTimers()
+        if stage == .ttmcBetting, let q = activeQuestion {
+            openTTMCAnsweringPhase(q)
+            return
+        }
         if stage == .couciCoucaItem, let idx = activeDisOrDatItemIndex {
             scoreAndAdvanceCouciItem(at: idx)
             return
@@ -538,6 +561,12 @@ final class GameSessionController {
         case .cashQuestion(let q, let isDouble):
             questionNumber += 1
             enterCashQuestion(q, isDoubleFinale: isDouble)
+        case .ttmcQuestion(let q):
+            questionNumber += 1
+            enterTTMCQuestion(q)
+        case .jukeboxQuestion(let q):
+            questionNumber += 1
+            enterJukeboxQuestion(q)
         case .soloQuestion(let q):
             questionNumber += 1
             enterSoloQuestion(q)
@@ -572,22 +601,34 @@ final class GameSessionController {
             text = "Manche 1 : Cash Rapide ! Tout le monde répond sur son téléphone, et vous avez 1 VIS « Clouer le Bec » façon Jack pour piéger un adversaire !"
             meemawPose = "meemaw_vitesse"
             audio.playJingle("jingle_intro.wav")
+        case .tuTeMetsCombien:
+            audio.setMusicMood(.chillLobby)
+            studioFile = "mq_round_ttmc.m4a"
+            text = "Manche 2 : Tu Te Mets Combien ? Avant de voir la question, misez de 1 à 4 étoiles sur le sujet annoncé par Meemaw : 4 étoiles, c'est 5 000 points ou la gamelle !"
+            meemawPose = "meemaw_duel_challenge"
+            audio.playJingle("jingle_couci.wav")
+        case .jukeboxExpress:
+            audio.setMusicMood(.fastAction)
+            studioFile = "mq_round_jukebox.m4a"
+            text = "Manche 3 : Le Jukebox Express de Meemaw ! Complétez les paroles exactes au moment où la musique coupe !"
+            meemawPose = "meemaw_fun"
+            audio.playJingle("jingle_intro.wav")
         case .leSolo:
             audio.setMusicMood(.fastAction)
             studioFile = "mq_round2_solo_fast.m4a"
-            text = "Manche 2 : C'est l'heure du SOLO ! Pas besoin de buzzer : le tout premier qui tape une réponse sur son téléphone gagne le DOUBLE... ou perd tout s'il se plante !"
+            text = "Manche 4 : C'est l'heure du SOLO ! Pas besoin de buzzer : le tout premier qui tape une réponse sur son téléphone gagne le DOUBLE... ou perd tout s'il se plante !"
             meemawPose = "meemaw_boxing_referee"
             audio.playJingle("jingle_solo_siren.wav")
         case .couciCouca, .quoizziQuoissa:
             audio.setMusicMood(.fastAction)
             studioFile = "mq_round3_raclette.m4a"
-            text = "Manche 3 : La Raclette Quizz de Meemaw ! 6 questions qui fondent dans le poêlon : Gauche, Droite, ou LES DEUX !"
+            text = "Manche 5 : La Raclette Quizz de Meemaw ! 6 questions qui fondent dans le poêlon : Gauche, Droite, ou LES DEUX !"
             meemawPose = "meemaw_fun"
             audio.playJingle("jingle_couci.wav")
         case .finaleDouble:
             audio.setMusicMood(.fastAction)
             studioFile = "mq_round4_finale.m4a"
-            text = "Manche 4 : La Rafale Finale ! Tous les points sont DOUBLÉS, tout peut encore basculer !"
+            text = "Manche 6 : La Rafale Finale ! Tous les points sont DOUBLÉS, tout peut encore basculer !"
             meemawPose = "meemaw_duel_challenge"
             audio.playJingle("jingle_solo_siren.wav")
         }
@@ -603,7 +644,121 @@ final class GameSessionController {
         audio.playMeemawStudioOrFallback(studioFilename: studioFile, fallbackText: text)
     }
 
-    // MARK: - Manche 1 & 4 : Cash Speed / Finale Double
+    // MARK: - Manche 2 : 🎯 « Tu Te Mets Combien ? » (Bet 1 to 4 stars before seeing the question!)
+
+    private func enterTTMCQuestion(_ question: QuizMCQQuestion) {
+        registry.resetRoundLocks()
+        roundKind = .tuTeMetsCombien
+        activeQuestion = question
+        revealedCorrectIndex = nil
+        revealedBinarySide = nil
+        soloBuzzerPlayerID = nil
+        soloBuzzerPlayerName = nil
+        screwAttackerID = nil
+        screwAttackerName = nil
+        stage = .ttmcBetting
+        totalTimerSec = 14.0
+        timeRemainingSec = 14.0
+        meemawPose = "meemaw_duel_challenge"
+        let betPrompt = "🎯 TU TE METS COMBIEN (de ⭐ à ⭐⭐⭐⭐) sur : « \(question.funnyTitle) » (\(question.theme.shortBadge)) ?"
+        meemawSpeech = betPrompt
+        broadcastState()
+
+        audio.speakDynamicPlayerCallout("Tu te mets combien de une à quatre étoiles sur : \(question.funnyTitle) ?")
+
+        // Schedule bots to lock their bet stars
+        let bots = registry.players.filter { $0.id.hasPrefix("bot_") }
+        if !bots.isEmpty {
+            botActionTask?.cancel()
+            botActionTask = Task { @MainActor [weak self] in
+                for bot in bots {
+                    let delayMs = Int.random(in: 1800...4200)
+                    try? await Task.sleep(for: .milliseconds(delayMs))
+                    guard let self, !Task.isCancelled, self.stage == .ttmcBetting else { return }
+                    let stars = [2, 2, 3, 3, 4, 1].randomElement() ?? 2
+                    self.handlePlayerBetStars(playerID: bot.id, stars: stars)
+                }
+            }
+        }
+
+        startCountdown(duration: 14.0) { [weak self] in
+            self?.openTTMCAnsweringPhase(question)
+        }
+    }
+
+    private func handlePlayerBetStars(playerID: String, stars: Int) {
+        guard stage == .ttmcBetting, let q = activeQuestion else { return }
+        let clamped = max(1, min(4, stars))
+        registry.updatePlayer(id: playerID) { p in
+            p.lockedBetStars = clamped
+        }
+        broadcastState()
+
+        if registry.players.allSatisfy({ $0.lockedBetStars != nil }) {
+            stopTimers()
+            openTTMCAnsweringPhase(q)
+        }
+    }
+
+    private func openTTMCAnsweringPhase(_ question: QuizMCQQuestion) {
+        stopTimers()
+        // Default any player who didn't pick a star level to 2 stars
+        for p in registry.players where p.lockedBetStars == nil {
+            registry.updatePlayer(id: p.id) { $0.lockedBetStars = 2 }
+        }
+        stage = .cashAnswering
+        totalTimerSec = 24.0
+        timeRemainingSec = 24.0
+        questionOpenedAt = Date()
+        meemawPose = "meemaw_dictation_talk"
+        meemawSpeech = "Les paris sont fermés ! Voici la question : \(question.prompt)"
+        broadcastState()
+
+        let cueFile = question.audioCueID.map { "\($0).m4a" }
+        audio.playMeemawStudioOrFallback(
+            studioFilename: cueFile,
+            fallbackText: "\(question.funnyTitle). \(question.prompt)"
+        )
+
+        scheduleBotsForCashQuestion(question)
+        startCountdown(duration: 24.0) { [weak self] in
+            self?.revealCashQuestionResult(question, isDoubleFinale: false)
+        }
+    }
+
+    // MARK: - Manche 3 : 🎧 « Le Jukebox Express » (Paroles Coupées & Tubes)
+
+    private func enterJukeboxQuestion(_ question: QuizMCQQuestion) {
+        registry.resetRoundLocks()
+        roundKind = .jukeboxExpress
+        activeQuestion = question
+        revealedCorrectIndex = nil
+        revealedBinarySide = nil
+        soloBuzzerPlayerID = nil
+        soloBuzzerPlayerName = nil
+        screwAttackerID = nil
+        screwAttackerName = nil
+        stage = .cashAnswering
+        totalTimerSec = 24.0
+        timeRemainingSec = 24.0
+        questionOpenedAt = Date()
+        meemawPose = "meemaw_fun"
+        meemawSpeech = "🎧 \(question.funnyTitle) — \(question.prompt)"
+        broadcastState()
+
+        let cueFile = question.audioCueID.map { "\($0).m4a" }
+        audio.playMeemawStudioOrFallback(
+            studioFilename: cueFile,
+            fallbackText: "\(question.funnyTitle). \(question.prompt)"
+        )
+
+        scheduleBotsForCashQuestion(question)
+        startCountdown(duration: 24.0) { [weak self] in
+            self?.revealCashQuestionResult(question, isDoubleFinale: false)
+        }
+    }
+
+    // MARK: - Manche 1 & 6 : Cash Speed / Finale Double
 
     private func enterCashQuestion(_ question: QuizMCQQuestion, isDoubleFinale: Bool) {
         registry.resetRoundLocks()
@@ -636,7 +791,7 @@ final class GameSessionController {
     }
 
     private func handlePlayerChoice(playerID: String, choiceIndex: Int) {
-        // Manche 2 LE SOLO ou VICTIME D'UN « CLOUER LE BEC » (The Screw) :
+        // Manche LE SOLO ou VICTIME D'UN « CLOUER LE BEC » (The Screw) :
         if stage == .soloBuzzOpen || stage == .soloPlayerAnswering {
             guard let q = activeQuestion else { return }
             guard let player = registry.players.first(where: { $0.id == playerID }),
@@ -689,8 +844,12 @@ final class GameSessionController {
 
         for player in registry.players {
             guard let chosen = player.lockedChoiceIndex else {
+                let timeoutPenalty = (roundKind == .tuTeMetsCombien)
+                    ? QuizScoringEngine.ttmcStakes(for: player.lockedBetStars ?? 2).loss
+                    : 0
                 registry.updatePlayer(id: player.id) { p in
-                    p.lastDeltaScore = 0
+                    p.score += timeoutPenalty
+                    p.lastDeltaScore = timeoutPenalty
                     p.streak = 0
                 }
                 continue
@@ -698,14 +857,23 @@ final class GameSessionController {
             let isCorrect = (chosen == question.correctIndex)
             let rankIdx = correctPlayerIDs.firstIndex(of: player.id)
             let ms = player.reactionTimeMs ?? 25000
-            let delta = QuizScoringEngine.scoreCashAnswer(
-                baseValue: question.baseValue,
-                isCorrect: isCorrect,
-                correctRankIndex: rankIdx,
-                reactionTimeMs: ms,
-                totalTimeMs: 26000,
-                isDoubleFinale: isDoubleFinale
-            )
+            let delta: Int
+            if roundKind == .tuTeMetsCombien {
+                delta = QuizScoringEngine.scoreTTMCAnswer(
+                    stars: player.lockedBetStars ?? 2,
+                    isCorrect: isCorrect,
+                    isFastest: rankIdx == 0
+                )
+            } else {
+                delta = QuizScoringEngine.scoreCashAnswer(
+                    baseValue: question.baseValue,
+                    isCorrect: isCorrect,
+                    correctRankIndex: rankIdx,
+                    reactionTimeMs: ms,
+                    totalTimeMs: 26000,
+                    isDoubleFinale: isDoubleFinale
+                )
+            }
             registry.updatePlayer(id: player.id) { p in
                 p.score += delta
                 p.lastDeltaScore = delta
