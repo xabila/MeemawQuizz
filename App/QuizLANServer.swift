@@ -13,23 +13,32 @@ final class QuizLANServer {
     private var connections: [UUID: ClientPeerConnection] = [:]
     private(set) var listeningPort: UInt16 = 8420
     private(set) var isRunning: Bool = false
+    private var retryCount: Int = 0
 
     var onClientMessage: ((UUID, ClientToHostMessage) -> Void)?
     var onClientDisconnected: ((UUID) -> Void)?
+    var onServerStateChanged: (() -> Void)?
     var snapshotProvider: (() -> HostToClientStateSnapshot)?
 
     func start(preferredPort: UInt16 = 8420) {
         stop()
+        retryCount = 0
+        startListenerInternal(portToTry: preferredPort)
+    }
+
+    private func startListenerInternal(portToTry: UInt16) {
+        listener?.cancel()
+        listener = nil
 
         let params = NWParameters.tcp
         params.allowLocalEndpointReuse = true
         params.includePeerToPeer = true
 
         let listenerInstance: NWListener
-        if let port = NWEndpoint.Port(rawValue: preferredPort),
+        if let port = NWEndpoint.Port(rawValue: portToTry),
            let created = try? NWListener(using: params, on: port) {
             listenerInstance = created
-            self.listeningPort = preferredPort
+            self.listeningPort = portToTry
         } else if let created = try? NWListener(using: params) {
             listenerInstance = created
         } else {
@@ -50,7 +59,18 @@ final class QuizLANServer {
                         self.listeningPort = actualPort
                     }
                     self.isRunning = true
-                case .failed, .cancelled:
+                    self.retryCount = 0
+                    self.onServerStateChanged?()
+                case .failed:
+                    self.isRunning = false
+                    self.retryCount += 1
+                    let nextPort: UInt16 = (self.retryCount <= 2) ? 8420 : UInt16(8420 + (self.retryCount - 2) % 8)
+                    Task { @MainActor [weak self] in
+                        try? await Task.sleep(for: .milliseconds(550))
+                        guard let self, !self.isRunning else { return }
+                        self.startListenerInternal(portToTry: nextPort)
+                    }
+                case .cancelled:
                     self.isRunning = false
                 default:
                     break
@@ -111,6 +131,10 @@ final class QuizLANServer {
             self?.onClientMessage?(connID, message)
         }
 
+        peer.snapshotProvider = { [weak self] in
+            self?.snapshotProvider?()
+        }
+
         peer.onClosed = { [weak self] in
             self?.connections.removeValue(forKey: connID)
             self?.onClientDisconnected?(connID)
@@ -122,7 +146,8 @@ final class QuizLANServer {
 
     /// Détecte l'adresse IPv4 Wi-Fi locale (`en0` / `en1` / hotspot `bridge100`) de l'iPhone Hôte.
     static func localWiFiIPv4Address() -> String? {
-        var address: String?
+        var wifiAddress: String?
+        var hotspotAddress: String?
         var fallbackAddress: String?
         var ifaddr: UnsafeMutablePointer<ifaddrs>?
 
@@ -137,30 +162,35 @@ final class QuizLANServer {
             let addrFamily = interface.ifa_addr.pointee.sa_family
             if addrFamily == UInt8(AF_INET) {
                 let name = String(cString: interface.ifa_name)
-                var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
-                if getnameinfo(
-                    interface.ifa_addr,
-                    socklen_t(interface.ifa_addr.pointee.sa_len),
-                    &hostname,
-                    socklen_t(hostname.count),
-                    nil,
-                    0,
-                    NI_NUMERICHOST
-                ) == 0 {
-                    let ip = String(cString: hostname)
-                    if !ip.hasPrefix("127.") && !ip.hasPrefix("169.254.") {
-                        if name == "en0" {
-                            address = ip
-                            break
-                        } else if fallbackAddress == nil {
-                            fallbackAddress = ip
+                // Ignore cellular (pdp_ip*) and VPN (utun*, ipsec*) interfaces
+                if !name.hasPrefix("pdp_ip") && !name.hasPrefix("utun") && !name.hasPrefix("ipsec") {
+                    var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+                    if getnameinfo(
+                        interface.ifa_addr,
+                        socklen_t(interface.ifa_addr.pointee.sa_len),
+                        &hostname,
+                        socklen_t(hostname.count),
+                        nil,
+                        0,
+                        NI_NUMERICHOST
+                    ) == 0 {
+                        let ip = String(cString: hostname)
+                        if !ip.hasPrefix("127.") && !ip.hasPrefix("169.254.") {
+                            if name == "en0" {
+                                wifiAddress = ip
+                                break
+                            } else if name.hasPrefix("bridge") || name == "en1" {
+                                hotspotAddress = ip
+                            } else if fallbackAddress == nil {
+                                fallbackAddress = ip
+                            }
                         }
                     }
                 }
             }
             ptr = interface.ifa_next
         }
-        return address ?? fallbackAddress
+        return wifiAddress ?? hotspotAddress ?? fallbackAddress
     }
 }
 
@@ -176,6 +206,7 @@ private final class ClientPeerConnection {
 
     var onUpgradedToWebSocket: (() -> Void)?
     var onMessageReceived: ((ClientToHostMessage) -> Void)?
+    var snapshotProvider: (() -> HostToClientStateSnapshot?)?
     var onClosed: (() -> Void)?
 
     init(id: UUID, connection: NWConnection) {
@@ -247,6 +278,21 @@ private final class ClientPeerConnection {
                 receiveBuffer.removeAll()
                 let html = WebControllerHTML.render(roomCode: "MEEMAW")
                 let response = WebSocketFrameCodec.buildHTMLResponse(htmlString: html)
+                sendRaw(response, closeAfterSend: true)
+            case .httpGetStateJSON:
+                receiveBuffer.removeAll()
+                let snap = snapshotProvider?()
+                let jsonData = (try? JSONEncoder().encode(snap)) ?? Data("{}".utf8)
+                let response = WebSocketFrameCodec.buildJSONResponse(jsonData: jsonData)
+                sendRaw(response, closeAfterSend: true)
+            case .httpPostActionJSON(let body):
+                receiveBuffer.removeAll()
+                if let msg = try? JSONDecoder().decode(ClientToHostMessage.self, from: body) {
+                    onMessageReceived?(msg)
+                }
+                let snap = snapshotProvider?()
+                let jsonData = (try? JSONEncoder().encode(snap)) ?? Data("{}".utf8)
+                let response = WebSocketFrameCodec.buildJSONResponse(jsonData: jsonData)
                 sendRaw(response, closeAfterSend: true)
             case .webSocketUpgrade(let secKey):
                 if let range = receiveBuffer.range(of: Data("\r\n\r\n".utf8)) {

@@ -4,6 +4,8 @@ import Foundation
 public enum IncomingHTTPClassification: Equatable, Sendable {
     case incomplete
     case httpGetControllerPage
+    case httpGetStateJSON
+    case httpPostActionJSON(body: Data)
     case webSocketUpgrade(secKey: String)
 }
 
@@ -26,18 +28,25 @@ public enum WebSocketFrameCodec {
         return Data(digest).base64EncodedString()
     }
 
-    /// Analyse le tampon HTTP initial pour déterminer s'il s'agit d'un `GET /` (page Web Android/QR)
-    /// ou d'un `Upgrade: websocket` (manette temps réel iOS ou Android).
+    /// Analyse le tampon HTTP initial pour déterminer s'il s'agit d'un `GET /` (page Web Android/QR),
+    /// d'un `GET /api/state`, d'un `POST /api/action`, ou d'un `Upgrade: websocket`.
     public static func classifyIncomingHTTP(_ data: Data) -> IncomingHTTPClassification {
         guard let raw = String(data: data, encoding: .utf8) else {
             return .httpGetControllerPage
         }
-        guard raw.contains("\r\n\r\n") || raw.contains("\n\n") || raw.hasSuffix("\r\n\r") else {
+        let headerSeparator = raw.range(of: "\r\n\r\n") ?? raw.range(of: "\n\n")
+        guard let sepRange = headerSeparator else {
             return .incomplete
         }
-        let lines = raw.components(separatedBy: CharacterSet.newlines)
+        let headerPart = String(raw[..<sepRange.lowerBound])
+        let bodyString = String(raw[sepRange.upperBound...])
+        let bodyData = Data(bodyString.utf8)
+
+        let lines = headerPart.components(separatedBy: CharacterSet.newlines)
+        let firstLine = (lines.first ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         var isUpgrade = false
         var secKey: String?
+        var contentLength: Int = 0
 
         for line in lines {
             let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -49,11 +58,25 @@ public enum WebSocketFrameCodec {
                 if parts.count == 2 {
                     secKey = parts[1].trimmingCharacters(in: .whitespacesAndNewlines)
                 }
+            } else if lower.hasPrefix("content-length:") {
+                let parts = trimmed.split(separator: ":", maxSplits: 1)
+                if parts.count == 2 {
+                    contentLength = Int(parts[1].trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0
+                }
             }
         }
 
         if isUpgrade, let secKey, !secKey.isEmpty {
             return .webSocketUpgrade(secKey: secKey)
+        }
+        if firstLine.hasPrefix("POST /api/action") {
+            if bodyData.count < contentLength {
+                return .incomplete
+            }
+            return .httpPostActionJSON(body: bodyData)
+        }
+        if firstLine.hasPrefix("GET /api/state") {
+            return .httpGetStateJSON
         }
         return .httpGetControllerPage
     }
@@ -94,11 +117,28 @@ public enum WebSocketFrameCodec {
             "Content-Type: text/html; charset=utf-8",
             "Content-Length: \(body.count)",
             "Cache-Control: no-store, no-cache, must-revalidate",
+            "Access-Control-Allow-Origin: *",
             "Connection: close",
             "\r\n"
         ].joined(separator: "\r\n")
         var response = Data(header.utf8)
         response.append(body)
+        return response
+    }
+
+    /// Construit une réponse HTTP 200 JSON (pour le fallback HTTP `/api/state` et `/api/action`).
+    public static func buildJSONResponse(jsonData: Data) -> Data {
+        let header = [
+            "HTTP/1.1 200 OK",
+            "Content-Type: application/json; charset=utf-8",
+            "Content-Length: \(jsonData.count)",
+            "Cache-Control: no-store, no-cache, must-revalidate",
+            "Access-Control-Allow-Origin: *",
+            "Connection: close",
+            "\r\n"
+        ].joined(separator: "\r\n")
+        var response = Data(header.utf8)
+        response.append(jsonData)
         return response
     }
 

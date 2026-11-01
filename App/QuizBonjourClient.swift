@@ -95,6 +95,14 @@ final class QuizBonjourClient {
                         self.isConnectedToHost = false
                         self.onConnectionStateChanged?(false)
                     }
+                    // Auto-rediscover if browser is still active
+                    if self.browser != nil {
+                        Task { @MainActor [weak self] in
+                            try? await Task.sleep(for: .milliseconds(1400))
+                            guard let self, self.browser != nil, !self.isConnectedToHost else { return }
+                            self.startAutoDiscovery()
+                        }
+                    }
                 default:
                     break
                 }

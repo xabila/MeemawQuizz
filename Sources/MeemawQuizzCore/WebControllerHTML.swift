@@ -188,8 +188,15 @@ public enum WebControllerHTML {
             }
 
             function sendMsg(payload) {
+              const full = { playerID, platform: 'web_qr', ...payload };
               if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ playerID, platform: 'web_qr', ...payload }));
+                ws.send(JSON.stringify(full));
+              } else {
+                fetch('/api/action', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(full)
+                }).then(r => r.json()).then(st => updateUI(st)).catch(() => {});
               }
             }
 
@@ -337,16 +344,24 @@ public enum WebControllerHTML {
             }
 
             function connectWS() {
-              const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-              ws = new WebSocket(`${proto}//${location.host}/ws`);
-              ws.onopen = () => sendProfile();
-              ws.onmessage = (ev) => {
-                try { updateUI(JSON.parse(ev.data)); } catch (_) {}
-              };
-              ws.onclose = () => setTimeout(connectWS, 1200);
+              try {
+                const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+                ws = new WebSocket(`${proto}//${location.host}/ws`);
+                ws.onopen = () => sendProfile();
+                ws.onmessage = (ev) => {
+                  try { updateUI(JSON.parse(ev.data)); } catch (_) {}
+                };
+                ws.onclose = () => setTimeout(connectWS, 1500);
+              } catch (_) {}
             }
+            setInterval(() => {
+              if (!ws || ws.readyState !== WebSocket.OPEN) {
+                fetch('/api/state').then(r => r.json()).then(st => updateUI(st)).catch(() => {});
+              }
+            }, 900);
             renderColors(null);
             connectWS();
+            setTimeout(sendProfile, 400);
           </script>
         </body>
         </html>

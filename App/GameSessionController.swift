@@ -141,6 +141,10 @@ final class GameSessionController {
             self.handleIncomingPlayerMessage(message, isHostPlayer: false)
         }
 
+        lanServer.onServerStateChanged = { [weak self] in
+            self?.broadcastState()
+        }
+
         lanServer.onClientDisconnected = { [weak self] connID in
             guard let self else { return }
             if let pid = self.connectionToPlayerID.removeValue(forKey: connID),
