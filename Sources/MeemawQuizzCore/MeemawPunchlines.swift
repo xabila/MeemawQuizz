@@ -23,22 +23,32 @@ public enum MeemawPunchlines {
         ),
         MeemawStudioCue(
             id: "round1_cash",
-            text: "Première manche : Cash Rapide ! Tout le monde répond sur son téléphone, mais c'est le plus rapide qui rafle la grosse galette !",
+            text: "Manche 1 : Cash Rapide ! Tout le monde répond sur son téléphone, et vous avez une vis Clouer le Bec pour piéger un adversaire !",
             filename: "mq_round1_cash.m4a"
         ),
         MeemawStudioCue(
+            id: "round_ttmc",
+            text: "Manche 2 : Tu Te Mets Combien ? Avant de voir la question, misez de une à quatre étoiles sur le sujet annoncé par Meemaw : quatre étoiles, c'est cinq mille points ou la gamelle !",
+            filename: "mq_round_ttmc.m4a"
+        ),
+        MeemawStudioCue(
+            id: "round_jukebox",
+            text: "Manche 3 : Le Jukebox Express de Meemaw ! Complétez les paroles exactes au moment où la musique coupe !",
+            filename: "mq_round_jukebox.m4a"
+        ),
+        MeemawStudioCue(
             id: "round2_solo",
-            text: "Manche 2 : Le Solo Express ! Pas besoin de buzzer avant : le tout premier qui touche une réponse coupe l'herbe sous le pied des autres ! S'il a bon il double la mise, s'il se trompe c'est la gamelle !",
+            text: "Manche 4 : C'est l'heure du Solo ! Pas besoin de buzzer avant : le tout premier qui touche une réponse coupe l'herbe sous le pied des autres ! S'il a bon il double la mise, s'il se trompe c'est la gamelle !",
             filename: "mq_round2_solo_fast.m4a"
         ),
         MeemawStudioCue(
             id: "round3_couci",
-            text: "Manche 3 : La Raclette Quizz de Meemaw ! Faites chauffer les poêlons : c'est l'option A, l'option B, ou carrément les deux ?",
+            text: "Manche 5 : La Raclette Quizz de Meemaw ! Faites chauffer les poêlons : c'est l'option A, l'option B, ou carrément les deux ?",
             filename: "mq_round3_raclette.m4a"
         ),
         MeemawStudioCue(
             id: "round4_quoizzi",
-            text: "Manche 4 : Le Quoizzi-Quoissa spécial Jeux de Mots ! Attention les neurones, les calembours de Meemaw volent bas ce soir !",
+            text: "Le Quoizzi-Quoissa spécial Jeux de Mots ! Attention les neurones, les calembours de Meemaw volent bas ce soir !",
             filename: "mq_round4_quoizzi.m4a"
         ),
         MeemawStudioCue(
@@ -48,13 +58,33 @@ public enum MeemawPunchlines {
         ),
         MeemawStudioCue(
             id: "podium_outro",
-            text: "Et voilà le travail ! Regardons qui repart avec la couronne de Meemaw et qui va faire la vaisselle ce soir !",
+            text: "Et voilà le travail ! Félicitations au grand vainqueur du soir ! Regardons qui repart avec la couronne de Meemaw et qui va faire la vaisselle !",
             filename: "mq_podium_outro.m4a"
         ),
         MeemawStudioCue(
             id: "bisou_attack",
             text: "Oh le coup bas ! Quelqu'un vient d'envoyer un gros bisou baveux de Meemaw sur l'écran d'un adversaire !",
             filename: "mq_bisou_attack.m4a"
+        ),
+        MeemawStudioCue(
+            id: "screw_attack",
+            text: "Coup de Jarnac ! Tu viens de te faire clouer le bec ! Tu es tout seul face à Meemaw : douze secondes pour répondre, ou tu perds les points !",
+            filename: "mq_screw_attack.m4a"
+        ),
+        MeemawStudioCue(
+            id: "screw_backfire",
+            text: "Retour de manivelle ! La victime connaissait la réponse et empoche le double des points ! Bien fait pour le saboteur !",
+            filename: "mq_screw_backfire.m4a"
+        ),
+        MeemawStudioCue(
+            id: "screw_success",
+            text: "Bec cloué ! La victime s'est plantée en beauté ! Quel coup de Jarnac magnifique !",
+            filename: "mq_screw_success.m4a"
+        ),
+        MeemawStudioCue(
+            id: "solo_buzz",
+            text: "Stoppez les rotatives ! Quelqu'un a dégainé en premier sur le Solo ! Voyons si c'est du génie ou du grand n'importe quoi !",
+            filename: "mq_solo_buzz.m4a"
         ),
         MeemawStudioCue(
             id: "react_all_correct",

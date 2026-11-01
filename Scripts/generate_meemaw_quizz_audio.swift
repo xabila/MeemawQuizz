@@ -260,33 +260,69 @@ enum AudioGenMain {
 
         for cue in MeemawPunchlines.studioCues {
             let url = outDir.appendingPathComponent(cue.filename)
-            if !FileManager.default.fileExists(atPath: url.path) {
-                try synth.synthesizeToM4A(text: cue.text, outputURL: url)
-            }
+            try synth.synthesizeToM4A(text: cue.text, outputURL: url)
             count += 1
         }
 
-        let allQuestions = QuestionBank.questions(for: .grandMix)
-        for q in allQuestions {
-            if let cueID = q.audioCueID {
-                let promptURL = outDir.appendingPathComponent("\(cueID).m4a")
-                if !FileManager.default.fileExists(atPath: promptURL.path) {
-                    let fullSpoken = "\(q.funnyTitle). \(q.prompt)"
-                    try synth.synthesizeToM4A(text: fullSpoken, outputURL: promptURL)
-                }
+        let winPrefixes = [
+            "Bravo, dans le mille !",
+            "Joli coup mon petit chou !",
+            "Chapeau l'artiste, c'est la bonne réponse !",
+            "Hop là, bien joué !",
+            "Quel réflexe, c'est tout bon !",
+            "Boum, exactement ça !"
+        ]
 
-                let roastURL = outDir.appendingPathComponent("\(cueID)_roast.m4a")
-                if !FileManager.default.fileExists(atPath: roastURL.path) {
-                    try synth.synthesizeToM4A(text: q.meemawRoastOnWrong, outputURL: roastURL)
-                }
-                count += 2
+        let forceRegenerateIDs: Set<String> = [
+            "q_FR_17", "q_FR_18", "q_FR_19", "q_FR_20",
+            "q_MATH_17", "q_MATH_18", "q_MATH_19", "q_MATH_20",
+            "q_CINE_19", "q_CINE_22", "q_CINE_25", "q_CINE_26", "q_CINE_27", "q_CINE_28",
+            "q_MUS_25", "q_MUS_26", "q_MUS_27", "q_MUS_28", "q_MUS_29",
+            "q_MUS_30", "q_MUS_31", "q_MUS_32", "q_MUS_33", "q_MUS_34",
+            "q_JUK_01", "q_JUK_02", "q_JUK_03", "q_JUK_04", "q_JUK_05", "q_JUK_06",
+            "q_JUK_07", "q_JUK_08", "q_JUK_09", "q_JUK_10", "q_JUK_11", "q_JUK_12",
+            "q_CUL_17", "q_CUL_18", "q_CUL_19", "q_CUL_20", "q_CUL_21", "q_CUL_22",
+            "q_ECO_17", "q_ECO_18", "q_ECO_19", "q_ECO_20"
+        ]
+
+        let allQuestions = QuestionBank.questions(for: .grandMix)
+        for (idx, q) in allQuestions.enumerated() {
+            let cueID = q.audioCueID ?? "q_\(q.id)"
+            let force = forceRegenerateIDs.contains(cueID)
+
+            let promptURL = outDir.appendingPathComponent("\(cueID).m4a")
+            if force || !FileManager.default.fileExists(atPath: promptURL.path) {
+                let fullSpoken = "\(q.funnyTitle). \(q.prompt)"
+                try synth.synthesizeToM4A(text: fullSpoken, outputURL: promptURL)
             }
+
+            let roastURL = outDir.appendingPathComponent("\(cueID)_roast.m4a")
+            if force || !FileManager.default.fileExists(atPath: roastURL.path) {
+                let fullRoast = "\(q.meemawRoastOnWrong) \(q.explanation)"
+                try synth.synthesizeToM4A(text: fullRoast, outputURL: roastURL)
+            }
+
+            let winURL = outDir.appendingPathComponent("\(cueID)_win.m4a")
+            if force || !FileManager.default.fileExists(atPath: winURL.path) {
+                let prefix = winPrefixes[idx % winPrefixes.count]
+                let fullWin = "\(prefix) \(q.explanation)"
+                try synth.synthesizeToM4A(text: fullWin, outputURL: winURL)
+            }
+
+            let ttmcURL = outDir.appendingPathComponent("\(cueID)_ttmc.m4a")
+            if force || !FileManager.default.fileExists(atPath: ttmcURL.path) {
+                let ttmcText = "Tu te mets combien, de une à quatre étoiles, sur : \(q.funnyTitle) ?"
+                try synth.synthesizeToM4A(text: ttmcText, outputURL: ttmcURL)
+            }
+
+            count += 4
         }
 
+        let forceRegenerateDod: Set<String> = ["rac_MUS_2", "rac_CINE_2"]
         for dod in QuestionBank.allDisOrDatRounds {
             if let cueID = dod.audioCueID {
                 let dodURL = outDir.appendingPathComponent("\(cueID).m4a")
-                if !FileManager.default.fileExists(atPath: dodURL.path) {
+                if forceRegenerateDod.contains(cueID) || !FileManager.default.fileExists(atPath: dodURL.path) {
                     let fullSpoken = "\(dod.funnyTitle). \(dod.prompt)"
                     try synth.synthesizeToM4A(text: fullSpoken, outputURL: dodURL)
                 }

@@ -664,7 +664,11 @@ final class GameSessionController {
         meemawSpeech = betPrompt
         broadcastState()
 
-        audio.speakDynamicPlayerCallout("Tu te mets combien de une à quatre étoiles sur : \(question.funnyTitle) ?")
+        let ttmcCue = question.audioCueID.map { "\($0)_ttmc.m4a" } ?? "mq_round_ttmc.m4a"
+        audio.playMeemawStudioOrFallback(
+            studioFilename: ttmcCue,
+            fallbackText: "Tu te mets combien de une à quatre étoiles sur : \(question.funnyTitle) ?"
+        )
 
         // Schedule bots to lock their bet stars
         let bots = registry.players.filter { $0.id.hasPrefix("bot_") }
@@ -906,14 +910,18 @@ final class GameSessionController {
             meemawSpeech = "\(praise)\n\(question.explanation)"
             broadcastState()
 
-            audio.speakDynamicPlayerCallout(praise)
+            let winFile = question.audioCueID.map { "\($0)_win.m4a" } ?? "mq_react_all_correct.m4a"
+            audio.playMeemawStudioOrFallback(
+                studioFilename: winFile,
+                fallbackText: "\(praise) \(question.explanation)"
+            )
         } else {
             audio.playJingle("sfx_wrong.wav")
             meemawPose = "meemaw_worried"
             meemawSpeech = "\(question.meemawRoastOnWrong)\n\(question.explanation)"
             broadcastState()
 
-            let roastFile = question.audioCueID.map { "\($0)_roast.m4a" }
+            let roastFile = question.audioCueID.map { "\($0)_roast.m4a" } ?? "mq_react_nobody_correct.m4a"
             audio.playMeemawStudioOrFallback(
                 studioFilename: roastFile,
                 fallbackText: question.meemawRoastOnWrong
@@ -980,7 +988,10 @@ final class GameSessionController {
         meemawSpeech = callout
         broadcastState()
 
-        audio.speakDynamicPlayerCallout(callout)
+        audio.playMeemawStudioOrFallback(
+            studioFilename: "mq_solo_buzz.m4a",
+            fallbackText: callout
+        )
 
         startCountdown(duration: 12.0) { [weak self] in
             guard let self, self.stage == .soloPlayerAnswering else { return }
@@ -1030,7 +1041,10 @@ final class GameSessionController {
                 startCountdown(duration: 9.5) { [weak self] in
                     self?.advanceToNextPhaseStep()
                 }
-                audio.speakDynamicPlayerCallout(line)
+                audio.playMeemawStudioOrFallback(
+                    studioFilename: "mq_screw_backfire.m4a",
+                    fallbackText: line
+                )
             } else {
                 // Victim got it WRONG! The Screw succeeded!
                 let victimPenalty = -base
@@ -1052,7 +1066,10 @@ final class GameSessionController {
                 startCountdown(duration: 9.5) { [weak self] in
                     self?.advanceToNextPhaseStep()
                 }
-                audio.speakDynamicPlayerCallout(line)
+                audio.playMeemawStudioOrFallback(
+                    studioFilename: "mq_screw_success.m4a",
+                    fallbackText: line
+                )
             }
             return
         }
@@ -1082,7 +1099,16 @@ final class GameSessionController {
             self?.advanceToNextPhaseStep()
         }
 
-        audio.speakDynamicPlayerCallout(line)
+        let soloStudioCue: String
+        if isCorrect {
+            soloStudioCue = question.audioCueID.map { "\($0)_win.m4a" } ?? "mq_solo_success.m4a"
+        } else {
+            soloStudioCue = question.audioCueID.map { "\($0)_roast.m4a" } ?? "mq_solo_fail.m4a"
+        }
+        audio.playMeemawStudioOrFallback(
+            studioFilename: soloStudioCue,
+            fallbackText: line
+        )
     }
 
     // MARK: - Manche 3 : La Raclette Quizz (DisOrDat / 3 choix)
@@ -1259,7 +1285,10 @@ final class GameSessionController {
         meemawSpeech = callout
         broadcastState()
 
-        audio.speakDynamicPlayerCallout(callout)
+        audio.playMeemawStudioOrFallback(
+            studioFilename: "mq_screw_attack.m4a",
+            fallbackText: callout
+        )
 
         if target.id.hasPrefix("bot_") {
             botActionTask?.cancel()
@@ -1293,10 +1322,10 @@ final class GameSessionController {
         audio.playJingle("jingle_victory.wav")
         broadcastState()
 
-        if let champion = podiumAwards.first {
-            let text = "Et le grand vainqueur du soir est \(champion.playerName), avec \(champion.score) points ! Félicitations mon chouchou !"
-            audio.speakDynamicPlayerCallout(text)
-        }
+        audio.playMeemawStudioOrFallback(
+            studioFilename: "mq_podium_outro.m4a",
+            fallbackText: meemawSpeech
+        )
     }
 
     // MARK: - Bot Helpers & Timers

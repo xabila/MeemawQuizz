@@ -150,7 +150,7 @@ final class MeemawShowAudioEngine: NSObject {
         jinglePlayer = player
     }
 
-    /// Joue un fichier `.m4a` studio pré-généré de Meemaw, ou bascule sur la voix féminine Audrey en direct.
+    /// Joue un fichier `.m4a` studio pré-généré de Meemaw (100% voix Audrey Premium studio, zéro voix robotique iOS).
     func playMeemawStudioOrFallback(
         studioFilename: String?,
         fallbackText: String,
@@ -173,7 +173,8 @@ final class MeemawShowAudioEngine: NSObject {
             return
         }
 
-        speakDynamicAudrey(fallbackText)
+        // Never use the robotic iOS compact TTS voice; finish cleanly if a file is not found.
+        finishVoiceTurn()
     }
 
     /// Synthèse vocale dynamique avec la voix féminine Audrey (pour prononcer les pseudos des joueurs en direct).
