@@ -433,6 +433,7 @@ final class GameSessionController {
         guard role == .hostAndPlayer1 else { return }
         stopTimers()
         audio.stopVoiceOnly()
+        audio.setMusicMood(.chillLobby)
         registry.resetRoundLocks()
         stage = .lobby
         activeQuestion = nil
@@ -502,26 +503,31 @@ final class GameSessionController {
         let text: String
         switch kind {
         case .cashSpeed:
+            audio.setMusicMood(.chillLobby)
             studioFile = "mq_round1_cash.m4a"
             text = "Manche 1 : Cash Rapide ! Tout le monde répond sur son téléphone, le plus rapide rafle la mise !"
             meemawPose = "meemaw_vitesse"
             audio.playJingle("jingle_intro.wav")
         case .leSolo:
+            audio.setMusicMood(.fastAction)
             studioFile = "mq_round2_solo_fast.m4a"
             text = "Manche 2 : C'est l'heure du SOLO ! Pas besoin de buzzer : le tout premier qui tape une réponse sur son téléphone gagne le DOUBLE... ou perd tout s'il se plante !"
             meemawPose = "meemaw_boxing_referee"
             audio.playJingle("jingle_solo_siren.wav")
         case .couciCouca:
+            audio.setMusicMood(.fastAction)
             studioFile = "mq_round3_raclette.m4a"
             text = "Manche 3 : La Raclette Quizz de Meemaw ! 6 questions qui fondent dans le poêlon : Gauche, Droite, ou LES DEUX !"
             meemawPose = "meemaw_fun"
             audio.playJingle("jingle_couci.wav")
         case .quoizziQuoissa:
+            audio.setMusicMood(.fastAction)
             studioFile = "mq_round4_quoizzi.m4a"
             text = "Manche 4 : Le Quoizzi-Quoissa Spécial Jeux de Mots ! Attention aux calembours bien gratinés de Meemaw !"
             meemawPose = "meemaw_giggle"
             audio.playJingle("jingle_couci.wav")
         case .finaleDouble:
+            audio.setMusicMood(.fastAction)
             studioFile = "mq_round4_finale.m4a"
             text = "Manche 5 : La Rafale Finale ! Tous les points sont DOUBLÉS, tout peut encore basculer !"
             meemawPose = "meemaw_duel_challenge"
@@ -941,6 +947,7 @@ final class GameSessionController {
 
     private func enterFinalPodium() {
         stopTimers()
+        audio.setMusicMood(.chillLobby)
         stage = .finalPodium
         podiumAwards = QuizScoringEngine.buildPodiumAwards(from: registry.players)
         meemawPose = "meemaw_holding_trophy"

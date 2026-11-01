@@ -8,12 +8,18 @@ import UIKit
 /// 1. Priorité 1 : Fichiers `.m4a` Studio pré-générés avec la voix Audrey Premium de Meemaw.
 /// 2. Priorité 2 : Synthèse vocale dynamique en direct (`AVSpeechSynthesizer` voix féminine Audrey) pour lire les pseudos des joueurs.
 /// 3. Jingles TV rétro-pop (`jingle_intro.wav`, `jingle_solo_siren.wav`, `jingle_couci.wav`, `jingle_victory.wav`, `sfx_buzz.wav`, `sfx_correct.wav`, `sfx_wrong.wav`) + musique d'ambiance douce.
+enum BackgroundMusicMood: String {
+    case chillLobby = "The_Quiet_Podium.mp3"
+    case fastAction = "Velvet_Strategy.mp3"
+}
+
 @Observable
 @MainActor
 final class MeemawShowAudioEngine: NSObject {
     static let shared = MeemawShowAudioEngine()
 
     private(set) var isMeemawSpeaking: Bool = false
+    private(set) var currentMood: BackgroundMusicMood = .chillLobby
     var isMusicMuted: Bool = false {
         didSet {
             if isMusicMuted {
@@ -27,6 +33,7 @@ final class MeemawShowAudioEngine: NSObject {
     private var voicePlayer: AVAudioPlayer?
     private var jinglePlayer: AVAudioPlayer?
     private var bgMusicPlayer: AVAudioPlayer?
+    private var activeBgTrackFilename: String?
     private let synthesizer = AVSpeechSynthesizer()
     private var onVoiceCompletion: (() -> Void)?
     private var audioSessionReady = false
@@ -68,11 +75,18 @@ final class MeemawShowAudioEngine: NSObject {
         return nil
     }
 
+    func setMusicMood(_ mood: BackgroundMusicMood) {
+        currentMood = mood
+        startBackgroundGroove(ducked: isMeemawSpeaking)
+    }
+
     func startBackgroundGroove(ducked: Bool = false) {
         ensureAudioSession()
         guard !isMusicMuted else { return }
-        let targetVol: Float = ducked ? 0.08 : 0.26
-        if let player = bgMusicPlayer {
+        let targetVol: Float = ducked ? 0.08 : (currentMood == .fastAction ? 0.30 : 0.25)
+        let desiredFilename = currentMood.rawValue
+
+        if let player = bgMusicPlayer, activeBgTrackFilename == desiredFilename {
             if !player.isPlaying {
                 player.volume = targetVol
                 player.play()
@@ -81,13 +95,17 @@ final class MeemawShowAudioEngine: NSObject {
             }
             return
         }
-        guard let url = resolveAudioURL(named: "The_Quiet_Podium.mp3"),
+
+        bgMusicPlayer?.stop()
+        bgMusicPlayer = nil
+        guard let url = resolveAudioURL(named: desiredFilename),
               let player = try? AVAudioPlayer(contentsOf: url) else { return }
         player.numberOfLoops = -1
         player.volume = targetVol
         player.prepareToPlay()
         player.play()
         bgMusicPlayer = player
+        activeBgTrackFilename = desiredFilename
     }
 
     func playJingle(_ filename: String, volume: Float = 0.85) {
