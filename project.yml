@@ -1,0 +1,56 @@
+name: MeemawQuizz
+options:
+  bundleIdPrefix: com.meemaw
+  deploymentTarget:
+    iOS: "17.0"
+  developmentLanguage: fr
+  createIntermediateGroups: true
+settings:
+  base:
+    DEVELOPMENT_TEAM: "5WJLNQMPLH"
+    SWIFT_VERSION: "6.0"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS: YES
+packages:
+  MeemawQuizzCore:
+    path: .
+targets:
+  MeemawQuizz:
+    type: application
+    platform: iOS
+    sources:
+      - path: App
+        excludes:
+          - Info.plist
+          - MeemawQuizz.entitlements
+          - Resources/MeemawQuizzAudio
+      - path: App/Resources/MeemawQuizzAudio
+        type: folder
+        buildPhase: resources
+    dependencies:
+      - package: MeemawQuizzCore
+        product: MeemawQuizzCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.meemaw.quizz
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: App/Info.plist
+        INFOPLIST_KEY_UIApplicationSupportsMultipleScenes: "YES"
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: "NO"
+        CODE_SIGN_ENTITLEMENTS: App/MeemawQuizz.entitlements
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SUPPORTS_MACCATALYST: NO
+        SWIFT_VERSION: "6.0"
+        ENABLE_PREVIEWS: YES
+        CODE_SIGN_STYLE: Automatic
+schemes:
+  MeemawQuizz:
+    build:
+      targets:
+        MeemawQuizz: all
+    run:
+      config: Debug
+    archive:
+      config: Release

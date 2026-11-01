@@ -1,0 +1,414 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		08E1199AA6C2D187197FCF73 /* PlayerControllerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DBCCE6624058C8D5BB7CA8A /* PlayerControllerView.swift */; };
+		1D8C32400161DB7AC3CE9B3A /* MeemawPopArtTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DFDBBAAAF7B024CDD70B63D /* MeemawPopArtTheme.swift */; };
+		2010D928DE6DCAC754B4EAE0 /* GameSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A430BCFA0EB99B54A151D04 /* GameSessionController.swift */; };
+		3DB87D39243BE0FE4655EC24 /* MeemawShowAudioEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9E3B9A5AE7AF9532309C514 /* MeemawShowAudioEngine.swift */; };
+		4B1986A113F4EDB982E59E55 /* ExternalDisplayManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A89DA912C53EF790C31A2153 /* ExternalDisplayManager.swift */; };
+		6CDF96D486D50B9563D4EA0B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4D93408F83219D558C219497 /* Assets.xcassets */; };
+		8CE42F3DEFF49F4B8E97E943 /* MeemawQuizzApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E7198FA8445043F3CB39E4 /* MeemawQuizzApp.swift */; };
+		97C86DBB710D2C789A92DF69 /* MeemawTVStageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09750ECCBDAE8E6801CE4E67 /* MeemawTVStageView.swift */; };
+		CA0C8418EE67512325B32888 /* QuizLANServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F78E727753D2080FA165151 /* QuizLANServer.swift */; };
+		CCA38E7F7B1913BA2CD8EF82 /* MeemawQuizzAudio in Resources */ = {isa = PBXBuildFile; fileRef = C1CB524490553AC3CC550C89 /* MeemawQuizzAudio */; };
+		D21E905A460AE28C9855EF8F /* MeemawQuizzCore in Frameworks */ = {isa = PBXBuildFile; productRef = 91326DB437A9A839FD9A155C /* MeemawQuizzCore */; };
+		EDF8150BB808A5036C1E4670 /* AirPlayRoutePickerButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90456197D6E19AFCC26E368 /* AirPlayRoutePickerButton.swift */; };
+		F88C664D45E425A7682A0236 /* QuizBonjourClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D23121AE9E4AD6E753B0C14 /* QuizBonjourClient.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		09750ECCBDAE8E6801CE4E67 /* MeemawTVStageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeemawTVStageView.swift; sourceTree = "<group>"; };
+		1D23121AE9E4AD6E753B0C14 /* QuizBonjourClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizBonjourClient.swift; sourceTree = "<group>"; };
+		1DFDBBAAAF7B024CDD70B63D /* MeemawPopArtTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeemawPopArtTheme.swift; sourceTree = "<group>"; };
+		4D93408F83219D558C219497 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		5A430BCFA0EB99B54A151D04 /* GameSessionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSessionController.swift; sourceTree = "<group>"; };
+		7DBCCE6624058C8D5BB7CA8A /* PlayerControllerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerControllerView.swift; sourceTree = "<group>"; };
+		7F78E727753D2080FA165151 /* QuizLANServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizLANServer.swift; sourceTree = "<group>"; };
+		8BEC2C3CFDBCE9F9B97BC829 /* MeemawQuizz.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = MeemawQuizz.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		932C6C2540F65743EBB9A424 /* MeemawQuizz */ = {isa = PBXFileReference; lastKnownFileType = folder; name = MeemawQuizz; path = .; sourceTree = SOURCE_ROOT; };
+		99E7198FA8445043F3CB39E4 /* MeemawQuizzApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeemawQuizzApp.swift; sourceTree = "<group>"; };
+		A89DA912C53EF790C31A2153 /* ExternalDisplayManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalDisplayManager.swift; sourceTree = "<group>"; };
+		A90456197D6E19AFCC26E368 /* AirPlayRoutePickerButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AirPlayRoutePickerButton.swift; sourceTree = "<group>"; };
+		A9E3B9A5AE7AF9532309C514 /* MeemawShowAudioEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeemawShowAudioEngine.swift; sourceTree = "<group>"; };
+		C1CB524490553AC3CC550C89 /* MeemawQuizzAudio */ = {isa = PBXFileReference; lastKnownFileType = folder; name = MeemawQuizzAudio; path = App/Resources/MeemawQuizzAudio; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		25215DFA3F794BAB8732312E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D21E905A460AE28C9855EF8F /* MeemawQuizzCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0DB61094CE54F9178C489D72 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				8BEC2C3CFDBCE9F9B97BC829 /* MeemawQuizz.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		128D385F18C0559C0EFD7974 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				A90456197D6E19AFCC26E368 /* AirPlayRoutePickerButton.swift */,
+				4D93408F83219D558C219497 /* Assets.xcassets */,
+				A89DA912C53EF790C31A2153 /* ExternalDisplayManager.swift */,
+				5A430BCFA0EB99B54A151D04 /* GameSessionController.swift */,
+				1DFDBBAAAF7B024CDD70B63D /* MeemawPopArtTheme.swift */,
+				99E7198FA8445043F3CB39E4 /* MeemawQuizzApp.swift */,
+				A9E3B9A5AE7AF9532309C514 /* MeemawShowAudioEngine.swift */,
+				09750ECCBDAE8E6801CE4E67 /* MeemawTVStageView.swift */,
+				7DBCCE6624058C8D5BB7CA8A /* PlayerControllerView.swift */,
+				1D23121AE9E4AD6E753B0C14 /* QuizBonjourClient.swift */,
+				7F78E727753D2080FA165151 /* QuizLANServer.swift */,
+				B17B2A3D3B04AC1C8A4C2E10 /* Resources */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		A7C294B856AB37D161E79DB8 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				932C6C2540F65743EBB9A424 /* MeemawQuizz */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		B17B2A3D3B04AC1C8A4C2E10 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				C1CB524490553AC3CC550C89 /* MeemawQuizzAudio */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		B6992669EA835F94EB701774 = {
+			isa = PBXGroup;
+			children = (
+				128D385F18C0559C0EFD7974 /* App */,
+				A7C294B856AB37D161E79DB8 /* Packages */,
+				0DB61094CE54F9178C489D72 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		AF989408DC46D2749063118D /* MeemawQuizz */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F76C28C5347056F341CDF830 /* Build configuration list for PBXNativeTarget "MeemawQuizz" */;
+			buildPhases = (
+				54F93E864C1B1A8952D371C2 /* Sources */,
+				16A740E8A9E7CDFA85B624E2 /* Resources */,
+				25215DFA3F794BAB8732312E /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MeemawQuizz;
+			packageProductDependencies = (
+				91326DB437A9A839FD9A155C /* MeemawQuizzCore */,
+			);
+			productName = MeemawQuizz;
+			productReference = 8BEC2C3CFDBCE9F9B97BC829 /* MeemawQuizz.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		934D21B806AFF29C43DA719E /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					AF989408DC46D2749063118D = {
+						DevelopmentTeam = 5WJLNQMPLH;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = D925E09BDC3119FBA2C09967 /* Build configuration list for PBXProject "MeemawQuizz" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = fr;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				fr,
+			);
+			mainGroup = B6992669EA835F94EB701774;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A966460C865AB5067CB1908F /* XCLocalSwiftPackageReference "." */,
+			);
+			preferredProjectObjectVersion = 77;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				AF989408DC46D2749063118D /* MeemawQuizz */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		16A740E8A9E7CDFA85B624E2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6CDF96D486D50B9563D4EA0B /* Assets.xcassets in Resources */,
+				CCA38E7F7B1913BA2CD8EF82 /* MeemawQuizzAudio in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		54F93E864C1B1A8952D371C2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EDF8150BB808A5036C1E4670 /* AirPlayRoutePickerButton.swift in Sources */,
+				4B1986A113F4EDB982E59E55 /* ExternalDisplayManager.swift in Sources */,
+				2010D928DE6DCAC754B4EAE0 /* GameSessionController.swift in Sources */,
+				1D8C32400161DB7AC3CE9B3A /* MeemawPopArtTheme.swift in Sources */,
+				8CE42F3DEFF49F4B8E97E943 /* MeemawQuizzApp.swift in Sources */,
+				3DB87D39243BE0FE4655EC24 /* MeemawShowAudioEngine.swift in Sources */,
+				97C86DBB710D2C789A92DF69 /* MeemawTVStageView.swift in Sources */,
+				08E1199AA6C2D187197FCF73 /* PlayerControllerView.swift in Sources */,
+				F88C664D45E425A7682A0236 /* QuizBonjourClient.swift in Sources */,
+				CA0C8418EE67512325B32888 /* QuizLANServer.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		1E45EB4DDFDA4D278DE5142C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = App/MeemawQuizz.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = App/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = NO;
+				INFOPLIST_KEY_UIApplicationSupportsMultipleScenes = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.meemaw.quizz;
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		3329E61E28CC57C437FB470C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = App/MeemawQuizz.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = App/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = NO;
+				INFOPLIST_KEY_UIApplicationSupportsMultipleScenes = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.meemaw.quizz;
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		3C57139872172917F46D3ED3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 5WJLNQMPLH;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		C8F8E3D1C5E2153104F86C89 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 5WJLNQMPLH;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		D925E09BDC3119FBA2C09967 /* Build configuration list for PBXProject "MeemawQuizz" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C8F8E3D1C5E2153104F86C89 /* Debug */,
+				3C57139872172917F46D3ED3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		F76C28C5347056F341CDF830 /* Build configuration list for PBXNativeTarget "MeemawQuizz" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3329E61E28CC57C437FB470C /* Debug */,
+				1E45EB4DDFDA4D278DE5142C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		A966460C865AB5067CB1908F /* XCLocalSwiftPackageReference "." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = .;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		91326DB437A9A839FD9A155C /* MeemawQuizzCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MeemawQuizzCore;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 934D21B806AFF29C43DA719E /* Project object */;
+}
