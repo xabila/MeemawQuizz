@@ -73,6 +73,7 @@ public struct QuizPlayer: Codable, Equatable, Identifiable, Sendable {
     public var isReady: Bool
     public var platform: PlayerPlatform
     public var hasUsedBisouTrap: Bool
+    public var hasUsedScrew: Bool
     public var activeBisouWipesRemaining: Int
     public var bisouSenderName: String?
     public var lockedChoiceIndex: Int?
@@ -94,6 +95,7 @@ public struct QuizPlayer: Codable, Equatable, Identifiable, Sendable {
         isReady: Bool = true,
         platform: PlayerPlatform = .iosBonjour,
         hasUsedBisouTrap: Bool = false,
+        hasUsedScrew: Bool = false,
         activeBisouWipesRemaining: Int = 0,
         bisouSenderName: String? = nil,
         lockedChoiceIndex: Int? = nil,
@@ -114,6 +116,7 @@ public struct QuizPlayer: Codable, Equatable, Identifiable, Sendable {
         self.isReady = isReady
         self.platform = platform
         self.hasUsedBisouTrap = hasUsedBisouTrap
+        self.hasUsedScrew = hasUsedScrew
         self.activeBisouWipesRemaining = activeBisouWipesRemaining
         self.bisouSenderName = bisouSenderName
         self.lockedChoiceIndex = lockedChoiceIndex
@@ -216,6 +219,7 @@ public struct PlayerLobbyRegistry: Sendable {
             players[idx].score = 0
             players[idx].streak = 0
             players[idx].hasUsedBisouTrap = false
+            players[idx].hasUsedScrew = false
             players[idx].activeBisouWipesRemaining = 0
             players[idx].bisouSenderName = nil
             players[idx].lockedChoiceIndex = nil
@@ -452,6 +456,7 @@ public struct ClientToHostMessage: Codable, Equatable, Sendable {
         case buzzSolo = "buzz_solo"
         case selectBinarySide = "select_binary"
         case sendBisouTrap = "send_bisou"
+        case screwOpponent = "screw_opponent"
         case wipeBisouScreen = "wipe_bisou"
         case leaveGame = "leave_game"
         case ping = "ping"
@@ -540,6 +545,7 @@ public struct HostToClientStateSnapshot: Codable, Equatable, Sendable {
     public var revealedCorrectIndex: Int?
     public var soloBuzzerPlayerID: String?
     public var soloBuzzerPlayerName: String?
+    public var screwAttackerName: String?
     public var activeDisOrDat: QuizDisOrDatRound?
     public var activeDisOrDatItemIndex: Int?
     public var revealedBinarySide: String?
@@ -563,6 +569,7 @@ public struct HostToClientStateSnapshot: Codable, Equatable, Sendable {
         revealedCorrectIndex: Int? = nil,
         soloBuzzerPlayerID: String? = nil,
         soloBuzzerPlayerName: String? = nil,
+        screwAttackerName: String? = nil,
         activeDisOrDat: QuizDisOrDatRound? = nil,
         activeDisOrDatItemIndex: Int? = nil,
         revealedBinarySide: String? = nil,
@@ -585,6 +592,7 @@ public struct HostToClientStateSnapshot: Codable, Equatable, Sendable {
         self.revealedCorrectIndex = revealedCorrectIndex
         self.soloBuzzerPlayerID = soloBuzzerPlayerID
         self.soloBuzzerPlayerName = soloBuzzerPlayerName
+        self.screwAttackerName = screwAttackerName
         self.activeDisOrDat = activeDisOrDat
         self.activeDisOrDatItemIndex = activeDisOrDatItemIndex
         self.revealedBinarySide = revealedBinarySide

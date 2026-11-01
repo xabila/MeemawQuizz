@@ -70,6 +70,8 @@ final class GameSessionController {
     var revealedCorrectIndex: Int?
     var soloBuzzerPlayerID: String?
     var soloBuzzerPlayerName: String?
+    var screwAttackerID: String?
+    var screwAttackerName: String?
     var activeDisOrDat: QuizDisOrDatRound?
     var activeDisOrDatItemIndex: Int?
     var revealedBinarySide: String?
@@ -294,6 +296,15 @@ final class GameSessionController {
         ))
     }
 
+    func sendScrewOpponent(to targetPlayerID: String) {
+        audio.triggerControllerHaptic(style: .heavy)
+        dispatchAction(ClientToHostMessage(
+            playerID: localPlayerID,
+            action: .screwOpponent,
+            targetPlayerID: targetPlayerID
+        ))
+    }
+
     func wipeLocalBisouScreen() {
         audio.triggerControllerHaptic(style: .light)
         dispatchAction(ClientToHostMessage(
@@ -343,6 +354,10 @@ final class GameSessionController {
         case .sendBisouTrap:
             guard let targetID = msg.targetPlayerID else { return }
             handleBisouTrap(fromPlayerID: msg.playerID, toPlayerID: targetID)
+
+        case .screwOpponent:
+            guard let targetID = msg.targetPlayerID else { return }
+            handleScrewOpponent(fromPlayerID: msg.playerID, toPlayerID: targetID)
 
         case .wipeBisouScreen:
             registry.updatePlayer(id: msg.playerID) { p in
@@ -406,7 +421,6 @@ final class GameSessionController {
         )
         usedQuestionIDs.formUnion(activeDeck.allMCQIDs)
         usedDisOrDatIDs.insert(activeDeck.couciCoucaRound.id)
-        usedDisOrDatIDs.insert(activeDeck.quoizziPunRound.id)
 
         phaseQueue = [
             .roundIntro(.cashSpeed),
@@ -418,14 +432,12 @@ final class GameSessionController {
             .soloQuestion(activeDeck.soloQuestions[1]),
             .roundIntro(.couciCouca),
             .couciCouca(activeDeck.couciCoucaRound, .couciCouca),
-            .roundIntro(.quoizziQuoissa),
-            .couciCouca(activeDeck.quoizziPunRound, .quoizziQuoissa),
             .roundIntro(.finaleDouble),
             .cashQuestion(activeDeck.finaleDoubleQuestions[0], isDoubleFinale: true),
             .cashQuestion(activeDeck.finaleDoubleQuestions[1], isDoubleFinale: true),
             .podium
         ]
-        totalQuestions = 9
+        totalQuestions = 8
         questionNumber = 0
         currentStepIndex = -1
 
@@ -446,6 +458,8 @@ final class GameSessionController {
         revealedBinarySide = nil
         soloBuzzerPlayerID = nil
         soloBuzzerPlayerName = nil
+        screwAttackerID = nil
+        screwAttackerName = nil
         podiumAwards = []
         meemawPose = "meemaw_salut"
         meemawSpeech = "Partie arrêtée ! De retour au salon : choisissez votre thème et vos couleurs !"
@@ -502,6 +516,8 @@ final class GameSessionController {
         revealedBinarySide = nil
         soloBuzzerPlayerID = nil
         soloBuzzerPlayerName = nil
+        screwAttackerID = nil
+        screwAttackerName = nil
 
         let studioFile: String
         let text: String
@@ -509,7 +525,7 @@ final class GameSessionController {
         case .cashSpeed:
             audio.setMusicMood(.chillLobby)
             studioFile = "mq_round1_cash.m4a"
-            text = "Manche 1 : Cash Rapide ! Tout le monde répond sur son téléphone, le plus rapide rafle la mise !"
+            text = "Manche 1 : Cash Rapide ! Tout le monde répond sur son téléphone, et vous avez 1 VIS « Clouer le Bec » façon Jack pour piéger un adversaire !"
             meemawPose = "meemaw_vitesse"
             audio.playJingle("jingle_intro.wav")
         case .leSolo:
@@ -518,22 +534,16 @@ final class GameSessionController {
             text = "Manche 2 : C'est l'heure du SOLO ! Pas besoin de buzzer : le tout premier qui tape une réponse sur son téléphone gagne le DOUBLE... ou perd tout s'il se plante !"
             meemawPose = "meemaw_boxing_referee"
             audio.playJingle("jingle_solo_siren.wav")
-        case .couciCouca:
+        case .couciCouca, .quoizziQuoissa:
             audio.setMusicMood(.fastAction)
             studioFile = "mq_round3_raclette.m4a"
             text = "Manche 3 : La Raclette Quizz de Meemaw ! 6 questions qui fondent dans le poêlon : Gauche, Droite, ou LES DEUX !"
             meemawPose = "meemaw_fun"
             audio.playJingle("jingle_couci.wav")
-        case .quoizziQuoissa:
-            audio.setMusicMood(.fastAction)
-            studioFile = "mq_round4_quoizzi.m4a"
-            text = "Manche 4 : Le Quoizzi-Quoissa Spécial Jeux de Mots ! Attention aux calembours bien gratinés de Meemaw !"
-            meemawPose = "meemaw_giggle"
-            audio.playJingle("jingle_couci.wav")
         case .finaleDouble:
             audio.setMusicMood(.fastAction)
             studioFile = "mq_round4_finale.m4a"
-            text = "Manche 5 : La Rafale Finale ! Tous les points sont DOUBLÉS, tout peut encore basculer !"
+            text = "Manche 4 : La Rafale Finale ! Tous les points sont DOUBLÉS, tout peut encore basculer !"
             meemawPose = "meemaw_duel_challenge"
             audio.playJingle("jingle_solo_siren.wav")
         }
@@ -541,14 +551,15 @@ final class GameSessionController {
         meemawSpeech = text
         broadcastState()
 
-        audio.playMeemawStudioOrFallback(studioFilename: studioFile, fallbackText: text) { [weak self] in
-            self?.scheduleDelayed(seconds: 2.2) {
-                self?.advanceToNextPhaseStep()
-            }
+        // Guaranteed auto-advance countdown even if the host forgets to press Next or audio callback drops
+        startCountdown(duration: 6.5) { [weak self] in
+            self?.advanceToNextPhaseStep()
         }
+
+        audio.playMeemawStudioOrFallback(studioFilename: studioFile, fallbackText: text)
     }
 
-    // MARK: - Manche 1 & 5 : Cash Speed / Finale Double
+    // MARK: - Manche 1 & 4 : Cash Speed / Finale Double
 
     private func enterCashQuestion(_ question: QuizMCQQuestion, isDoubleFinale: Bool) {
         registry.resetRoundLocks()
@@ -558,6 +569,8 @@ final class GameSessionController {
         revealedBinarySide = nil
         soloBuzzerPlayerID = nil
         soloBuzzerPlayerName = nil
+        screwAttackerID = nil
+        screwAttackerName = nil
         stage = .cashAnswering
         totalTimerSec = 26.0
         timeRemainingSec = 26.0
@@ -579,7 +592,7 @@ final class GameSessionController {
     }
 
     private func handlePlayerChoice(playerID: String, choiceIndex: Int) {
-        // Manche 2 LE SOLO : Le 1er qui tape une réponse A/B/C/D gagne le double ou perd tout !
+        // Manche 2 LE SOLO ou VICTIME D'UN « CLOUER LE BEC » (The Screw) :
         if stage == .soloBuzzOpen || stage == .soloPlayerAnswering {
             guard let q = activeQuestion else { return }
             guard let player = registry.players.first(where: { $0.id == playerID }),
@@ -665,6 +678,11 @@ final class GameSessionController {
             }
         }
 
+        // Guaranteed auto-advance after 9.5s if the host forgets to press Next
+        startCountdown(duration: 9.5) { [weak self] in
+            self?.advanceToNextPhaseStep()
+        }
+
         if let winner = fastestWinner {
             audio.playJingle("sfx_correct.wav")
             let praise = MeemawPunchlines.dynamicFastestPraise(
@@ -676,11 +694,7 @@ final class GameSessionController {
             meemawSpeech = "\(praise)\n\(question.explanation)"
             broadcastState()
 
-            audio.speakDynamicPlayerCallout(praise) { [weak self] in
-                self?.scheduleDelayed(seconds: 7.0) {
-                    self?.advanceToNextPhaseStep()
-                }
-            }
+            audio.speakDynamicPlayerCallout(praise)
         } else {
             audio.playJingle("sfx_wrong.wav")
             meemawPose = "meemaw_worried"
@@ -691,11 +705,7 @@ final class GameSessionController {
             audio.playMeemawStudioOrFallback(
                 studioFilename: roastFile,
                 fallbackText: question.meemawRoastOnWrong
-            ) { [weak self] in
-                self?.scheduleDelayed(seconds: 7.0) {
-                    self?.advanceToNextPhaseStep()
-                }
-            }
+            )
         }
     }
 
@@ -709,6 +719,8 @@ final class GameSessionController {
         revealedBinarySide = nil
         soloBuzzerPlayerID = nil
         soloBuzzerPlayerName = nil
+        screwAttackerID = nil
+        screwAttackerName = nil
         stage = .soloBuzzOpen
         totalTimerSec = 24.0
         timeRemainingSec = 24.0
@@ -731,8 +743,8 @@ final class GameSessionController {
             self.revealedCorrectIndex = question.correctIndex
             self.meemawSpeech = "Personne n'a osé tenter le SOLO ! Bande de poules mouillées ! \(question.explanation)"
             self.broadcastState()
-            self.scheduleDelayed(seconds: 7.0) {
-                self.advanceToNextPhaseStep()
+            self.startCountdown(duration: 8.0) { [weak self] in
+                self?.advanceToNextPhaseStep()
             }
         }
     }
@@ -769,9 +781,71 @@ final class GameSessionController {
         stage = .questionReveal
         revealedCorrectIndex = question.correctIndex
 
+        // Clear all other players' lastDeltaScore first so only involved players show deltas
+        for p in registry.players {
+            registry.updatePlayer(id: p.id) { $0.lastDeltaScore = 0 }
+        }
+
         let isCorrect = (chosenIndex == question.correctIndex)
-        let delta = QuizScoringEngine.scoreSoloAnswer(baseValue: question.baseValue, isCorrect: isCorrect)
         let playerName = registry.players.first(where: { $0.id == buzzerPlayerID })?.name ?? "Le joueur"
+
+        // Check if this Solo spotlight was triggered by a You Don't Know Jack "CLOUER LE BEC" (Screw)!
+        if let attackerID = screwAttackerID,
+           let attackerName = screwAttackerName {
+            let multiplier = (roundKind == .finaleDouble) ? 2 : 1
+            let base = question.baseValue * multiplier
+            if isCorrect {
+                // Victim got it RIGHT! Backfire on the attacker!
+                let victimBonus = base * 2
+                let attackerPenalty = -(base / 2)
+                registry.updatePlayer(id: buzzerPlayerID) { p in
+                    p.score += victimBonus
+                    p.lastDeltaScore = victimBonus
+                    p.streak += 1
+                    p.correctAnswersCount += 1
+                    p.soloWinsCount += 1
+                }
+                registry.updatePlayer(id: attackerID) { a in
+                    a.score += attackerPenalty
+                    a.lastDeltaScore = attackerPenalty
+                    a.streak = 0
+                }
+                audio.playJingle("sfx_correct.wav")
+                let line = "🔩💥 RETOUR DE MANIVELLE ! \(playerName) connaissait la réponse et empoche +\(victimBonus) points ! \(attackerName) perd \(abs(attackerPenalty)) points pour avoir voulu lui clouer le bec !"
+                meemawPose = "meemaw_celebrate"
+                meemawSpeech = "\(line)\n\(question.explanation)"
+                broadcastState()
+                startCountdown(duration: 9.5) { [weak self] in
+                    self?.advanceToNextPhaseStep()
+                }
+                audio.speakDynamicPlayerCallout(line)
+            } else {
+                // Victim got it WRONG! The Screw succeeded!
+                let victimPenalty = -base
+                let attackerBonus = base
+                registry.updatePlayer(id: buzzerPlayerID) { p in
+                    p.score += victimPenalty
+                    p.lastDeltaScore = victimPenalty
+                    p.streak = 0
+                }
+                registry.updatePlayer(id: attackerID) { a in
+                    a.score += attackerBonus
+                    a.lastDeltaScore = attackerBonus
+                }
+                audio.playJingle("sfx_wrong.wav")
+                let line = "🔩🎯 BEC CLOUÉ ! \(playerName) s'est planté en beauté (\(victimPenalty) pts) ! \(attackerName) jubile et rafle +\(attackerBonus) points de coup de Jarnac !"
+                meemawPose = "meemaw_giggle"
+                meemawSpeech = "\(line)\n\(question.explanation)"
+                broadcastState()
+                startCountdown(duration: 9.5) { [weak self] in
+                    self?.advanceToNextPhaseStep()
+                }
+                audio.speakDynamicPlayerCallout(line)
+            }
+            return
+        }
+
+        let delta = QuizScoringEngine.scoreSoloAnswer(baseValue: question.baseValue, isCorrect: isCorrect)
 
         registry.updatePlayer(id: buzzerPlayerID) { p in
             p.score += delta
@@ -791,14 +865,15 @@ final class GameSessionController {
         meemawSpeech = "\(line)\n\(question.explanation)"
         broadcastState()
 
-        audio.speakDynamicPlayerCallout(line) { [weak self] in
-            self?.scheduleDelayed(seconds: 7.0) {
-                self?.advanceToNextPhaseStep()
-            }
+        // Guaranteed auto-advance after 9.5s if the host forgets to press Next
+        startCountdown(duration: 9.5) { [weak self] in
+            self?.advanceToNextPhaseStep()
         }
+
+        audio.speakDynamicPlayerCallout(line)
     }
 
-    // MARK: - Manche 3 & 4 : La Raclette Quizz & Le Quoizzi-Quoissa (DisOrDat)
+    // MARK: - Manche 3 : La Raclette Quizz (DisOrDat / 3 choix)
 
     private func enterCouciCoucaRound(_ round: QuizDisOrDatRound, kind: QuizRoundKind) {
         registry.resetRoundLocks()
@@ -807,7 +882,7 @@ final class GameSessionController {
         activeDisOrDat = round
         revealedCorrectIndex = nil
         revealedBinarySide = nil
-        meemawPose = kind == .quoizziQuoissa ? "meemaw_giggle" : "meemaw_fun"
+        meemawPose = "meemaw_fun"
 
         // Start Item 0 IMMEDIATELY so players can answer right away without waiting for Meemaw to finish talking!
         startCouciCoucaItem(at: 0, isFirstItemWithIntroVoice: true)
@@ -833,8 +908,7 @@ final class GameSessionController {
         totalTimerSec = duration
         timeRemainingSec = duration
         let item = round.items[index]
-        let prefix = round.isPunRound ? "🤪 QUOIZZI-QUOISSA" : "🧀 RACLETTE QUIZZ"
-        meemawSpeech = "\(prefix) (\(index + 1)/\(round.items.count)) : « \(item.text) »"
+        meemawSpeech = "🧀 RACLETTE QUIZZ (\(index + 1)/\(round.items.count)) : « \(item.text) »"
         broadcastState()
 
         scheduleBotsForCouciItem(item, round: round)
@@ -910,7 +984,7 @@ final class GameSessionController {
         audio.playJingle(anyCorrect ? "sfx_correct.wav" : "sfx_wrong.wav")
         broadcastState()
 
-        scheduleDelayed(seconds: 3.0) { [weak self] in
+        startCountdown(duration: 3.5) { [weak self] in
             self?.startCouciCoucaItem(at: index + 1)
         }
     }
@@ -919,15 +993,14 @@ final class GameSessionController {
         stage = .couciCoucaSummary
         revealedBinarySide = nil
         meemawPose = "meemaw_celebrate"
-        let title = (roundKind == .quoizziQuoissa) ? "Fin du Quoizzi-Quoissa !" : "Fin de la Raclette Quizz !"
-        meemawSpeech = "\(title) Regardez le classement sur la TV !"
+        meemawSpeech = "Fin de la Raclette Quizz ! Regardez le classement avant la Rafale Finale !"
         broadcastState()
-        scheduleDelayed(seconds: 5.5) { [weak self] in
+        startCountdown(duration: 5.5) { [weak self] in
             self?.advanceToNextPhaseStep()
         }
     }
 
-    // MARK: - Bisou Baveux de Meemaw (Trap Mechanic)
+    // MARK: - Bisou Baveux de Meemaw & 🔩 « Clouer le Bec » (You Don't Know Jack Screw!)
 
     private func handleBisouTrap(fromPlayerID: String, toPlayerID: String) {
         guard fromPlayerID != toPlayerID else { return }
@@ -945,6 +1018,51 @@ final class GameSessionController {
             fallbackText: meemawSpeech
         )
         broadcastState()
+    }
+
+    private func handleScrewOpponent(fromPlayerID: String, toPlayerID: String) {
+        guard stage == .cashAnswering, let q = activeQuestion else { return }
+        guard fromPlayerID != toPlayerID else { return }
+        guard let sender = registry.players.first(where: { $0.id == fromPlayerID }),
+              !sender.hasUsedScrew,
+              let target = registry.players.first(where: { $0.id == toPlayerID }) else { return }
+
+        stopTimers()
+        registry.updatePlayer(id: fromPlayerID) { $0.hasUsedScrew = true }
+        // Clear any locked choices from this question and put target alone on the spot!
+        registry.resetRoundLocks()
+
+        screwAttackerID = sender.id
+        screwAttackerName = sender.name
+        soloBuzzerPlayerID = target.id
+        soloBuzzerPlayerName = target.name
+        stage = .soloPlayerAnswering
+        totalTimerSec = 12.0
+        timeRemainingSec = 12.0
+        questionOpenedAt = Date()
+
+        audio.playJingle("jingle_solo_siren.wav")
+        let callout = "🔩 COUP DE JARNAC ! \(sender.name) cloue le bec de \(target.name) ! \(target.name), tu es tout seul : 12 secondes pour répondre ou tu perds les points au profit de \(sender.name) !"
+        meemawPose = "meemaw_duel_challenge"
+        meemawSpeech = callout
+        broadcastState()
+
+        audio.speakDynamicPlayerCallout(callout)
+
+        if target.id.hasPrefix("bot_") {
+            botActionTask?.cancel()
+            botActionTask = Task { @MainActor [weak self] in
+                try? await Task.sleep(for: .milliseconds(4500))
+                guard let self, !Task.isCancelled, self.stage == .soloPlayerAnswering else { return }
+                let botPick = (Int.random(in: 0..<100) < 50) ? q.correctIndex : Int.random(in: 0..<4)
+                self.handlePlayerChoice(playerID: target.id, choiceIndex: botPick)
+            }
+        }
+
+        startCountdown(duration: 12.0) { [weak self] in
+            guard let self, self.stage == .soloPlayerAnswering else { return }
+            self.revealSoloQuestionResult(q, buzzerPlayerID: target.id, chosenIndex: nil)
+        }
     }
 
     // MARK: - Final Podium
@@ -1019,10 +1137,10 @@ final class GameSessionController {
         countdownTimer?.invalidate()
         totalTimerSec = duration
         timeRemainingSec = duration
-        countdownTimer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: true) { [weak self] _ in
+        countdownTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in
                 guard let self else { return }
-                self.timeRemainingSec = max(0, self.timeRemainingSec - 0.2)
+                self.timeRemainingSec = max(0, self.timeRemainingSec - 0.5)
                 self.broadcastState()
                 if self.timeRemainingSec <= 0.001 {
                     self.countdownTimer?.invalidate()
@@ -1070,6 +1188,7 @@ final class GameSessionController {
             revealedCorrectIndex: revealedCorrectIndex,
             soloBuzzerPlayerID: soloBuzzerPlayerID,
             soloBuzzerPlayerName: soloBuzzerPlayerName,
+            screwAttackerName: screwAttackerName,
             activeDisOrDat: activeDisOrDat,
             activeDisOrDatItemIndex: activeDisOrDatItemIndex,
             revealedBinarySide: revealedBinarySide,

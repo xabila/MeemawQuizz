@@ -179,11 +179,10 @@ struct MeemawTVStageView: View {
                     Divider()
 
                     VStack(alignment: .leading, spacing: 8 * scale) {
-                        lobbyRoundRow(badge: "MANCHE 1", title: "⚡ Cash Rapide (Tout le monde répond + Bisou Piège)", scale: scale)
+                        lobbyRoundRow(badge: "MANCHE 1", title: "⚡ Cash Rapide (Rapidité + 🔩 Clouer le Bec façon Jack + 💋 Bisou)", scale: scale)
                         lobbyRoundRow(badge: "MANCHE 2", title: "🚨 LE SOLO (Le 1er qui répond gagne le DOUBLE ou perd tout !)", scale: scale)
-                        lobbyRoundRow(badge: "MANCHE 3", title: "🧀 La Raclette Quizz (Gauche, Droite, ou LES DEUX !)", scale: scale)
-                        lobbyRoundRow(badge: "MANCHE 4", title: "🤪 Le Quoizzi-Quoissa (Spécial Jeux de Mots & Calembours)", scale: scale)
-                        lobbyRoundRow(badge: "MANCHE 5", title: "🔥 La Rafale Finale (Tous les points ×2 + Podium)", scale: scale)
+                        lobbyRoundRow(badge: "MANCHE 3", title: "🧀 La Raclette Quizz (Gauche, Droite, ou 🧀 LES DEUX !)", scale: scale)
+                        lobbyRoundRow(badge: "MANCHE 4", title: "🔥 La Rafale Finale (Tous les points ×2 + Podium)", scale: scale)
                     }
 
                     Spacer()
@@ -348,6 +347,18 @@ struct MeemawTVStageView: View {
                 .padding(.vertical, 8 * scale)
                 .padding(.horizontal, 16 * scale)
                 .background(PopArt.redError, in: Capsule())
+                .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 3))
+            } else if snap.stage == .soloPlayerAnswering, let attacker = snap.screwAttackerName, let victim = snap.soloBuzzerPlayerName {
+                HStack(spacing: 10 * scale) {
+                    Text("🔩 COUP DE JARNAC ! \(attacker.uppercased()) A CLOUÉ LE BEC DE \(victim.uppercased()) — \(victim.uppercased()) DOIT RÉPONDRE SEUL !")
+                        .font(.system(size: 17 * scale, weight: .black, design: .rounded))
+                        .foregroundStyle(.white)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8 * scale)
+                .padding(.horizontal, 16 * scale)
+                .background(PopArt.purple, in: Capsule())
                 .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 3))
             }
 

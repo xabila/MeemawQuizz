@@ -17,7 +17,7 @@ public struct ShowGameDeck: Sendable {
         self.cashQuestions = cashQuestions
         self.soloQuestions = soloQuestions
         self.couciCoucaRound = couciCoucaRound
-        self.quoizziPunRound = quoizziPunRound ?? QuestionBank.allPunRounds[0]
+        self.quoizziPunRound = quoizziPunRound ?? couciCoucaRound
         self.finaleDoubleQuestions = finaleDoubleQuestions
     }
 
@@ -996,18 +996,18 @@ public enum QuestionBank {
             id: "CINE_17",
             theme: .seriesCinema,
             preferredRound: .cashSpeed,
-            funnyTitle: "Le bleu le plus vieux du commissariat de Los Angeles",
-            prompt: "Dans la série « The Rookie : Le Flic de Los Angeles », quel métier exerçait John Nolan (Nathan Fillion) en Pennsylvanie avant de tout plaquer à 45 ans pour entrer dans la police du LAPD ?",
+            funnyTitle: "PIVOT ! PIVOT ! PIVOOOOOT !",
+            prompt: "Dans la scène mythique de la série « Friends », quel meuble Ross Geller essaie-t-il désespérément de monter dans sa cage d'escalier en hurlant « PIVOT ! » à Rachel et Chandler ?",
             choices: [
-                "Entrepreneur dans le bâtiment (charpentier / rénovation)",
-                "Vendeur d'aspirateurs à domicile",
-                "Professeur de salsa acrobatique",
-                "Testeur de matelas orthopédiques"
+                "Un canapé neuf (qui finit coupé en deux !)",
+                "Un piano à queue",
+                "Le frigo de Monica",
+                "Le baby-foot de Joey"
             ],
             correctIndex: 0,
             baseValue: 2000,
-            meemawRoastOnWrong: "John Nolan était entrepreneur dans le bâtiment ! C'est d'ailleurs pour ça qu'il retape toute sa maison à Los Angeles !",
-            explanation: "💡 Après son divorce et un braquage de banque, John Nolan quitte son entreprise de construction pour devenir la recrue la plus âgée du LAPD.",
+            meemawRoastOnWrong: "C'est son canapé beige, parce que Ross était trop radin pour payer 15 dollars de livraison !",
+            explanation: "💡 Dans la saison 5 de Friends, Ross refuse de payer la livraison et coince son canapé dans l'escalier en criant « PIVOT ! ».",
             audioCueID: "q_CINE_17"
         ),
         QuizMCQQuestion(
@@ -1015,7 +1015,7 @@ public enum QuestionBank {
             theme: .seriesCinema,
             preferredRound: .leSolo,
             funnyTitle: "Arrestation immédiate pour excès de mignonnerie",
-            prompt: "Dans « The Rookie », comment les fans surnomment-ils le duo amoureux ultra-populaire formé par Lucy Chen et son ancien instructeur grincheux Tim Bradford ?",
+            prompt: "Dans la série « The Rookie », comment les fans surnomment-ils le duo amoureux ultra-populaire formé par Lucy Chen et son ancien instructeur grincheux Tim Bradford ?",
             choices: [
                 "Bradchen",
                 "Chenford (Chen + Bradford !)",
@@ -1032,18 +1032,18 @@ public enum QuestionBank {
             id: "CINE_19",
             theme: .seriesCinema,
             preferredRound: .cashSpeed,
-            funnyTitle: "La chanson qui rend fou l'agent Nolan au démarrage",
-            prompt: "Dans une scène d'ouverture devenue virale sur TikTok dans « The Rookie », quelle chanson un groupe de garage chante-t-il dans son coffre pendant que John Nolan les contrôle : « Arrest me, but make it sexy » ?",
+            funnyTitle: "346 422 allumettes et un tube de colle",
+            prompt: "Dans la comédie culte « Le Dîner de Cons » (1998) de Francis Veber, quelle est la grande passion de François Pignon (Jacques Villeret) dont il est extrêmement fier ?",
             choices: [
-                "Cop Cuties (Daddy Cop)",
-                "Police Disco Fever",
-                "Menottes et Paillettes",
-                "Bad Boys de Los Angeles"
+                "Construire des maquettes géantes de ponts et de monuments en allumettes",
+                "Collectionner les bouchons de champagne",
+                "Imiter le cri de la mouette rieuse",
+                "Faire des puzzles de 50 000 pièces dans le noir"
             ],
             correctIndex: 0,
-            baseValue: 2500,
-            meemawRoastOnWrong: "« Cop Cuties, cute and on duty, Navy blue booties ! » Nolan a mis trois saisons à s'en remettre !",
-            explanation: "💡 La chanson « Daddy Cop / Cop Cuties » chantée par Zander Hawley (le fils du créateur de la série !) est devenue un hymne viral.",
+            baseValue: 2000,
+            meemawRoastOnWrong: "Ses maquettes en allumettes, dont le pont de Tancarville et la Tour Eiffel ! « Il est mignon monsieur Pignon, il est méchant monsieur Brochant ! »",
+            explanation: "💡 François Pignon réalise des maquettes géantes en allumettes (346 422 allumettes pour le pont de Tancarville !).",
             audioCueID: "q_CINE_19"
         ),
         QuizMCQQuestion(
@@ -1068,36 +1068,36 @@ public enum QuestionBank {
             id: "CINE_21",
             theme: .seriesCinema,
             preferredRound: .leSolo,
-            funnyTitle: "L'homme aux 62 métiers de Stars Hollow",
-            prompt: "Dans « Gilmore Girls », quel habitant excentrique de Stars Hollow a exercé plus de 60 petits boulots différents au fil des 7 saisons (livreur de cygnes, vendeur de boîtes aux lettres, esthéticien, serveur...) ?",
+            funnyTitle: "Meemaw résume le film : « Une lessive sauve un petit bonhomme à grandes oreilles »",
+            prompt: "Dans « Harry Potter et la Chambre des Secrets », quel vêtement Harry glisse-t-il en douce dans le journal intime pour que Lucius Malefoy libère accidentellement son elfe de maison Dobby ?",
             choices: [
-                "Michel Gérard",
-                "Kirk Gleason",
-                "Taylor Doose",
-                "Jackson Belleville"
+                "Son écharpe Gryffondor",
+                "Une vieille chaussette sale et gluante",
+                "Le slip en laine de Ron",
+                "Un gant de Quidditch"
             ],
             correctIndex: 1,
-            baseValue: 2500,
-            meemawRoastOnWrong: "C'est l'inimitable Kirk Gleason ! Il a même créé « Ooober » (avec deux O) dans le revival !",
-            explanation: "💡 Kirk Gleason (joué par Sean Gunn) cumule plus de 62 emplois farfelus à Stars Hollow et a économisé un quart de million de dollars !",
+            baseValue: 2000,
+            meemawRoastOnWrong: "« Le maître a donné une chaussette à Dobby ! Dobby est un elfe libre ! »",
+            explanation: "💡 Un elfe de maison est libéré si son maître lui tend un vêtement : Harry piège Lucius Malefoy avec sa vieille chaussette.",
             audioCueID: "q_CINE_21"
         ),
         QuizMCQQuestion(
             id: "CINE_22",
             theme: .seriesCinema,
             preferredRound: .finaleDouble,
-            funnyTitle: "Le pacte sacré du vendredi soir à Hartford",
-            prompt: "Au tout premier épisode de « Gilmore Girls », qu'exige la grand-mère Emily Gilmore en échange du paiement des frais de scolarité de Rory au prestigieux lycée privé de Chilton ?",
+            funnyTitle: "La botte secrète de Karadoc et Perceval",
+            prompt: "Dans la série « Kaamelott » d'Alexandre Astier, quelle réplique magique Perceval utilise-t-il pour avoir l'air intelligent quand il ne comprend pas un mot (comme « péremptoire » ou « côtes de porc ») ?",
             choices: [
-                "Que Lorelai et Rory viennent dîner chez eux TOUS les vendredis soir sans exception",
-                "Que Lorelai arrête le café pendant 10 ans",
-                "Que Rory apprenne le golf et la harpe",
-                "Qu'elles renomment leur chien Paul Anka"
+                "« C'est pas faux ! »",
+                "« Tout à fait Thierry ! »",
+                "« On en a gros ! »",
+                "« Le gras, c'est la vie ! »"
             ],
             correctIndex: 0,
             baseValue: 2000,
-            meemawRoastOnWrong: "Les fameux dîners du vendredi soir chez Emily et Richard Gilmore ! Meemaw trouve qu'Emily a tout compris !",
-            explanation: "💡 Le dîner obligatoire du vendredi soir chez Emily et Richard est le moteur dramatique et comique de toute la série Gilmore Girls.",
+            meemawRoastOnWrong: "« C'est pas faux ! » Et quand tu réponds à côté, c'est quelle côte que t'as pas comprise ?",
+            explanation: "💡 La botte secrète de Karadoc enseignée à Perceval consiste à répondre « C'est pas faux » dès qu'un mot de vocabulaire lui échappe.",
             audioCueID: "q_CINE_22"
         ),
         QuizMCQQuestion(
@@ -2384,19 +2384,19 @@ public enum QuestionBank {
         QuizDisOrDatRound(
             id: "RAC_CINE_1",
             theme: .seriesCinema,
-            funnyTitle: "🧀 Raclette Séries : The Rookie, Gilmore Girls, ou LES DEUX ?",
-            prompt: "Façon Burger Quiz : est-ce dans THE ROOKIE, dans GILMORE GIRLS, ou dans LES DEUX séries ?",
-            optionLeft: "THE ROOKIE 🚓",
-            optionRight: "GILMORE GIRLS ☕️",
+            funnyTitle: "🧀 Raclette Pop-Culture : Harry Potter, Le Seigneur des Anneaux, ou LES DEUX ?",
+            prompt: "Façon Burger Quiz : c'est dans HARRY POTTER, dans LE SEIGNEUR DES ANNEAUX, ou dans LES DEUX ?",
+            optionLeft: "HARRY POTTER ⚡",
+            optionRight: "SEIGNEUR ANNEAUX 💍",
             optionBoth: "🧀 LES DEUX !",
             valuePerItem: 500,
             items: [
-                QuizDisOrDatItem(index: 0, text: "Un personnage nommé Kirk qui change de métier toutes les semaines", correctSide: "right"),
-                QuizDisOrDatItem(index: 1, text: "Le couple chouchou des fans surnommé « Chenford »", correctSide: "left"),
-                QuizDisOrDatItem(index: 2, text: "Des héros qui boivent des litres de café à emporter dès 7h du matin", correctSide: "both"),
-                QuizDisOrDatItem(index: 3, text: "La chanson virale « Cop Cuties, cute and on duty »", correctSide: "left"),
-                QuizDisOrDatItem(index: 4, text: "Les dîners obligatoires du vendredi soir chez les grands-parents Emily & Richard", correctSide: "right"),
-                QuizDisOrDatItem(index: 5, text: "Tourné sous le soleil de Californie dans les studios de Los Angeles", correctSide: "both")
+                QuizDisOrDatItem(index: 0, text: "Un vieux monsieur à longue barbe blanche donne des conseils mystérieux", correctSide: "both"),
+                QuizDisOrDatItem(index: 1, text: "On prend le train sur la voie 9 ¾ à la gare de King's Cross", correctSide: "left"),
+                QuizDisOrDatItem(index: 2, text: "Une créature chauve obsédée par « son Précieux »", correctSide: "right"),
+                QuizDisOrDatItem(index: 3, text: "Des araignées géantes qui donnent des sueurs froides dans la forêt", correctSide: "both"),
+                QuizDisOrDatItem(index: 4, text: "Un elfe libéré grâce à une vieille chaussette sale", correctSide: "left"),
+                QuizDisOrDatItem(index: 5, text: "Le premier film de la saga est sorti au cinéma en 2001", correctSide: "both")
             ],
             audioCueID: "rac_CINE_1"
         ),
@@ -2457,82 +2457,43 @@ public enum QuestionBank {
             ],
             audioCueID: "rac_FR_1"
         ),
-        // MARK: - 🤪 Manche 4 : Le Quoizzi-Quoissa (Spécial Jeux de Mots & Calembours)
         QuizDisOrDatRound(
-            id: "PUN_1",
-            theme: .francaisMeemaw,
-            funnyTitle: "🤪 Quoizzi-Quoissa : Vrai commerce à jeu de mots ou Invention de Meemaw ?",
-            prompt: "Les coiffeurs et commerçants français sont les rois du calembour : VRAIE enseigne qui existe en France ou INVENTION de Meemaw ?",
-            optionLeft: "VRAIE ENSEIGNE 💈",
-            optionRight: "INVENTION MEEMAW 👵",
+            id: "RAC_MATH_1",
+            theme: .mathMeemaw,
+            funnyTitle: "🧀 Raclette des Nombres : Divisible par 2, Divisible par 5, ou LES DEUX ?",
+            prompt: "Calcul mental : ce nombre se divise-t-il par 2, par 5, ou par LES DEUX (donc par 10) ?",
+            optionLeft: "PAR 2 ✌️",
+            optionRight: "PAR 5 🖐️",
+            optionBoth: "🧀 LES DEUX !",
             valuePerItem: 500,
             items: [
-                QuizDisOrDatItem(index: 0, text: "Un salon de coiffure baptisé «tif & Tondu »", correctSide: "left"),
-                QuizDisOrDatItem(index: 1, text: "Un salon de coiffure baptisé « L'Hair du Temps »", correctSide: "left"),
-                QuizDisOrDatItem(index: 2, text: "Un plombier-chauffagiste baptisé « Obi-Wan Tuyauterie »", correctSide: "right"),
-                QuizDisOrDatItem(index: 3, text: "Une friterie baptisée « Beautés Frites »", correctSide: "left"),
-                QuizDisOrDatItem(index: 4, text: "Un pressing de mamie baptisé « Repasse-moi l'éponge »", correctSide: "right"),
-                QuizDisOrDatItem(index: 5, text: "Un toiletteur pour chiens baptisé « Doggy Style »", correctSide: "left")
+                QuizDisOrDatItem(index: 0, text: "24", correctSide: "left"),
+                QuizDisOrDatItem(index: 1, text: "35", correctSide: "right"),
+                QuizDisOrDatItem(index: 2, text: "70", correctSide: "both"),
+                QuizDisOrDatItem(index: 3, text: "125", correctSide: "right"),
+                QuizDisOrDatItem(index: 4, text: "48", correctSide: "left"),
+                QuizDisOrDatItem(index: 5, text: "2020", correctSide: "both")
             ],
-            audioCueID: "pun_1",
-            isPunRound: true
+            audioCueID: "pun_1"
         ),
         QuizDisOrDatRound(
-            id: "PUN_2",
-            theme: .cultureGInsolite,
-            funnyTitle: "🤪 Quoizzi-Quoissa : Vraie commune de France à jeu de mots ou Bobard ?",
-            prompt: "Sur les panneaux routiers de France : VRAIE commune française ou FAUX village inventé ?",
-            optionLeft: "VRAI VILLAGE 🪧",
-            optionRight: "FAUX VILLAGE 🤥",
+            id: "RAC_ECO_1",
+            theme: .ecoCash,
+            funnyTitle: "🧀 Raclette Épargne : Livret A, PEA (Plan d'Épargne en Actions), ou LES DEUX ?",
+            prompt: "Question Cash : est-ce vrai pour le LIVRET A, pour le PEA, ou pour LES DEUX ?",
+            optionLeft: "LIVRET A 🏦",
+            optionRight: "PEA 📈",
+            optionBoth: "🧀 LES DEUX !",
             valuePerItem: 500,
             items: [
-                QuizDisOrDatItem(index: 0, text: "Arnac-la-Poste (en Haute-Vienne)", correctSide: "left"),
-                QuizDisOrDatItem(index: 1, text: "Moncuq (dans le Lot)", correctSide: "left"),
-                QuizDisOrDatItem(index: 2, text: "Saint-Fromage-sur-Tartine (en Savoie)", correctSide: "right"),
-                QuizDisOrDatItem(index: 3, text: "Angoisse (en Dordogne)", correctSide: "left"),
-                QuizDisOrDatItem(index: 4, text: "Gratte-Bidou-les-Oies (dans le Gers)", correctSide: "right"),
-                QuizDisOrDatItem(index: 5, text: "La Tronche (en Isère)", correctSide: "left")
+                QuizDisOrDatItem(index: 0, text: "Capital 100 % garanti sans aucun risque de baisse", correctSide: "left"),
+                QuizDisOrDatItem(index: 1, text: "Permet d'investir dans des ETF comme le MSCI World", correctSide: "right"),
+                QuizDisOrDatItem(index: 2, text: "0 % d'impôt sur le revenu sur les gains (après 5 ans pour le PEA)", correctSide: "both"),
+                QuizDisOrDatItem(index: 3, text: "Plafond des versements fixé à 22 950 €", correctSide: "left"),
+                QuizDisOrDatItem(index: 4, text: "Plafond des versements fixé à 150 000 €", correctSide: "right"),
+                QuizDisOrDatItem(index: 5, text: "Limité à un seul par personne majeure", correctSide: "both")
             ],
-            audioCueID: "pun_2",
-            isPunRound: true
-        ),
-        QuizDisOrDatRound(
-            id: "PUN_3",
-            theme: .francaisMeemaw,
-            funnyTitle: "🤪 Quoizzi-Quoissa : Monsieur & Madame ont un fils ou une fille !",
-            prompt: "Trouve la fin du jeu de mots « Monsieur et Madame » en tapant à GAUCHE ou à DROITE !",
-            optionLeft: "PRÉNOM DE GAUCHE 👈",
-            optionRight: "PRÉNOM DE DROITE 👉",
-            valuePerItem: 500,
-            items: [
-                QuizDisOrDatItem(index: 0, text: "M. et Mme « D'ŒUF » ont un fils : JOHN (Jaune d'œuf) 👈 ou BLANC 👉 ?", correctSide: "left"),
-                QuizDisOrDatItem(index: 1, text: "M. et Mme « COUVERT » ont un fils : MARC 👈 ou HARRY (Haricots verts) 👉 ?", correctSide: "right"),
-                QuizDisOrDatItem(index: 2, text: "M. et Mme « ZÉTOFRAIS » ont une fille : MÉLANIE (Mets l'anis et l'eau fraîche) 👈 ou CHLOÉ 👉 ?", correctSide: "left"),
-                QuizDisOrDatItem(index: 3, text: "M. et Mme « FROID » ont sept enfants : EVA, AUDE, ANNE, MARC, SAMSON, GILLES & ELLA (Il va au Danemark, sans gilet, il a froid !) 👉 ou KÉVIN 👈 ?", correctSide: "right"),
-                QuizDisOrDatItem(index: 4, text: "M. et Mme « Térieur » ont deux fils : ALAIN & ALEX (À l'intérieur / À l'extérieur) 👈 ou PAUL & MICHEL 👉 ?", correctSide: "left"),
-                QuizDisOrDatItem(index: 5, text: "M. et Mme « CROCHE » ont une fille : LUCIE 👈 ou SARAH (Ça raccroche !) 👉 ?", correctSide: "right")
-            ],
-            audioCueID: "pun_3",
-            isPunRound: true
-        ),
-        QuizDisOrDatRound(
-            id: "PUN_4",
-            theme: .seriesCinema,
-            funnyTitle: "🤪 Quoizzi-Quoissa : Le Jeu de Mots Pop-Culture de Meemaw !",
-            prompt: "Trouve la bonne réponse au calembour de Meemaw entre GAUCHE et DROITE !",
-            optionLeft: "RÉPONSE A 👈",
-            optionRight: "RÉPONSE B 👉",
-            valuePerItem: 500,
-            items: [
-                QuizDisOrDatItem(index: 0, text: "Quel super-héros déteste le repassage ? IRON MAN (L'homme fer à repasser) 👈 ou HULK 👉", correctSide: "left"),
-                QuizDisOrDatItem(index: 1, text: "Quel chanteur adore les pâtisseries ? GÂTEAU-RAMA 👈 ou ÉCLAIR OBISPO (Pascal Obispo) 👉", correctSide: "right"),
-                QuizDisOrDatItem(index: 2, text: "Quel poisson écoute de la K-Pop avec Bruno Mars ? LA RAIE-PARTEMENT (APT.) 👈 ou LE THON 👉", correctSide: "left"),
-                QuizDisOrDatItem(index: 3, text: "Quel fromage écoute Sabrina Carpenter au petit-déj ? LE BRIE 👈 ou LE CAPPUCCINO-REBLOCHON (Espresso !) 👉", correctSide: "right"),
-                QuizDisOrDatItem(index: 4, text: "Quelle série adore faire du pain ? THE ROOKIE (Le Fournil) 👈 ou LA MIE GILMORE (Gilmore Girls) 👉", correctSide: "right"),
-                QuizDisOrDatItem(index: 5, text: "Quel légume fait la course en Formule 1 ? LE CHOU-MACHER (Schumacher) 👈 ou LE RADIS 👉", correctSide: "left")
-            ],
-            audioCueID: "pun_4",
-            isPunRound: true
+            audioCueID: "pun_2"
         )
     ]
 }

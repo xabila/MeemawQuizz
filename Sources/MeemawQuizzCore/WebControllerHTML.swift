@@ -128,6 +128,10 @@ public enum WebControllerHTML {
           </div>
 
           <div id="stageCard" class="card" style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:12px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+              <div id="roundBadge" class="badge" style="background:var(--yellow);">🎙️ SALON</div>
+              <div id="timerBadge" class="badge" style="font-family:monospace;">⏱️ --</div>
+            </div>
             <div id="stageTitle" style="font-weight:900;font-size:20px;text-align:center;">Connexion au salon AirPlay...</div>
             <div id="stageContent"></div>
           </div>
@@ -149,6 +153,12 @@ public enum WebControllerHTML {
             let selectedEmoji = '🦄';
             let ws = null;
             let lastState = null;
+            let lastRenderKey = '';
+            let lastSoundKey = '';
+            let optimisticQuestionID = null;
+            let optimisticChoice = null;
+            let optimisticItemKey = null;
+            let optimisticSide = null;
 
             const savedName = localStorage.getItem('mq_name') || '';
             document.getElementById('playerName').value = savedName;
@@ -160,10 +170,20 @@ public enum WebControllerHTML {
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
                 osc.frequency.value = freq;
-                gain.gain.value = 0.12;
+                gain.gain.value = 0.14;
                 osc.connect(gain); gain.connect(ctx.destination);
                 osc.start(); setTimeout(() => { osc.stop(); ctx.close(); }, ms);
               } catch (_) {}
+            }
+
+            function playVerdictSound(isRight) {
+              if (isRight) {
+                beep(660, 90);
+                setTimeout(() => beep(880, 150), 100);
+              } else {
+                if (navigator.vibrate) navigator.vibrate([80, 50, 120]);
+                beep(220, 220);
+              }
             }
 
             function renderColors(availableList) {
@@ -200,6 +220,24 @@ public enum WebControllerHTML {
               }
             }
 
+            function pickChoice(idx, qid) {
+              optimisticQuestionID = qid;
+              optimisticChoice = idx;
+              lastRenderKey = '';
+              beep(640, 65);
+              sendMsg({ action: 'select_choice', choiceIndex: idx });
+              if (lastState) updateUI(lastState);
+            }
+
+            function pickBinary(side, itemKey) {
+              optimisticItemKey = itemKey;
+              optimisticSide = side;
+              lastRenderKey = '';
+              beep(640, 65);
+              sendMsg({ action: 'select_binary', binarySide: side });
+              if (lastState) updateUI(lastState);
+            }
+
             function sendProfile() {
               const name = document.getElementById('playerName').value.trim() || 'Invité';
               localStorage.setItem('mq_name', name);
@@ -232,12 +270,62 @@ public enum WebControllerHTML {
                   overlay.style.display = 'none';
                 }
               }
-              renderColors(st.availableColors);
+
+              // Always update timer badge smoothly without destroying buttons DOM
+              const timerEl = document.getElementById('timerBadge');
+              const roundEl = document.getElementById('roundBadge');
+              const secs = Math.max(0, Math.ceil(st.timeRemainingSec || 0));
+              timerEl.innerText = secs > 0 ? `⏱️ ${secs}s` : '⏱️ --';
+              roundEl.innerText = st.stage === 'lobby' ? '🎙️ SALON' : `Q${st.questionNumber}/${st.totalQuestions}`;
+
+              const qid = st.activeQuestion ? st.activeQuestion.id : '';
+              if (optimisticQuestionID !== qid) {
+                optimisticQuestionID = qid;
+                optimisticChoice = null;
+              }
+              const itemKey = st.activeDisOrDat ? `${st.activeDisOrDat.id}_${st.activeDisOrDatItemIndex || 0}` : '';
+              if (optimisticItemKey !== itemKey) {
+                optimisticItemKey = itemKey;
+                optimisticSide = null;
+              }
+
+              const effectiveChoice = (me && me.lockedChoiceIndex !== null && me.lockedChoiceIndex !== undefined)
+                ? me.lockedChoiceIndex
+                : optimisticChoice;
+              const effectiveSide = (me && me.lockedSide)
+                ? me.lockedSide
+                : optimisticSide;
+
+              const answeredCount = (st.players || []).filter(p => p.lockedChoiceIndex !== null && p.lockedChoiceIndex !== undefined || p.lockedSide).length;
+              const renderKey = [
+                st.stage,
+                st.roundKind,
+                qid,
+                itemKey,
+                effectiveChoice,
+                effectiveSide,
+                st.revealedCorrectIndex,
+                st.revealedBinarySide,
+                st.soloBuzzerPlayerID,
+                st.screwAttackerName,
+                answeredCount,
+                (st.players || []).length,
+                me ? me.hasUsedScrew : false,
+                me ? me.hasUsedBisouTrap : false
+              ].join('|');
+
+              if (st.stage === 'lobby') {
+                renderColors(st.availableColors);
+              }
               document.getElementById('profileCard').style.display = (st.stage === 'lobby') ? 'block' : 'none';
+
+              if (renderKey === lastRenderKey && st.stage !== 'lobby') {
+                return;
+              }
+              lastRenderKey = renderKey;
 
               const titleEl = document.getElementById('stageTitle');
               const contentEl = document.getElementById('stageContent');
-
               const stageCard = document.getElementById('stageCard');
               stageCard.style.background = '#FFFFFF';
 
@@ -249,21 +337,30 @@ public enum WebControllerHTML {
 
               if ((st.stage === 'solo_buzz_open' || st.stage === 'cash_answering' || st.stage === 'question_reading' || st.stage === 'question_reveal') && st.activeQuestion) {
                 const isSolo = (st.roundKind === 'le_solo');
-                const soloBanner = (st.stage === 'solo_buzz_open')
-                  ? `<div style="background:#E11D48;color:#fff;padding:10px;border-radius:14px;border:3px solid #1A1A1A;font-weight:900;text-align:center;margin-bottom:10px;">🚨 LE SOLO : LE 1er QUI RÉPOND PREND TOUT (DOUBLE OU GAMELLE) !</div>`
-                  : '';
+                let topBanner = '';
+                if (st.stage === 'solo_buzz_open') {
+                  topBanner = `<div style="background:#E11D48;color:#fff;padding:10px;border-radius:14px;border:3px solid #1A1A1A;font-weight:900;text-align:center;margin-bottom:10px;">🚨 LE SOLO : LE 1er QUI RÉPOND PREND TOUT (DOUBLE OU GAMELLE) !</div>`;
+                } else if (st.stage === 'cash_answering' && effectiveChoice !== null && effectiveChoice !== undefined) {
+                  const letters = ['A', 'B', 'C', 'D'];
+                  topBanner = `<div style="background:#FFD700;color:#1A1A1A;padding:12px;border-radius:14px;border:3px solid #1A1A1A;font-weight:900;text-align:center;margin-bottom:10px;">🔒 TON CHOIX (${letters[effectiveChoice]}) EST ENREGISTRÉ !<br><span style="font-size:13px;">⏳ En attente des autres joueurs (${answeredCount}/${(st.players || []).length})...</span></div>`;
+                }
                 titleEl.innerText = `${st.activeQuestion.funnyTitle} — ${st.activeQuestion.prompt}`;
-                renderChoices(st.activeQuestion, me, st.stage === 'question_reveal', st.revealedCorrectIndex, soloBanner, isSolo);
+                renderChoices(st.activeQuestion, me, effectiveChoice, st.stage === 'question_reveal', st.revealedCorrectIndex, topBanner, isSolo, st);
                 return;
               }
 
               if (st.stage === 'solo_player_answering' && st.activeQuestion) {
                 if (st.soloBuzzerPlayerID === playerID) {
-                  titleEl.innerText = '🔥 TU ES EN SOLO ! CHOISIS VITE !';
-                  renderChoices(st.activeQuestion, me, false, null, '', true);
+                  const banner = st.screwAttackerName
+                    ? `<div style="background:#8E44AD;color:#fff;padding:12px;border-radius:14px;border:3px solid #1A1A1A;font-weight:900;text-align:center;margin-bottom:10px;">🔩 ${st.screwAttackerName.toUpperCase()} T'A CLOUÉ LE BEC ! Réponds juste pour doubler les points !</div>`
+                    : `<div style="background:#E11D48;color:#fff;padding:12px;border-radius:14px;border:3px solid #1A1A1A;font-weight:900;text-align:center;margin-bottom:10px;">🔥 TU ES EN SOLO ! 12 SECONDES POUR RÉPONDRE !</div>`;
+                  titleEl.innerText = `${st.activeQuestion.funnyTitle} — ${st.activeQuestion.prompt}`;
+                  renderChoices(st.activeQuestion, me, effectiveChoice, false, null, banner, true, st);
                 } else {
-                  titleEl.innerText = `🍿 ${st.soloBuzzerPlayerName || 'Un joueur'} a pris LE SOLO !`;
-                  contentEl.innerHTML = `<div style="text-align:center;font-size:18px;font-weight:800;">Regarde la TV pour voir s'il se plante !</div>`;
+                  titleEl.innerText = st.screwAttackerName
+                    ? `🔩 ${st.screwAttackerName} a cloué le bec de ${st.soloBuzzerPlayerName || 'un joueur'} !`
+                    : `🍿 ${st.soloBuzzerPlayerName || 'Un joueur'} a pris LE SOLO !`;
+                  contentEl.innerHTML = `<div style="text-align:center;font-size:18px;font-weight:800;">Il est tout seul face à la question !</div>`;
                 }
                 return;
               }
@@ -275,15 +372,26 @@ public enum WebControllerHTML {
                 stageCard.style.background = palette[idx % palette.length];
                 const isReveal = (st.stage === 'couci_couca_reveal');
                 const correctSide = st.revealedBinarySide;
-                const mySide = me ? me.lockedSide : null;
+                const mySide = effectiveSide;
                 const delta = me ? (me.lastDeltaScore || 0) : 0;
 
                 let feedbackHTML = '';
-                if (isReveal && correctSide) {
+                if (!isReveal && mySide) {
+                  const chosenLbl = (mySide === 'left') ? st.activeDisOrDat.optionLeft : (mySide === 'both' ? (st.activeDisOrDat.optionBoth || 'LES DEUX') : st.activeDisOrDat.optionRight);
+                  feedbackHTML = `<div style="background:#FFD700;color:#1A1A1A;padding:10px;border-radius:14px;border:3px solid #1A1A1A;font-weight:900;text-align:center;margin-bottom:10px;">🔒 CHOIX VERROUILLÉ : ${chosenLbl}<br><span style="font-size:12px;">⏳ En attente des autres joueurs (${answeredCount}/${(st.players || []).length})...</span></div>`;
+                } else if (isReveal && correctSide) {
                   const isRight = (mySide === correctSide);
+                  const soundKey = `couci_${itemKey}`;
+                  if (lastSoundKey !== soundKey) {
+                    lastSoundKey = soundKey;
+                    playVerdictSound(isRight);
+                  }
+                  const correctLbl = (correctSide === 'left') ? st.activeDisOrDat.optionLeft : (correctSide === 'both' ? (st.activeDisOrDat.optionBoth || '🧀 LES DEUX !') : st.activeDisOrDat.optionRight);
                   const fbBg = isRight ? '#10B981' : '#E11D48';
-                  const fbText = isRight ? `✅ BONNE RÉPONSE ! +${delta} PTS` : (mySide ? `❌ FAUX ! ${delta} PTS` : `⏰ TROP TARD ! (0 PT)`);
-                  feedbackHTML = `<div style="background:${fbBg};color:#fff;padding:12px;border-radius:14px;border:3px solid #1A1A1A;font-weight:900;font-size:18px;text-align:center;margin-bottom:10px;">${fbText}</div>`;
+                  const fbText = isRight
+                    ? `🎉✅ BONNE RÉPONSE ! +${delta} PTS`
+                    : (mySide ? `💥❌ FAUX ! (${delta} PTS)<br><span style="font-size:14px;color:#FFD700;">👉 C'était : ${correctLbl}</span>` : `⏰ TROP TARD ! (0 PT)<br><span style="font-size:14px;color:#FFD700;">👉 C'était : ${correctLbl}</span>`);
+                  feedbackHTML = `<div style="background:${fbBg};color:#fff;padding:12px;border-radius:14px;border:3.5px solid #1A1A1A;font-weight:900;font-size:18px;text-align:center;margin-bottom:10px;">${fbText}</div>`;
                 }
 
                 const btnStyle = (side, defHex) => {
@@ -293,53 +401,82 @@ public enum WebControllerHTML {
                     return `background:${defHex};color:#fff;opacity:0.35;`;
                   }
                   if (mySide === side) return 'background:#FFD700;color:#1A1A1A;';
+                  if (mySide) return `background:${defHex};color:#fff;opacity:0.35;`;
                   return `background:${defHex};color:#fff;`;
                 };
 
                 titleEl.innerText = `[Q${idx + 1}/${(st.activeDisOrDat.items || []).length}] ${item ? item.text : st.activeDisOrDat.funnyTitle}`;
                 const bothBtn = st.activeDisOrDat.optionBoth
-                  ? `<button class="btn-primary" style="margin-top:10px;${btnStyle('both', '#8E44AD')}" ${isReveal || mySide ? 'disabled' : ''} onclick="beep(740,60);sendMsg({action:'select_binary',binarySide:'both'})">${isReveal && correctSide === 'both' ? '✅ ' : '🧀 '}${st.activeDisOrDat.optionBoth}</button>`
+                  ? `<button class="btn-primary" style="margin-top:10px;${btnStyle('both', '#8E44AD')}" ${isReveal || mySide ? 'disabled' : ''} onclick="pickBinary('both','${itemKey}')">${isReveal && correctSide === 'both' ? '✅ ' : '🧀 '}${st.activeDisOrDat.optionBoth}</button>`
                   : '';
 
                 contentEl.innerHTML = `${feedbackHTML}<div class="binary-grid">
-                  <button class="btn-primary" style="${btnStyle('left', '#2563EB')}" ${isReveal || mySide ? 'disabled' : ''} onclick="beep(580,60);sendMsg({action:'select_binary',binarySide:'left'})">${isReveal && correctSide === 'left' ? '✅ ' : '⬅️ '}${st.activeDisOrDat.optionLeft}</button>
-                  <button class="btn-primary" style="${btnStyle('right', '#FF4D94')}" ${isReveal || mySide ? 'disabled' : ''} onclick="beep(680,60);sendMsg({action:'select_binary',binarySide:'right'})">${st.activeDisOrDat.optionRight}${isReveal && correctSide === 'right' ? ' ✅' : ' ➡️'}</button>
+                  <button class="btn-primary" style="${btnStyle('left', '#2563EB')}" ${isReveal || mySide ? 'disabled' : ''} onclick="pickBinary('left','${itemKey}')">${isReveal && correctSide === 'left' ? '✅ ' : '⬅️ '}${st.activeDisOrDat.optionLeft}</button>
+                  <button class="btn-primary" style="${btnStyle('right', '#FF4D94')}" ${isReveal || mySide ? 'disabled' : ''} onclick="pickBinary('right','${itemKey}')">${st.activeDisOrDat.optionRight}${isReveal && correctSide === 'right' ? ' ✅' : ' ➡️'}</button>
                 </div>${bothBtn}`;
                 return;
               }
 
               titleEl.innerText = st.meemawSpeech || 'Regarde la TV AirPlay !';
-              contentEl.innerHTML = '';
+              contentEl.innerHTML = `<div style="text-align:center;font-weight:800;color:var(--orange);">⏭️ Suite automatique dans quelques secondes...</div>`;
             }
 
-            function renderChoices(q, me, isReveal, correctIdx, topBannerHTML = '', isSolo = false) {
+            function renderChoices(q, me, locked, isReveal, correctIdx, topBannerHTML = '', isSolo = false, st = null) {
               const letters = ['A', 'B', 'C', 'D'];
-              const locked = me ? me.lockedChoiceIndex : null;
               const delta = me ? (me.lastDeltaScore || 0) : 0;
               let revealBanner = '';
               if (isReveal) {
-                const isRight = (locked !== null && locked !== undefined && locked === correctIdx);
+                const isRight = (delta > 0) || (locked !== null && locked !== undefined && locked === correctIdx);
+                const soundKey = `mcq_${q.id}`;
+                if (lastSoundKey !== soundKey) {
+                  lastSoundKey = soundKey;
+                  playVerdictSound(isRight);
+                }
                 const bg = isRight ? '#10B981' : '#E11D48';
+                const correctText = (q.choices && q.choices[correctIdx]) ? `${letters[correctIdx]} : ${q.choices[correctIdx]}` : '';
                 const txt = isRight
-                  ? `✅ BONNE RÉPONSE ! +${delta} PTS`
-                  : (locked === null || locked === undefined ? `⏰ TROP TARD !` : `❌ MAUVAISE RÉPONSE ! (${delta} PTS)`);
-                revealBanner = `<div style="background:${bg};color:#fff;padding:12px;border-radius:14px;border:3px solid #1A1A1A;font-weight:900;font-size:18px;text-align:center;margin-bottom:10px;">${txt}</div>`;
+                  ? `🎉✅ BONNE RÉPONSE ! +${delta} PTS`
+                  : (locked === null || locked === undefined && delta === 0
+                      ? `⏰ PAS DE RÉPONSE (0 PT)<br><span style="font-size:14px;color:#FFD700;">👉 Bonne réponse : ${correctText}</span>`
+                      : `💥❌ MAUVAISE RÉPONSE ! (${delta} PTS)<br><span style="font-size:14px;color:#FFD700;">👉 Bonne réponse : ${correctText}</span>`);
+                revealBanner = `<div style="background:${bg};color:#fff;padding:14px;border-radius:16px;border:3.5px solid #1A1A1A;font-weight:900;font-size:19px;text-align:center;margin-bottom:10px;">${txt}<div style="font-size:13px;font-weight:700;margin-top:6px;opacity:0.95;">${q.explanation || ''}</div></div>`;
               }
+              const hasLocked = (locked !== null && locked !== undefined);
               let html = topBannerHTML + revealBanner + '<div class="choices-grid">' + (q.choices || []).map((c, idx) => {
                 let extraStyle = '';
                 let icon = '';
                 if (isReveal) {
-                  if (idx === correctIdx) { extraStyle = 'background:#10B981;color:#fff;'; icon = ' ✅'; }
-                  else if (locked === idx) { extraStyle = 'background:#E11D48;color:#fff;'; icon = ' ❌'; }
+                  if (idx === correctIdx) { extraStyle = 'background:#10B981;color:#fff;'; icon = ' ✅ BON'; }
+                  else if (locked === idx) { extraStyle = 'background:#E11D48;color:#fff;'; icon = ' ❌ TON CHOIX'; }
+                  else { extraStyle = 'opacity:0.45;'; }
                 } else if (locked === idx) {
                   extraStyle = 'background:#FFD700;color:#1A1A1A;';
-                  icon = ' 🔒';
+                  icon = ' 🔒 CHOISI';
+                } else if (hasLocked) {
+                  extraStyle = 'opacity:0.35;';
                 }
-                return `<button class="choice-btn" style="${extraStyle}" ${isReveal || (locked !== null && locked !== undefined) ? 'disabled' : ''} onclick="beep(640,65);sendMsg({action:'select_choice',choiceIndex:${idx}})">
+                return `<button class="choice-btn" style="${extraStyle}" ${isReveal || hasLocked ? 'disabled' : ''} onclick="pickChoice(${idx},'${q.id}')">
                   <span class="choice-letter">${letters[idx] || '?'}</span>
                   <span>${c}${icon}</span>
                 </button>`;
               }).join('') + '</div>';
+
+              // Jokers Multi : 🔩 Clouer le Bec (Style Jack) + 💋 Bisou Baveux
+              const opponents = ((st && st.players) || []).filter(p => p.id !== playerID);
+              if (!isReveal && st && st.stage === 'cash_answering' && me && opponents.length > 0 && (!me.hasUsedScrew || !me.hasUsedBisouTrap)) {
+                let jokersHTML = '<div style="margin-top:12px;padding:10px;border-radius:16px;border:3px solid #1A1A1A;background:#FFF8E7;display:flex;flex-direction:column;gap:8px;">';
+                if (!me.hasUsedScrew) {
+                  jokersHTML += `<div style="font-size:12px;font-weight:900;color:#8E44AD;text-align:center;">🔩 COUP DE JARNAC (JACK) : CLOUER UN ADVERSAIRE !</div><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">` +
+                    opponents.map(op => `<button class="badge" style="background:#8E44AD;color:#fff;padding:8px 12px;cursor:pointer;" onclick="beep(780,80);sendMsg({action:'screw_opponent',targetPlayerID:'${op.id}'})">🔩 Clouer ${op.avatarEmoji} ${op.name}</button>`).join('') + `</div>`;
+                }
+                if (!me.hasUsedBisouTrap) {
+                  jokersHTML += `<div style="font-size:12px;font-weight:900;color:#FF4D94;text-align:center;">💋 ENVOYER UN BISOU BAVEUX :</div><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">` +
+                    opponents.map(op => `<button class="badge" style="background:#FF4D94;color:#fff;padding:8px 12px;cursor:pointer;" onclick="beep(720,80);sendMsg({action:'send_bisou',targetPlayerID:'${op.id}'})">💋 ${op.avatarEmoji} ${op.name}</button>`).join('') + `</div>`;
+                }
+                jokersHTML += '</div>';
+                html += jokersHTML;
+              }
+
               document.getElementById('stageContent').innerHTML = html;
             }
 

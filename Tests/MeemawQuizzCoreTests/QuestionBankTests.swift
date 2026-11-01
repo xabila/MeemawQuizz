@@ -32,15 +32,14 @@ final class QuestionBankTests: XCTestCase {
         }
     }
 
-    func testBuildShowDeckProducesBalancedFiveRoundShow() {
+    func testBuildShowDeckProducesBalancedFourRoundShow() {
         let deck = QuestionBank.buildShowDeck(for: .grandMix)
         XCTAssertEqual(deck.cashQuestions.count, 3)
         XCTAssertEqual(deck.soloQuestions.count, 2)
         XCTAssertEqual(deck.finaleDoubleQuestions.count, 2)
         XCTAssertFalse(deck.couciCoucaRound.isPunRound)
-        XCTAssertTrue(deck.quoizziPunRound.isPunRound)
         XCTAssertEqual(QuestionBank.questions(for: .grandMix).count, 112)
-        XCTAssertEqual(QuestionBank.allDisOrDatRounds.count, 20)
+        XCTAssertEqual(QuestionBank.allDisOrDatRounds.count, 18)
     }
 
     func testWholeEveningSessionNeverRepeatsQuestionsAcrossTwelveConsecutiveGames() {

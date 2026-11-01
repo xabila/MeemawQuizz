@@ -31,16 +31,18 @@ public enum WebSocketFrameCodec {
     /// Analyse le tampon HTTP initial pour déterminer s'il s'agit d'un `GET /` (page Web Android/QR),
     /// d'un `GET /api/state`, d'un `POST /api/action`, ou d'un `Upgrade: websocket`.
     public static func classifyIncomingHTTP(_ data: Data) -> IncomingHTTPClassification {
-        guard let raw = String(data: data, encoding: .utf8) else {
-            return .httpGetControllerPage
-        }
-        let headerSeparator = raw.range(of: "\r\n\r\n") ?? raw.range(of: "\n\n")
-        guard let sepRange = headerSeparator else {
+        let crlf2 = Data([13, 10, 13, 10])
+        let lf2 = Data([10, 10])
+        let crlfCr = Data([13, 10, 13])
+        let sepRange = data.range(of: crlf2) ?? data.range(of: lf2) ?? data.range(of: crlfCr)
+        guard let sepRange else {
             return .incomplete
         }
-        let headerPart = String(raw[..<sepRange.lowerBound])
-        let bodyString = String(raw[sepRange.upperBound...])
-        let bodyData = Data(bodyString.utf8)
+        let headerData = data.subdata(in: 0..<sepRange.lowerBound)
+        let bodyData = data.subdata(in: sepRange.upperBound..<data.count)
+        guard let headerPart = String(data: headerData, encoding: .utf8) else {
+            return .httpGetControllerPage
+        }
 
         let lines = headerPart.components(separatedBy: CharacterSet.newlines)
         let firstLine = (lines.first ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
