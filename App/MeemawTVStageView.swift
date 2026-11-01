@@ -37,7 +37,7 @@ struct MeemawTVStageView: View {
                             if let question = snap.activeQuestion {
                                 tvMCQQuestionStage(question: question, scale: scale)
                             }
-                        case .couciCoucaIntro, .couciCoucaItem, .couciCoucaSummary:
+                        case .couciCoucaIntro, .couciCoucaItem, .couciCoucaReveal, .couciCoucaSummary:
                             if let round = snap.activeDisOrDat {
                                 tvCouciCoucaStage(round: round, scale: scale)
                             }
@@ -178,11 +178,12 @@ struct MeemawTVStageView: View {
 
                     Divider()
 
-                    VStack(alignment: .leading, spacing: 10 * scale) {
+                    VStack(alignment: .leading, spacing: 8 * scale) {
                         lobbyRoundRow(badge: "MANCHE 1", title: "⚡ Cash Rapide (Tout le monde répond + Bisou Piège)", scale: scale)
-                        lobbyRoundRow(badge: "MANCHE 2", title: "🚨 LE SOLO (Buzzer façon YDKJ : Double ou Perte !)", scale: scale)
-                        lobbyRoundRow(badge: "MANCHE 3", title: "⚖️ Le Couci-Couça Binaire de Meemaw (Gauche / Droite)", scale: scale)
-                        lobbyRoundRow(badge: "MANCHE 4", title: "🔥 La Rafale Finale (Tous les points ×2 + Podium)", scale: scale)
+                        lobbyRoundRow(badge: "MANCHE 2", title: "🚨 LE SOLO (Le 1er qui répond gagne le DOUBLE ou perd tout !)", scale: scale)
+                        lobbyRoundRow(badge: "MANCHE 3", title: "🧀 La Raclette Quizz (Gauche, Droite, ou LES DEUX !)", scale: scale)
+                        lobbyRoundRow(badge: "MANCHE 4", title: "🤪 Le Quoizzi-Quoissa (Spécial Jeux de Mots & Calembours)", scale: scale)
+                        lobbyRoundRow(badge: "MANCHE 5", title: "🔥 La Rafale Finale (Tous les points ×2 + Podium)", scale: scale)
                     }
 
                     Spacer()
@@ -337,40 +338,32 @@ struct MeemawTVStageView: View {
             }
 
             if snap.stage == .soloBuzzOpen {
-                // Mode LE SOLO : Buzzer Alert before choices lock
-                PopArtCard(
-                    cornerRadius: 24 * scale,
-                    borderWidth: 4.5,
-                    backgroundColor: PopArt.redError,
-                    shadowOffset: 7 * scale
-                ) {
-                    VStack(spacing: 10 * scale) {
-                        Text("🚨 ÉCRASE LE BUZZER ROUGE SUR TON TÉLÉPHONE POUR PRENDRE LE SOLO ! 🚨")
-                            .font(.system(size: 26 * scale, weight: .black, design: .rounded))
-                            .foregroundStyle(.white)
-                            .multilineTextAlignment(.center)
-                        Text("Le premier qui buzze bloque tous les autres joueurs et joue pour +\(question.baseValue * 2) PTS (ou -\(question.baseValue) PTS s'il se plante !)")
-                            .font(.system(size: 18 * scale, weight: .bold, design: .rounded))
-                            .foregroundStyle(PopArt.yellow)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .padding(20 * scale)
+                HStack(spacing: 10 * scale) {
+                    Text("🚨 LE SOLO : LE TOUT PREMIER QUI TAPE UNE RÉPONSE SUR SON TÉLÉPHONE PREND +\(question.baseValue * 2) PTS (OU -\(question.baseValue) PTS) !")
+                        .font(.system(size: 17 * scale, weight: .black, design: .rounded))
+                        .foregroundStyle(.white)
+                        .multilineTextAlignment(.center)
                 }
-            } else {
-                // 2x2 Giant Choices Grid
-                let letters = ["A", "B", "C", "D"]
-                VStack(spacing: 12 * scale) {
-                    HStack(spacing: 14 * scale) {
-                        tvChoiceCard(index: 0, letter: letters[0], text: question.choices[0], scale: scale)
-                        tvChoiceCard(index: 1, letter: letters[1], text: question.choices[1], scale: scale)
-                    }
-                    HStack(spacing: 14 * scale) {
-                        tvChoiceCard(index: 2, letter: letters[2], text: question.choices[2], scale: scale)
-                        tvChoiceCard(index: 3, letter: letters[3], text: question.choices[3], scale: scale)
-                    }
-                }
-                .frame(maxHeight: .infinity)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8 * scale)
+                .padding(.horizontal, 16 * scale)
+                .background(PopArt.redError, in: Capsule())
+                .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 3))
             }
+
+            // 2x2 Giant Choices Grid
+            let letters = ["A", "B", "C", "D"]
+            VStack(spacing: 12 * scale) {
+                HStack(spacing: 14 * scale) {
+                    tvChoiceCard(index: 0, letter: letters[0], text: question.choices[0], scale: scale)
+                    tvChoiceCard(index: 1, letter: letters[1], text: question.choices[1], scale: scale)
+                }
+                HStack(spacing: 14 * scale) {
+                    tvChoiceCard(index: 2, letter: letters[2], text: question.choices[2], scale: scale)
+                    tvChoiceCard(index: 3, letter: letters[3], text: question.choices[3], scale: scale)
+                }
+            }
+            .frame(maxHeight: .infinity)
         }
     }
 
@@ -448,90 +441,125 @@ struct MeemawTVStageView: View {
         }
     }
 
-    // MARK: - 3D. Couci-Couça Binary Stage (DisOrDat)
+    // MARK: - 3D. Raclette Quizz & Quoizzi-Quoissa Stage (DisOrDat)
+
+    private static let tvItemCardColors: [Color] = [
+        Color(hex: "#FFF3E0"),
+        Color(hex: "#E0F7FA"),
+        Color(hex: "#F3E5F5"),
+        Color(hex: "#FFE4E8"),
+        Color(hex: "#ECFDF5"),
+        Color(hex: "#FEF9C3")
+    ]
 
     private func tvCouciCoucaStage(round: QuizDisOrDatRound, scale: CGFloat) -> some View {
         let activeIdx = snap.activeDisOrDatItemIndex ?? 0
         let currentItem = round.items.indices.contains(activeIdx) ? round.items[activeIdx] : nil
+        let isRevealed = (snap.stage == .couciCoucaReveal)
+        let correctSide = snap.revealedBinarySide
+        let centerBg = Self.tvItemCardColors[activeIdx % Self.tvItemCardColors.count]
 
-        return HStack(spacing: 20 * scale) {
-            // Left Option Pillar
-            PopArtCard(
-                cornerRadius: 24 * scale,
-                borderWidth: 4,
-                backgroundColor: PopArt.blue,
-                shadowOffset: 6 * scale
-            ) {
-                VStack(spacing: 12 * scale) {
-                    Text("⬅️ GAUCHE")
-                        .font(.system(size: 18 * scale, weight: .black))
-                        .foregroundStyle(PopArt.yellow)
-                    Text(round.optionLeft)
-                        .font(.system(size: 28 * scale, weight: .black, design: .rounded))
-                        .foregroundStyle(.white)
-                        .multilineTextAlignment(.center)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding(18 * scale)
-            }
-            .frame(width: 290 * scale)
-
-            // Center Item Card
-            PopArtCard(
-                cornerRadius: 28 * scale,
-                borderWidth: 4.5,
-                backgroundColor: PopArt.white,
-                shadowOffset: 8 * scale
-            ) {
-                VStack(spacing: 16 * scale) {
-                    Text("⚖️ \(round.funnyTitle.uppercased())")
-                        .font(.system(size: 18 * scale, weight: .black, design: .rounded))
-                        .foregroundStyle(PopArt.orange)
-
-                    if let item = currentItem {
-                        Text("ITEM \(activeIdx + 1) / \(round.items.count)")
-                            .font(.system(size: 15 * scale, weight: .black))
+        return VStack(spacing: 12 * scale) {
+            HStack(spacing: 18 * scale) {
+                // Left Option Pillar
+                PopArtCard(
+                    cornerRadius: 24 * scale,
+                    borderWidth: isRevealed && correctSide == "left" ? 6 : 4,
+                    backgroundColor: isRevealed ? (correctSide == "left" ? PopArt.greenSuccess : PopArt.blue.opacity(0.35)) : PopArt.blue,
+                    shadowOffset: 6 * scale
+                ) {
+                    VStack(spacing: 10 * scale) {
+                        Text(isRevealed && correctSide == "left" ? "✅ BONNE RÉPONSE" : "⬅️ GAUCHE")
+                            .font(.system(size: 17 * scale, weight: .black))
+                            .foregroundStyle(PopArt.yellow)
+                        Text(round.optionLeft)
+                            .font(.system(size: 26 * scale, weight: .black, design: .rounded))
                             .foregroundStyle(.white)
-                            .padding(.horizontal, 14 * scale)
-                            .padding(.vertical, 5 * scale)
-                            .background(PopArt.ink, in: Capsule())
-
-                        Text(item.text)
-                            .font(.system(size: 32 * scale, weight: .black, design: .rounded))
-                            .foregroundStyle(PopArt.ink)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 20 * scale)
-                    } else {
-                        Text(round.prompt)
-                            .font(.system(size: 24 * scale, weight: .heavy, design: .rounded))
-                            .foregroundStyle(PopArt.ink)
                             .multilineTextAlignment(.center)
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding(16 * scale)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding(24 * scale)
+                .frame(width: 280 * scale)
+
+                // Center Item Card (Changes color on every item!)
+                PopArtCard(
+                    cornerRadius: 28 * scale,
+                    borderWidth: 4.5,
+                    backgroundColor: centerBg,
+                    shadowOffset: 8 * scale
+                ) {
+                    VStack(spacing: 14 * scale) {
+                        Text(round.funnyTitle.uppercased())
+                            .font(.system(size: 17 * scale, weight: .black, design: .rounded))
+                            .foregroundStyle(PopArt.orange)
+                            .multilineTextAlignment(.center)
+
+                        if let item = currentItem {
+                            Text("QUESTION \(activeIdx + 1) / \(round.items.count)")
+                                .font(.system(size: 16 * scale, weight: .black))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 16 * scale)
+                                .padding(.vertical, 6 * scale)
+                                .background(PopArt.ink, in: Capsule())
+
+                            Text(item.text)
+                                .font(.system(size: 30 * scale, weight: .black, design: .rounded))
+                                .foregroundStyle(PopArt.ink)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 18 * scale)
+                        } else {
+                            Text(round.prompt)
+                                .font(.system(size: 24 * scale, weight: .heavy, design: .rounded))
+                                .foregroundStyle(PopArt.ink)
+                                .multilineTextAlignment(.center)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding(20 * scale)
+                }
+
+                // Right Option Pillar
+                PopArtCard(
+                    cornerRadius: 24 * scale,
+                    borderWidth: isRevealed && correctSide == "right" ? 6 : 4,
+                    backgroundColor: isRevealed ? (correctSide == "right" ? PopArt.greenSuccess : PopArt.pink.opacity(0.35)) : PopArt.pink,
+                    shadowOffset: 6 * scale
+                ) {
+                    VStack(spacing: 10 * scale) {
+                        Text(isRevealed && correctSide == "right" ? "✅ BONNE RÉPONSE" : "DROITE ➡️")
+                            .font(.system(size: 17 * scale, weight: .black))
+                            .foregroundStyle(PopArt.yellow)
+                        Text(round.optionRight)
+                            .font(.system(size: 26 * scale, weight: .black, design: .rounded))
+                            .foregroundStyle(.white)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding(16 * scale)
+                }
+                .frame(width: 280 * scale)
             }
 
-            // Right Option Pillar
-            PopArtCard(
-                cornerRadius: 24 * scale,
-                borderWidth: 4,
-                backgroundColor: PopArt.redError,
-                shadowOffset: 6 * scale
-            ) {
-                VStack(spacing: 12 * scale) {
-                    Text("DROITE ➡️")
-                        .font(.system(size: 18 * scale, weight: .black))
-                        .foregroundStyle(PopArt.yellow)
-                    Text(round.optionRight)
-                        .font(.system(size: 28 * scale, weight: .black, design: .rounded))
-                        .foregroundStyle(.white)
-                        .multilineTextAlignment(.center)
+            if let bothLabel = round.optionBoth {
+                PopArtCard(
+                    cornerRadius: 20 * scale,
+                    borderWidth: isRevealed && correctSide == "both" ? 5.5 : 3.5,
+                    backgroundColor: isRevealed ? (correctSide == "both" ? PopArt.greenSuccess : PopArt.purple.opacity(0.35)) : PopArt.purple,
+                    shadowOffset: 5 * scale
+                ) {
+                    HStack(spacing: 12 * scale) {
+                        Text(isRevealed && correctSide == "both" ? "✅ BONNE RÉPONSE :" : "🧀 3e OPTION :")
+                            .font(.system(size: 18 * scale, weight: .black))
+                            .foregroundStyle(PopArt.yellow)
+                        Text(bothLabel)
+                            .font(.system(size: 22 * scale, weight: .black, design: .rounded))
+                            .foregroundStyle(.white)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12 * scale)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding(18 * scale)
             }
-            .frame(width: 290 * scale)
         }
     }
 
@@ -639,7 +667,7 @@ struct MeemawTVStageView: View {
                                 .font(.system(size: 15 * scale, weight: .black, design: .monospaced))
                                 .foregroundStyle(PopArt.color(for: player.color))
 
-                            if snap.stage == .questionReveal, let delta = player.lastDeltaScore, delta != 0 {
+                            if (snap.stage == .questionReveal || snap.stage == .couciCoucaReveal), let delta = player.lastDeltaScore, delta != 0 {
                                 Text(delta > 0 ? "+\(delta)" : "\(delta)")
                                     .font(.system(size: 12 * scale, weight: .black, design: .monospaced))
                                     .foregroundStyle(.white)

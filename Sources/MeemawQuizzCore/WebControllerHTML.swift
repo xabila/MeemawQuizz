@@ -231,26 +231,29 @@ public enum WebControllerHTML {
               const titleEl = document.getElementById('stageTitle');
               const contentEl = document.getElementById('stageContent');
 
+              const stageCard = document.getElementById('stageCard');
+              stageCard.style.background = '#FFFFFF';
+
               if (st.stage === 'lobby') {
                 titleEl.innerText = '📺 Regarde la TV AirPlay ! La partie va commencer...';
                 contentEl.innerHTML = `<div style="text-align:center;font-weight:700;opacity:0.75;">Thème choisi : ${st.selectedPack}</div>`;
                 return;
               }
 
-              if (st.stage === 'solo_buzz_open' && st.activeQuestion) {
-                titleEl.innerText = `🚨 LE SOLO • ${st.activeQuestion.funnyTitle}`;
-                contentEl.innerHTML = `<button class="solo-buzzer" onclick="beep(880,120);sendMsg({action:'buzz_solo'})">
-                  <span style="font-size:46px;">🚨</span>
-                  <span>JE PRENDS LE SOLO !</span>
-                  <span style="font-size:14px;opacity:0.9;">Double Jackpot ou Perte Sèche !</span>
-                </button>`;
+              if ((st.stage === 'solo_buzz_open' || st.stage === 'cash_answering' || st.stage === 'question_reading' || st.stage === 'question_reveal') && st.activeQuestion) {
+                const isSolo = (st.roundKind === 'le_solo');
+                const soloBanner = (st.stage === 'solo_buzz_open')
+                  ? `<div style="background:#E11D48;color:#fff;padding:10px;border-radius:14px;border:3px solid #1A1A1A;font-weight:900;text-align:center;margin-bottom:10px;">🚨 LE SOLO : LE 1er QUI RÉPOND PREND TOUT (DOUBLE OU GAMELLE) !</div>`
+                  : '';
+                titleEl.innerText = `${st.activeQuestion.funnyTitle} — ${st.activeQuestion.prompt}`;
+                renderChoices(st.activeQuestion, me, st.stage === 'question_reveal', st.revealedCorrectIndex, soloBanner, isSolo);
                 return;
               }
 
               if (st.stage === 'solo_player_answering' && st.activeQuestion) {
                 if (st.soloBuzzerPlayerID === playerID) {
                   titleEl.innerText = '🔥 TU ES EN SOLO ! CHOISIS VITE !';
-                  renderChoices(st.activeQuestion, me);
+                  renderChoices(st.activeQuestion, me, false, null, '', true);
                 } else {
                   titleEl.innerText = `🍿 ${st.soloBuzzerPlayerName || 'Un joueur'} a pris LE SOLO !`;
                   contentEl.innerHTML = `<div style="text-align:center;font-size:18px;font-weight:800;">Regarde la TV pour voir s'il se plante !</div>`;
@@ -258,20 +261,43 @@ public enum WebControllerHTML {
                 return;
               }
 
-              if ((st.stage === 'cash_answering' || st.stage === 'question_reading') && st.activeQuestion) {
-                titleEl.innerText = st.activeQuestion.funnyTitle;
-                renderChoices(st.activeQuestion, me);
-                return;
-              }
-
-              if (st.stage === 'couci_couca_item' && st.activeDisOrDat) {
+              if ((st.stage === 'couci_couca_item' || st.stage === 'couci_couca_reveal') && st.activeDisOrDat) {
                 const idx = st.activeDisOrDatItemIndex || 0;
                 const item = (st.activeDisOrDat.items || [])[idx];
-                titleEl.innerText = item ? item.text : st.activeDisOrDat.funnyTitle;
-                contentEl.innerHTML = `<div class="binary-grid">
-                  <button class="btn-primary" style="background:#2563EB;color:#fff;" onclick="beep(580,60);sendMsg({action:'select_binary',binarySide:'left'})">⬅️ ${st.activeDisOrDat.optionLeft}</button>
-                  <button class="btn-primary" style="background:#E11D48;color:#fff;" onclick="beep(680,60);sendMsg({action:'select_binary',binarySide:'right'})">${st.activeDisOrDat.optionRight} ➡️</button>
-                </div>`;
+                const palette = ['#FFF3E0', '#E0F7FA', '#F3E5F5', '#FFE4E8', '#ECFDF5', '#FEF9C3'];
+                stageCard.style.background = palette[idx % palette.length];
+                const isReveal = (st.stage === 'couci_couca_reveal');
+                const correctSide = st.revealedBinarySide;
+                const mySide = me ? me.lockedSide : null;
+                const delta = me ? (me.lastDeltaScore || 0) : 0;
+
+                let feedbackHTML = '';
+                if (isReveal && correctSide) {
+                  const isRight = (mySide === correctSide);
+                  const fbBg = isRight ? '#10B981' : '#E11D48';
+                  const fbText = isRight ? `✅ BONNE RÉPONSE ! +${delta} PTS` : (mySide ? `❌ FAUX ! ${delta} PTS` : `⏰ TROP TARD ! (0 PT)`);
+                  feedbackHTML = `<div style="background:${fbBg};color:#fff;padding:12px;border-radius:14px;border:3px solid #1A1A1A;font-weight:900;font-size:18px;text-align:center;margin-bottom:10px;">${fbText}</div>`;
+                }
+
+                const btnStyle = (side, defHex) => {
+                  if (isReveal && correctSide) {
+                    if (correctSide === side) return 'background:#10B981;color:#fff;';
+                    if (mySide === side) return 'background:#E11D48;color:#fff;';
+                    return `background:${defHex};color:#fff;opacity:0.35;`;
+                  }
+                  if (mySide === side) return 'background:#FFD700;color:#1A1A1A;';
+                  return `background:${defHex};color:#fff;`;
+                };
+
+                titleEl.innerText = `[Q${idx + 1}/${(st.activeDisOrDat.items || []).length}] ${item ? item.text : st.activeDisOrDat.funnyTitle}`;
+                const bothBtn = st.activeDisOrDat.optionBoth
+                  ? `<button class="btn-primary" style="margin-top:10px;${btnStyle('both', '#8E44AD')}" ${isReveal || mySide ? 'disabled' : ''} onclick="beep(740,60);sendMsg({action:'select_binary',binarySide:'both'})">${isReveal && correctSide === 'both' ? '✅ ' : '🧀 '}${st.activeDisOrDat.optionBoth}</button>`
+                  : '';
+
+                contentEl.innerHTML = `${feedbackHTML}<div class="binary-grid">
+                  <button class="btn-primary" style="${btnStyle('left', '#2563EB')}" ${isReveal || mySide ? 'disabled' : ''} onclick="beep(580,60);sendMsg({action:'select_binary',binarySide:'left'})">${isReveal && correctSide === 'left' ? '✅ ' : '⬅️ '}${st.activeDisOrDat.optionLeft}</button>
+                  <button class="btn-primary" style="${btnStyle('right', '#FF4D94')}" ${isReveal || mySide ? 'disabled' : ''} onclick="beep(680,60);sendMsg({action:'select_binary',binarySide:'right'})">${st.activeDisOrDat.optionRight}${isReveal && correctSide === 'right' ? ' ✅' : ' ➡️'}</button>
+                </div>${bothBtn}`;
                 return;
               }
 
@@ -279,14 +305,32 @@ public enum WebControllerHTML {
               contentEl.innerHTML = '';
             }
 
-            function renderChoices(q, me) {
+            function renderChoices(q, me, isReveal, correctIdx, topBannerHTML = '', isSolo = false) {
               const letters = ['A', 'B', 'C', 'D'];
               const locked = me ? me.lockedChoiceIndex : null;
-              let html = '<div class="choices-grid">' + (q.choices || []).map((c, idx) => {
-                const cls = 'choice-btn ' + (locked === idx ? 'locked' : '');
-                return `<button class="${cls}" onclick="beep(640,65);sendMsg({action:'select_choice',choiceIndex:${idx}})">
+              const delta = me ? (me.lastDeltaScore || 0) : 0;
+              let revealBanner = '';
+              if (isReveal) {
+                const isRight = (locked !== null && locked !== undefined && locked === correctIdx);
+                const bg = isRight ? '#10B981' : '#E11D48';
+                const txt = isRight
+                  ? `✅ BONNE RÉPONSE ! +${delta} PTS`
+                  : (locked === null || locked === undefined ? `⏰ TROP TARD !` : `❌ MAUVAISE RÉPONSE ! (${delta} PTS)`);
+                revealBanner = `<div style="background:${bg};color:#fff;padding:12px;border-radius:14px;border:3px solid #1A1A1A;font-weight:900;font-size:18px;text-align:center;margin-bottom:10px;">${txt}</div>`;
+              }
+              let html = topBannerHTML + revealBanner + '<div class="choices-grid">' + (q.choices || []).map((c, idx) => {
+                let extraStyle = '';
+                let icon = '';
+                if (isReveal) {
+                  if (idx === correctIdx) { extraStyle = 'background:#10B981;color:#fff;'; icon = ' ✅'; }
+                  else if (locked === idx) { extraStyle = 'background:#E11D48;color:#fff;'; icon = ' ❌'; }
+                } else if (locked === idx) {
+                  extraStyle = 'background:#FFD700;color:#1A1A1A;';
+                  icon = ' 🔒';
+                }
+                return `<button class="choice-btn" style="${extraStyle}" ${isReveal || (locked !== null && locked !== undefined) ? 'disabled' : ''} onclick="beep(640,65);sendMsg({action:'select_choice',choiceIndex:${idx}})">
                   <span class="choice-letter">${letters[idx] || '?'}</span>
-                  <span>${c}</span>
+                  <span>${c}${icon}</span>
                 </button>`;
               }).join('') + '</div>';
               document.getElementById('stageContent').innerHTML = html;

@@ -153,6 +153,10 @@ final class MeemawShowAudioEngine: NSObject {
         let spoken = text
             .replacingOccurrences(of: "Meemaw", with: "Mimeau")
             .replacingOccurrences(of: "meemaw", with: "mimeau")
+            .replacingOccurrences(of: "Xabi", with: "Chabi")
+            .replacingOccurrences(of: "xabi", with: "Chabi")
+            .replacingOccurrences(of: "XABI", with: "Chabi")
+            .replacingOccurrences(of: "Quoizzi-Quoissa", with: "Kouazi Kouassa")
             .replacingOccurrences(of: "___", with: "…")
 
         let utterance = AVSpeechUtterance(string: spoken)

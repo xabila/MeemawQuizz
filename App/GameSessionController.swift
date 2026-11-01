@@ -32,7 +32,11 @@ final class GameSessionController {
     }()
 
     var localPlayerName: String = {
-        UserDefaults.standard.string(forKey: "meemawquizz.localPlayerName") ?? "Chef du Salon"
+        let saved = UserDefaults.standard.string(forKey: "meemawquizz.localPlayerName")
+        if let saved, !saved.isEmpty, saved != "Chef du Salon" {
+            return saved
+        }
+        return "Xabi"
     }() {
         didSet {
             UserDefaults.standard.set(localPlayerName, forKey: "meemawquizz.localPlayerName")
@@ -68,6 +72,7 @@ final class GameSessionController {
     var soloBuzzerPlayerName: String?
     var activeDisOrDat: QuizDisOrDatRound?
     var activeDisOrDatItemIndex: Int?
+    var revealedBinarySide: String?
     var podiumAwards: [PodiumAward] = []
 
     // Remote state when acting as a Bonjour Client
@@ -83,7 +88,7 @@ final class GameSessionController {
         case roundIntro(QuizRoundKind)
         case cashQuestion(QuizMCQQuestion, isDoubleFinale: Bool)
         case soloQuestion(QuizMCQQuestion)
-        case couciCouca(QuizDisOrDatRound)
+        case couciCouca(QuizDisOrDatRound, QuizRoundKind)
         case podium
     }
 
@@ -396,6 +401,7 @@ final class GameSessionController {
         )
         usedQuestionIDs.formUnion(activeDeck.allMCQIDs)
         usedDisOrDatIDs.insert(activeDeck.couciCoucaRound.id)
+        usedDisOrDatIDs.insert(activeDeck.quoizziPunRound.id)
 
         phaseQueue = [
             .roundIntro(.cashSpeed),
@@ -406,13 +412,15 @@ final class GameSessionController {
             .soloQuestion(activeDeck.soloQuestions[0]),
             .soloQuestion(activeDeck.soloQuestions[1]),
             .roundIntro(.couciCouca),
-            .couciCouca(activeDeck.couciCoucaRound),
+            .couciCouca(activeDeck.couciCoucaRound, .couciCouca),
+            .roundIntro(.quoizziQuoissa),
+            .couciCouca(activeDeck.quoizziPunRound, .quoizziQuoissa),
             .roundIntro(.finaleDouble),
             .cashQuestion(activeDeck.finaleDoubleQuestions[0], isDoubleFinale: true),
             .cashQuestion(activeDeck.finaleDoubleQuestions[1], isDoubleFinale: true),
             .podium
         ]
-        totalQuestions = 8
+        totalQuestions = 9
         questionNumber = 0
         currentStepIndex = -1
 
@@ -429,6 +437,7 @@ final class GameSessionController {
         activeQuestion = nil
         activeDisOrDat = nil
         revealedCorrectIndex = nil
+        revealedBinarySide = nil
         soloBuzzerPlayerID = nil
         soloBuzzerPlayerName = nil
         podiumAwards = []
@@ -468,9 +477,9 @@ final class GameSessionController {
         case .soloQuestion(let q):
             questionNumber += 1
             enterSoloQuestion(q)
-        case .couciCouca(let round):
+        case .couciCouca(let round, let kind):
             questionNumber += 1
-            enterCouciCoucaRound(round)
+            enterCouciCoucaRound(round, kind: kind)
         case .podium:
             enterFinalPodium()
         }
@@ -484,6 +493,7 @@ final class GameSessionController {
         activeQuestion = nil
         activeDisOrDat = nil
         revealedCorrectIndex = nil
+        revealedBinarySide = nil
         soloBuzzerPlayerID = nil
         soloBuzzerPlayerName = nil
 
@@ -496,18 +506,23 @@ final class GameSessionController {
             meemawPose = "meemaw_vitesse"
             audio.playJingle("jingle_intro.wav")
         case .leSolo:
-            studioFile = "mq_round2_solo.m4a"
-            text = "Manche 2 : C'est l'heure du SOLO ! Le premier qui écrase le buzzer rouge bloque les autres et joue pour le DOUBLE !"
+            studioFile = "mq_round2_solo_fast.m4a"
+            text = "Manche 2 : C'est l'heure du SOLO ! Pas besoin de buzzer : le tout premier qui tape une réponse sur son téléphone gagne le DOUBLE... ou perd tout s'il se plante !"
             meemawPose = "meemaw_boxing_referee"
             audio.playJingle("jingle_solo_siren.wav")
         case .couciCouca:
-            studioFile = "mq_round3_couci.m4a"
-            text = "Manche 3 : Le Couci-Couça de Meemaw ! 6 affirmations à toute allure, tapez à Gauche ou à Droite !"
+            studioFile = "mq_round3_raclette.m4a"
+            text = "Manche 3 : La Raclette Quizz de Meemaw ! 6 questions qui fondent dans le poêlon : Gauche, Droite, ou LES DEUX !"
             meemawPose = "meemaw_fun"
+            audio.playJingle("jingle_couci.wav")
+        case .quoizziQuoissa:
+            studioFile = "mq_round4_quoizzi.m4a"
+            text = "Manche 4 : Le Quoizzi-Quoissa Spécial Jeux de Mots ! Attention aux calembours bien gratinés de Meemaw !"
+            meemawPose = "meemaw_giggle"
             audio.playJingle("jingle_couci.wav")
         case .finaleDouble:
             studioFile = "mq_round4_finale.m4a"
-            text = "Manche 4 : La Rafale Finale ! Tous les points sont DOUBLÉS, tout peut encore basculer !"
+            text = "Manche 5 : La Rafale Finale ! Tous les points sont DOUBLÉS, tout peut encore basculer !"
             meemawPose = "meemaw_duel_challenge"
             audio.playJingle("jingle_solo_siren.wav")
         }
@@ -522,13 +537,14 @@ final class GameSessionController {
         }
     }
 
-    // MARK: - Manche 1 & 4 : Cash Speed / Finale Double
+    // MARK: - Manche 1 & 5 : Cash Speed / Finale Double
 
     private func enterCashQuestion(_ question: QuizMCQQuestion, isDoubleFinale: Bool) {
         registry.resetRoundLocks()
         roundKind = isDoubleFinale ? .finaleDouble : .cashSpeed
         activeQuestion = question
         revealedCorrectIndex = nil
+        revealedBinarySide = nil
         soloBuzzerPlayerID = nil
         soloBuzzerPlayerName = nil
         stage = .cashAnswering
@@ -552,13 +568,21 @@ final class GameSessionController {
     }
 
     private func handlePlayerChoice(playerID: String, choiceIndex: Int) {
-        if stage == .soloPlayerAnswering {
-            guard soloBuzzerPlayerID == playerID, let q = activeQuestion else { return }
+        // Manche 2 LE SOLO : Le 1er qui tape une réponse A/B/C/D gagne le double ou perd tout !
+        if stage == .soloBuzzOpen || stage == .soloPlayerAnswering {
+            guard let q = activeQuestion else { return }
+            guard let player = registry.players.first(where: { $0.id == playerID }),
+                  player.activeBisouWipesRemaining == 0 else { return }
+            guard soloBuzzerPlayerID == nil || soloBuzzerPlayerID == playerID else { return }
+
             let elapsedMs = max(100, Int(Date().timeIntervalSince(questionOpenedAt) * 1000))
+            soloBuzzerPlayerID = player.id
+            soloBuzzerPlayerName = player.name
             registry.updatePlayer(id: playerID) { p in
                 p.lockedChoiceIndex = choiceIndex
                 p.reactionTimeMs = elapsedMs
             }
+            audio.playJingle("sfx_buzz.wav")
             revealSoloQuestionResult(q, buzzerPlayerID: playerID, chosenIndex: choiceIndex)
             return
         }
@@ -664,13 +688,14 @@ final class GameSessionController {
         }
     }
 
-    // MARK: - Manche 2 : « LE SOLO » (Mode Buzzer YDKJ 90s)
+    // MARK: - Manche 2 : « LE SOLO » (1er qui répond gagne le double ou perd tout !)
 
     private func enterSoloQuestion(_ question: QuizMCQQuestion) {
         registry.resetRoundLocks()
         roundKind = .leSolo
         activeQuestion = question
         revealedCorrectIndex = nil
+        revealedBinarySide = nil
         soloBuzzerPlayerID = nil
         soloBuzzerPlayerName = nil
         stage = .soloBuzzOpen
@@ -678,7 +703,7 @@ final class GameSessionController {
         timeRemainingSec = 24.0
         questionOpenedAt = Date()
         meemawPose = "meemaw_boxing_referee"
-        meemawSpeech = "🚨 LE SOLO ! Le 1er qui buzze prend la main pour \(question.baseValue * 2) PTS : « \(question.funnyTitle) »"
+        meemawSpeech = "🚨 LE SOLO (\(question.baseValue * 2) PTS) : Le 1er qui tape une réponse prend tout ou perd tout ! « \(question.funnyTitle) »"
         broadcastState()
 
         let cueFile = question.audioCueID.map { "\($0).m4a" }
@@ -689,11 +714,11 @@ final class GameSessionController {
 
         scheduleBotsForSoloBuzz(question)
         startCountdown(duration: 24.0) { [weak self] in
-            // Nobody buzzed in time!
+            // Nobody answered in time!
             guard let self else { return }
             self.stage = .questionReveal
             self.revealedCorrectIndex = question.correctIndex
-            self.meemawSpeech = "Personne n'a osé appuyer sur le buzzer du SOLO ! Bande de poules mouillées ! \(question.explanation)"
+            self.meemawSpeech = "Personne n'a osé tenter le SOLO ! Bande de poules mouillées ! \(question.explanation)"
             self.broadcastState()
             self.scheduleDelayed(seconds: 7.0) {
                 self.advanceToNextPhaseStep()
@@ -702,6 +727,7 @@ final class GameSessionController {
     }
 
     private func handlePlayerSoloBuzz(playerID: String) {
+        // Fallback if an older client sends buzzSolo: pick no choice yet or lock player
         guard stage == .soloBuzzOpen, soloBuzzerPlayerID == nil, let q = activeQuestion else { return }
         guard let player = registry.players.first(where: { $0.id == playerID }) else { return }
 
@@ -720,16 +746,6 @@ final class GameSessionController {
         broadcastState()
 
         audio.speakDynamicPlayerCallout(callout)
-
-        // If a bot buzzed, make the bot answer after 3.2s
-        if player.id.hasPrefix("bot_") {
-            botActionTask = Task { @MainActor [weak self] in
-                try? await Task.sleep(for: .milliseconds(3200))
-                guard let self, self.stage == .soloPlayerAnswering else { return }
-                let botPick = Bool.random() ? q.correctIndex : Int.random(in: 0..<4)
-                self.handlePlayerChoice(playerID: player.id, choiceIndex: botPick)
-            }
-        }
 
         startCountdown(duration: 12.0) { [weak self] in
             guard let self, self.stage == .soloPlayerAnswering else { return }
@@ -771,29 +787,28 @@ final class GameSessionController {
         }
     }
 
-    // MARK: - Manche 3 : Couci-Couça Binaire (DisOrDat)
+    // MARK: - Manche 3 & 4 : La Raclette Quizz & Le Quoizzi-Quoissa (DisOrDat)
 
-    private func enterCouciCoucaRound(_ round: QuizDisOrDatRound) {
+    private func enterCouciCoucaRound(_ round: QuizDisOrDatRound, kind: QuizRoundKind) {
         registry.resetRoundLocks()
-        roundKind = .couciCouca
+        roundKind = kind
         activeQuestion = nil
         activeDisOrDat = round
-        activeDisOrDatItemIndex = nil
-        stage = .couciCoucaIntro
-        meemawPose = "meemaw_fun"
-        meemawSpeech = "⚖️ COUCI-COUÇA : « \(round.funnyTitle) » — \(round.prompt)"
-        broadcastState()
+        revealedCorrectIndex = nil
+        revealedBinarySide = nil
+        meemawPose = kind == .quoizziQuoissa ? "meemaw_giggle" : "meemaw_fun"
+
+        // Start Item 0 IMMEDIATELY so players can answer right away without waiting for Meemaw to finish talking!
+        startCouciCoucaItem(at: 0, isFirstItemWithIntroVoice: true)
 
         let cueFile = round.audioCueID.map { "\($0).m4a" }
         audio.playMeemawStudioOrFallback(
             studioFilename: cueFile,
             fallbackText: "\(round.funnyTitle). \(round.prompt)"
-        ) { [weak self] in
-            self?.startCouciCoucaItem(at: 0)
-        }
+        )
     }
 
-    private func startCouciCoucaItem(at index: Int) {
+    private func startCouciCoucaItem(at index: Int, isFirstItemWithIntroVoice: Bool = false) {
         stopTimers()
         guard let round = activeDisOrDat, round.items.indices.contains(index) else {
             finishCouciCoucaRound()
@@ -801,15 +816,18 @@ final class GameSessionController {
         }
         registry.resetRoundLocks()
         activeDisOrDatItemIndex = index
+        revealedBinarySide = nil
         stage = .couciCoucaItem
-        totalTimerSec = 10.0
-        timeRemainingSec = 10.0
+        let duration: Double = isFirstItemWithIntroVoice ? 16.0 : 10.0
+        totalTimerSec = duration
+        timeRemainingSec = duration
         let item = round.items[index]
-        meemawSpeech = "Item \(index + 1)/\(round.items.count) : « \(item.text) »"
+        let prefix = round.isPunRound ? "🤪 QUOIZZI-QUOISSA" : "🧀 RACLETTE QUIZZ"
+        meemawSpeech = "\(prefix) (\(index + 1)/\(round.items.count)) : « \(item.text) »"
         broadcastState()
 
-        scheduleBotsForCouciItem(item)
-        startCountdown(duration: 10.0) { [weak self] in
+        scheduleBotsForCouciItem(item, round: round)
+        startCountdown(duration: duration) { [weak self] in
             self?.scoreAndAdvanceCouciItem(at: index)
         }
     }
@@ -838,9 +856,18 @@ final class GameSessionController {
         guard let round = activeDisOrDat, round.items.indices.contains(index) else { return }
         let item = round.items[index]
 
+        stage = .couciCoucaReveal
+        revealedBinarySide = item.correctSide
+
         var anyCorrect = false
         for player in registry.players {
-            guard let side = player.lockedSide else { continue }
+            guard let side = player.lockedSide else {
+                registry.updatePlayer(id: player.id) { p in
+                    p.lastDeltaScore = 0
+                    p.streak = 0
+                }
+                continue
+            }
             let isCorrect = (side == item.correctSide)
             if isCorrect { anyCorrect = true }
             let newStreak = isCorrect ? (player.streak + 1) : 0
@@ -856,20 +883,35 @@ final class GameSessionController {
                 if isCorrect { p.correctAnswersCount += 1 }
             }
         }
+
+        let correctLabel: String
+        switch item.correctSide {
+        case "left":
+            correctLabel = round.optionLeft
+        case "both":
+            correctLabel = round.optionBoth ?? "🧀 LES DEUX !"
+        default:
+            correctLabel = round.optionRight
+        }
+
+        meemawPose = anyCorrect ? "meemaw_celebrate" : "meemaw_worried"
+        meemawSpeech = "✅ Réponse (\(index + 1)/\(round.items.count)) : \(correctLabel) ! — « \(item.text) »"
         audio.playJingle(anyCorrect ? "sfx_correct.wav" : "sfx_wrong.wav")
         broadcastState()
 
-        scheduleDelayed(seconds: 2.5) { [weak self] in
+        scheduleDelayed(seconds: 3.0) { [weak self] in
             self?.startCouciCoucaItem(at: index + 1)
         }
     }
 
     private func finishCouciCoucaRound() {
         stage = .couciCoucaSummary
+        revealedBinarySide = nil
         meemawPose = "meemaw_celebrate"
-        meemawSpeech = "Fin du Couci-Couça ! Regardez les scores avant la Rafale Finale à points doublés !"
+        let title = (roundKind == .quoizziQuoissa) ? "Fin du Quoizzi-Quoissa !" : "Fin de la Raclette Quizz !"
+        meemawSpeech = "\(title) Regardez le classement sur la TV !"
         broadcastState()
-        scheduleDelayed(seconds: 6.0) { [weak self] in
+        scheduleDelayed(seconds: 5.5) { [weak self] in
             self?.advanceToNextPhaseStep()
         }
     }
@@ -937,23 +979,25 @@ final class GameSessionController {
         guard let randomBot = bots.randomElement() else { return }
         botActionTask?.cancel()
         botActionTask = Task { @MainActor [weak self] in
-            let delayMs = Int.random(in: 8500...16000)
+            let delayMs = Int.random(in: 9500...16500)
             try? await Task.sleep(for: .milliseconds(delayMs))
             guard let self, !Task.isCancelled, self.stage == .soloBuzzOpen else { return }
-            self.handlePlayerSoloBuzz(playerID: randomBot.id)
+            let botPick = (Int.random(in: 0..<100) < 65) ? q.correctIndex : Int.random(in: 0..<4)
+            self.handlePlayerChoice(playerID: randomBot.id, choiceIndex: botPick)
         }
     }
 
-    private func scheduleBotsForCouciItem(_ item: QuizDisOrDatItem) {
+    private func scheduleBotsForCouciItem(_ item: QuizDisOrDatItem, round: QuizDisOrDatRound) {
         let bots = registry.players.filter { $0.id.hasPrefix("bot_") }
         guard !bots.isEmpty else { return }
+        let possibleSides = round.optionBoth != nil ? ["left", "right", "both"] : ["left", "right"]
         botActionTask?.cancel()
         botActionTask = Task { @MainActor [weak self] in
             for bot in bots {
-                let delayMs = Int.random(in: 2500...6000)
+                let delayMs = Int.random(in: 3000...6500)
                 try? await Task.sleep(for: .milliseconds(delayMs))
                 guard let self, !Task.isCancelled, self.stage == .couciCoucaItem else { return }
-                let pick = (Int.random(in: 0..<100) < 75) ? item.correctSide : (item.correctSide == "left" ? "right" : "left")
+                let pick = (Int.random(in: 0..<100) < 72) ? item.correctSide : (possibleSides.randomElement() ?? "left")
                 self.handlePlayerBinarySide(playerID: bot.id, side: pick)
             }
         }
@@ -1016,6 +1060,7 @@ final class GameSessionController {
             soloBuzzerPlayerName: soloBuzzerPlayerName,
             activeDisOrDat: activeDisOrDat,
             activeDisOrDatItemIndex: activeDisOrDatItemIndex,
+            revealedBinarySide: revealedBinarySide,
             podiumAwards: podiumAwards
         )
     }

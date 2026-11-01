@@ -22,20 +22,25 @@ final class QuestionBankTests: XCTestCase {
             for round in rounds {
                 XCTAssertEqual(round.items.count, 6, "DisOrDat round \(round.id) must have 6 items")
                 for item in round.items {
-                    XCTAssertTrue(item.correctSide == "left" || item.correctSide == "right")
+                    if round.optionBoth != nil {
+                        XCTAssertTrue(item.correctSide == "left" || item.correctSide == "right" || item.correctSide == "both")
+                    } else {
+                        XCTAssertTrue(item.correctSide == "left" || item.correctSide == "right")
+                    }
                 }
             }
         }
     }
 
-    func testBuildShowDeckProducesBalancedFourRoundShow() {
+    func testBuildShowDeckProducesBalancedFiveRoundShow() {
         let deck = QuestionBank.buildShowDeck(for: .grandMix)
         XCTAssertEqual(deck.cashQuestions.count, 3)
         XCTAssertEqual(deck.soloQuestions.count, 2)
         XCTAssertEqual(deck.finaleDoubleQuestions.count, 2)
-        XCTAssertNotNil(deck.couciCoucaRound)
-        XCTAssertEqual(QuestionBank.questions(for: .grandMix).count, 96)
-        XCTAssertEqual(QuestionBank.allDisOrDatRounds.count, 12)
+        XCTAssertFalse(deck.couciCoucaRound.isPunRound)
+        XCTAssertTrue(deck.quoizziPunRound.isPunRound)
+        XCTAssertEqual(QuestionBank.questions(for: .grandMix).count, 112)
+        XCTAssertEqual(QuestionBank.allDisOrDatRounds.count, 20)
     }
 
     func testWholeEveningSessionNeverRepeatsQuestionsAcrossTwelveConsecutiveGames() {

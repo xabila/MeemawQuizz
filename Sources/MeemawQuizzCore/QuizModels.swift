@@ -291,28 +291,31 @@ public enum QuizThemePack: String, CaseIterable, Codable, Identifiable, Sendable
     }
 }
 
-// MARK: - 4 Game Round Kinds
+// MARK: - 5 Game Round Kinds (Cash, Solo Express, Raclette Quizz, Quoizzi-Quoissa Jeux de Mots, Finale ×2)
 
 public enum QuizRoundKind: String, Codable, Sendable {
     case cashSpeed = "cash_speed"
     case leSolo = "le_solo"
     case couciCouca = "couci_couca"
+    case quoizziQuoissa = "quoizzi_quoissa"
     case finaleDouble = "finale_double"
 
     public var badgeTitle: String {
         switch self {
         case .cashSpeed: "⚡ MANCHE 1 • CASH RAPIDE"
-        case .leSolo: "🚨 MANCHE 2 • LE SOLO (BUZZER)"
-        case .couciCouca: "⚖️ MANCHE 3 • COUCI-COUÇA"
-        case .finaleDouble: "🔥 MANCHE 4 • RAFALE POINTS ×2"
+        case .leSolo: "🚨 MANCHE 2 • LE SOLO (1er QUI DÉGAINE)"
+        case .couciCouca: "🧀 MANCHE 3 • LA RACLETTE QUIZZ"
+        case .quoizziQuoissa: "🤪 MANCHE 4 • QUOIZZI-QUOISSA (JEUX DE MOTS)"
+        case .finaleDouble: "🔥 MANCHE 5 • RAFALE POINTS ×2"
         }
     }
 
     public var ruleSummary: String {
         switch self {
         case .cashSpeed: "Tout le monde répond sur son tel ! Le plus rapide rafle le jackpot !"
-        case .leSolo: "Le 1er qui buzze prend LE SOLO : il bloque les autres et joue pour DOUBLE MISE !"
-        case .couciCouca: "6 affirmations éclairs : tape à Gauche ou à Droite sans trembler !"
+        case .leSolo: "Pas besoin de buzzer : le 1er qui tape sa réponse coupe l'herbe sous le pied des autres (Double ou Gamelle) !"
+        case .couciCouca: "Façon Burger Quiz version Savoie : tape Option A, Option B, ou 🧀 LES DEUX !"
+        case .quoizziQuoissa: "6 jeux de mots et calembours tordus de Meemaw : réponds dès que ça s'affiche !"
         case .finaleDouble: "Dernière ligne droite : tous les points et pénalités sont DOUBLÉS !"
         }
     }
@@ -392,6 +395,8 @@ public struct QuizDisOrDatRound: Codable, Equatable, Identifiable, Sendable {
     public var prompt: String
     public var optionLeft: String
     public var optionRight: String
+    public var optionBoth: String?
+    public var isPunRound: Bool
     public var valuePerItem: Int
     public var items: [QuizDisOrDatItem]
     public var audioCueID: String?
@@ -403,9 +408,11 @@ public struct QuizDisOrDatRound: Codable, Equatable, Identifiable, Sendable {
         prompt: String,
         optionLeft: String,
         optionRight: String,
+        optionBoth: String? = nil,
         valuePerItem: Int = 500,
         items: [QuizDisOrDatItem],
-        audioCueID: String? = nil
+        audioCueID: String? = nil,
+        isPunRound: Bool = false
     ) {
         self.id = id
         self.theme = theme
@@ -413,6 +420,8 @@ public struct QuizDisOrDatRound: Codable, Equatable, Identifiable, Sendable {
         self.prompt = prompt
         self.optionLeft = optionLeft
         self.optionRight = optionRight
+        self.optionBoth = optionBoth
+        self.isPunRound = isPunRound
         self.valuePerItem = valuePerItem
         self.items = items
         self.audioCueID = audioCueID
@@ -431,6 +440,7 @@ public enum ShowStageState: String, Codable, Sendable {
     case questionReveal = "question_reveal"
     case couciCoucaIntro = "couci_couca_intro"
     case couciCoucaItem = "couci_couca_item"
+    case couciCoucaReveal = "couci_couca_reveal"
     case couciCoucaSummary = "couci_couca_summary"
     case finalPodium = "final_podium"
 }
@@ -532,6 +542,7 @@ public struct HostToClientStateSnapshot: Codable, Equatable, Sendable {
     public var soloBuzzerPlayerName: String?
     public var activeDisOrDat: QuizDisOrDatRound?
     public var activeDisOrDatItemIndex: Int?
+    public var revealedBinarySide: String?
     public var podiumAwards: [PodiumAward]
 
     public init(
@@ -554,6 +565,7 @@ public struct HostToClientStateSnapshot: Codable, Equatable, Sendable {
         soloBuzzerPlayerName: String? = nil,
         activeDisOrDat: QuizDisOrDatRound? = nil,
         activeDisOrDatItemIndex: Int? = nil,
+        revealedBinarySide: String? = nil,
         podiumAwards: [PodiumAward] = []
     ) {
         self.roomCode = roomCode
@@ -575,6 +587,7 @@ public struct HostToClientStateSnapshot: Codable, Equatable, Sendable {
         self.soloBuzzerPlayerName = soloBuzzerPlayerName
         self.activeDisOrDat = activeDisOrDat
         self.activeDisOrDatItemIndex = activeDisOrDatItemIndex
+        self.revealedBinarySide = revealedBinarySide
         self.podiumAwards = podiumAwards
     }
 }

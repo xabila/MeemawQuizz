@@ -45,6 +45,10 @@ final class MeemawStudioSynthesizer {
         let spoken = text
             .replacingOccurrences(of: "Meemaw", with: "Mimeau")
             .replacingOccurrences(of: "meemaw", with: "mimeau")
+            .replacingOccurrences(of: "Xabi", with: "Chabi")
+            .replacingOccurrences(of: "xabi", with: "Chabi")
+            .replacingOccurrences(of: "XABI", with: "Chabi")
+            .replacingOccurrences(of: "Quoizzi-Quoissa", with: "Kouazi Kouassa")
             .replacingOccurrences(of: "___", with: "…")
             .replacingOccurrences(of: "💡", with: "")
             .replacingOccurrences(of: "÷", with: " divisé par ")

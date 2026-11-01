@@ -28,13 +28,18 @@ public enum MeemawPunchlines {
         ),
         MeemawStudioCue(
             id: "round2_solo",
-            text: "Attention les secousses, c'est l'heure du SOLO ! Le premier qui écrase le buzzer rouge bloque tous les autres et joue pour le double du pactole !",
-            filename: "mq_round2_solo.m4a"
+            text: "Manche 2 : Le Solo Express ! Pas besoin de buzzer avant : le tout premier qui touche une réponse coupe l'herbe sous le pied des autres ! S'il a bon il double la mise, s'il se trompe c'est la gamelle !",
+            filename: "mq_round2_solo_fast.m4a"
         ),
         MeemawStudioCue(
             id: "round3_couci",
-            text: "Troisième manche : Le Couci-Couça de Meemaw ! Six affirmations à toute allure, tapez à gauche ou à droite sans renverser votre tisane !",
-            filename: "mq_round3_couci.m4a"
+            text: "Manche 3 : La Raclette Quizz de Meemaw ! Faites chauffer les poêlons : c'est l'option A, l'option B, ou carrément les deux ?",
+            filename: "mq_round3_raclette.m4a"
+        ),
+        MeemawStudioCue(
+            id: "round4_quoizzi",
+            text: "Manche 4 : Le Quoizzi-Quoissa spécial Jeux de Mots ! Attention les neurones, les calembours de Meemaw volent bas ce soir !",
+            filename: "mq_round4_quoizzi.m4a"
         ),
         MeemawStudioCue(
             id: "round4_finale",
@@ -78,22 +83,35 @@ public enum MeemawPunchlines {
         let sec = String(format: "%.1f", Double(reactionMs) / 1000.0)
         let templates = [
             "Bravo \(playerName) ! Dégainé en \(sec) secondes pour \(delta) points, même ma 2 CV démarre moins vite !",
-            "Joli coup \(playerName) ! \(delta) points dans la poche en \(sec) secondes chrono !",
-            "Chapeau \(playerName), tu as mis tout le salon d'accord en \(sec) secondes !"
+            "Joli coup \(playerName) ! \(delta) points dans la poche en \(sec) secondes, les autres sont encore en train de chercher leurs lunettes !",
+            "Chapeau \(playerName), tu as mis tout le salon d'accord en \(sec) secondes chrono !",
+            "Hop là ! \(playerName) rafle \(delta) points en \(sec) secondes pendant que le reste du canapé dort debout !",
+            "Quel réflexe \(playerName) ! \(sec) secondes et \(delta) points, tu as mangé du fromage à raclette dopé ce midi ?",
+            "Boum ! \(playerName) plie l'affaire en \(sec) secondes et empoche \(delta) points sous le nez de tout le monde !"
         ]
-        let idx = abs(playerName.hashValue) % templates.count
+        let idx = abs(playerName.hashValue &+ reactionMs) % templates.count
         return templates[idx]
     }
 
     public static func dynamicSoloBuzzCallout(playerName: String) -> String {
-        "Stoppez les rotatives ! \(playerName) prend LE SOLO ! Voyons si ça passe ou si ça casse !"
+        "Stoppez les rotatives ! \(playerName) a dégainé en premier sur LE SOLO ! Voyons si c'est du génie ou du grand n'importe quoi !"
     }
 
     public static func dynamicSoloResult(playerName: String, isCorrect: Bool, delta: Int) -> String {
         if isCorrect {
-            return "Magnifique \(playerName) ! Le Solo est validé, plus \(delta) points dans l'escarcelle !"
+            let wins = [
+                "Magnifique \(playerName) ! Tu as coupé l'herbe sous le pied de tout le salon et tu prends \(delta) points d'un coup !",
+                "Hold-up parfait de \(playerName) en Solo ! Plus \(delta) points dans la tirelire, les autres peuvent pleurer !",
+                "Quel culot \(playerName) ! Premier à dégainer, bonne réponse, et bim : \(delta) points dans la poche !"
+            ]
+            return wins[abs(playerName.hashValue &+ delta) % wins.count]
         } else {
-            return "Oh la boulette \(playerName) ! Tu as voulu faire le malin en Solo et tu perds \(abs(delta)) points !"
+            let fails = [
+                "Oh la boulette \(playerName) ! Tu as voulu dégainer plus vite que ton ombre et tu perds \(abs(delta)) points !",
+                "Patatras \(playerName) ! À vouloir répondre avant tout le monde sans réfléchir, c'est moins \(abs(delta)) points dans les gencives !",
+                "Aïe aïe aïe \(playerName) ! Le Solo de la honte : tout le monde te regarde perdre \(abs(delta)) points en direct !"
+            ]
+            return fails[abs(playerName.hashValue &+ delta) % fails.count]
         }
     }
 

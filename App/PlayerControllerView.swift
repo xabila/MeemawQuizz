@@ -46,7 +46,7 @@ struct PlayerControllerView: View {
                             soloAnsweringControllerSection
                         case .questionReading, .cashAnswering, .questionReveal:
                             cashMCQControllerSection
-                        case .couciCoucaIntro, .couciCoucaItem, .couciCoucaSummary:
+                        case .couciCoucaIntro, .couciCoucaItem, .couciCoucaReveal, .couciCoucaSummary:
                             couciCoucaControllerSection
                         case .finalPodium:
                             finalPodiumControllerSection
@@ -548,53 +548,26 @@ struct PlayerControllerView: View {
         }
     }
 
-    // MARK: - 4. Manche 2 : « LE SOLO » Giant Red Buzzer
+    // MARK: - 4. Manche 2 : « LE SOLO » (1er qui répond gagne le double ou perd tout !)
 
     private var soloBuzzerControllerSection: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: 12) {
             if let q = snap.activeQuestion {
-                PopArtCard(cornerRadius: 20, borderWidth: 3.5, backgroundColor: PopArt.white) {
-                    VStack(spacing: 6) {
-                        Text("🚨 LE SOLO • DOUBLE MISE (\(q.baseValue * 2) PTS)")
-                            .font(.system(size: 13, weight: .black))
-                            .foregroundStyle(PopArt.redError)
-                        Text(q.funnyTitle)
-                            .font(.system(size: 18, weight: .black, design: .rounded))
-                            .foregroundStyle(PopArt.ink)
-                            .multilineTextAlignment(.center)
-                        Text(q.prompt)
-                            .font(.system(size: 15, weight: .bold))
-                            .foregroundStyle(PopArt.ink.opacity(0.85))
-                            .multilineTextAlignment(.center)
+                PopArtCard(cornerRadius: 18, borderWidth: 3.5, backgroundColor: PopArt.redError) {
+                    VStack(spacing: 4) {
+                        Text("🚨 LE SOLO • 1er QUI RÉPOND PREND TOUT !")
+                            .font(.system(size: 15, weight: .black, design: .rounded))
+                            .foregroundStyle(PopArt.yellow)
+                        Text("Bonne réponse = +\(q.baseValue * 2) PTS • Mauvaise = -\(q.baseValue) PTS !")
+                            .font(.system(size: 13, weight: .heavy, design: .rounded))
+                            .foregroundStyle(.white)
                     }
+                    .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity)
-                    .padding(14)
+                    .padding(12)
                 }
             }
-
-            Button {
-                session.submitSoloBuzz()
-            } label: {
-                VStack(spacing: 12) {
-                    Text("🚨")
-                        .font(.system(size: 62))
-                    Text("JE PRENDS LE SOLO !")
-                        .font(.system(size: 28, weight: .black, design: .rounded))
-                    Text("Bloque tous les autres joueurs et joue pour le DOUBLE !")
-                        .font(.system(size: 14, weight: .bold))
-                        .opacity(0.92)
-                }
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity, minHeight: 240)
-                .padding(20)
-            }
-            .buttonStyle(
-                PopArtActionButtonStyle(
-                    backgroundColor: PopArt.redError,
-                    foregroundColor: .white,
-                    cornerRadius: 32
-                )
-            )
+            cashMCQControllerSection
         }
     }
 
@@ -615,11 +588,11 @@ struct PlayerControllerView: View {
                     VStack(spacing: 12) {
                         Text("🍿")
                             .font(.system(size: 56))
-                        Text("\(snap.soloBuzzerPlayerName ?? "Un joueur") a pris LE SOLO !")
+                        Text("\(snap.soloBuzzerPlayerName ?? "Un joueur") a dégainé en 1er !")
                             .font(.system(size: 22, weight: .black, design: .rounded))
                             .foregroundStyle(PopArt.ink)
                             .multilineTextAlignment(.center)
-                        Text("Ton buzzer est verrouillé : regarde la TV AirPlay pour voir s'il rafle le double ou s'il se prend les pieds dans le tapis !")
+                        Text("Regarde la TV AirPlay pour voir s'il rafle le double ou s'il perd tout !")
                             .font(.system(size: 15, weight: .bold))
                             .foregroundStyle(PopArt.ink.opacity(0.72))
                             .multilineTextAlignment(.center)
@@ -631,11 +604,38 @@ struct PlayerControllerView: View {
         }
     }
 
-    // MARK: - 5. Cash Speed & Finale ×2 Tactile A / B / C / D Buttons + Bisou Trap
+    // MARK: - 5. Cash Speed, Solo & Finale ×2 Tactile A / B / C / D Buttons + Bisou Trap
 
     private var cashMCQControllerSection: some View {
         VStack(spacing: 12) {
             if let q = snap.activeQuestion {
+                if snap.stage == .questionReveal {
+                    let myChosen = me?.lockedChoiceIndex
+                    let isMyAnswerRight = (myChosen != nil && myChosen == snap.revealedCorrectIndex)
+                    let delta = me?.lastDeltaScore ?? 0
+                    PopArtCard(
+                        cornerRadius: 18,
+                        borderWidth: 3.5,
+                        backgroundColor: isMyAnswerRight ? PopArt.greenSuccess : PopArt.redError
+                    ) {
+                        VStack(spacing: 4) {
+                            if let soloName = snap.soloBuzzerPlayerName, snap.roundKind == .leSolo {
+                                Text(isMyAnswerRight ? "✅ BRAVO ! TU REMPORTES LE SOLO (+\(delta) PTS) !" : (snap.soloBuzzerPlayerID == session.localPlayerID ? "❌ RATÉ SUR LE SOLO (\(delta) PTS) !" : "⚡ \(soloName) a dégainé en premier !"))
+                                    .font(.system(size: 17, weight: .black, design: .rounded))
+                                    .foregroundStyle(.white)
+                                    .multilineTextAlignment(.center)
+                            } else {
+                                Text(isMyAnswerRight ? "✅ BONNE RÉPONSE ! +\(delta) PTS" : (myChosen == nil ? "⏰ TEMPS ÉCOULÉ ! (0 PT)" : "❌ MAUVAISE RÉPONSE ! (\(delta) PTS)"))
+                                    .font(.system(size: 18, weight: .black, design: .rounded))
+                                    .foregroundStyle(.white)
+                                    .multilineTextAlignment(.center)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(12)
+                    }
+                }
+
                 PopArtCard(cornerRadius: 18, borderWidth: 3, backgroundColor: PopArt.white) {
                     VStack(spacing: 6) {
                         Text(q.funnyTitle)
@@ -684,7 +684,13 @@ struct PlayerControllerView: View {
 
                             Spacer()
 
-                            if isMyChoice {
+                            if isRevealed && isCorrect {
+                                Text("✅")
+                                    .font(.system(size: 20))
+                            } else if isRevealed && isMyChoice && !isCorrect {
+                                Text("❌")
+                                    .font(.system(size: 20))
+                            } else if isMyChoice {
                                 Image(systemName: "lock.fill")
                                     .font(.system(size: 18, weight: .black))
                             }
@@ -704,11 +710,6 @@ struct PlayerControllerView: View {
                         backgroundColor: (me?.lastDeltaScore ?? 0) > 0 ? Color(hex: "#D1FAE5") : Color(hex: "#FFE4E8")
                     ) {
                         VStack(spacing: 8) {
-                            let delta = me?.lastDeltaScore ?? 0
-                            Text(delta > 0 ? "✅ BIEN JOUÉ ! +\(delta) PTS" : "❌ AÏE ! \(delta) PTS")
-                                .font(.system(size: 18, weight: .black, design: .rounded))
-                                .foregroundStyle(delta > 0 ? PopArt.greenSuccess : PopArt.redError)
-
                             Text(q.explanation)
                                 .font(.system(size: 14, weight: .bold, design: .rounded))
                                 .foregroundStyle(PopArt.ink)
@@ -776,48 +777,126 @@ struct PlayerControllerView: View {
         }
     }
 
-    // MARK: - 6. Manche 3 : Couci-Couça Binary Buttons
+    // MARK: - 6. Manche 3 & 4 : Raclette Quizz & Quoizzi-Quoissa Buttons
+
+    private static let itemCardPalette: [Color] = [
+        Color(hex: "#FFF3E0"), // 1: Orange crème
+        Color(hex: "#E0F7FA"), // 2: Cyan polaire
+        Color(hex: "#F3E5F5"), // 3: Violet pop
+        Color(hex: "#FFE4E8"), // 4: Rose bonbon
+        Color(hex: "#ECFDF5"), // 5: Menthe fraîche
+        Color(hex: "#FEF9C3")  // 6: Jaune citron
+    ]
+
+    private static let itemBadgePalette: [Color] = [
+        PopArt.orange,
+        PopArt.cyan,
+        PopArt.purple,
+        PopArt.pink,
+        PopArt.greenSuccess,
+        PopArt.blue
+    ]
+
+    private func disOrDatButtonColor(side: String, defaultColor: Color) -> Color {
+        let mySide = me?.lockedSide
+        if snap.stage == .couciCoucaReveal, let correct = snap.revealedBinarySide {
+            if correct == side { return PopArt.greenSuccess }
+            if mySide == side { return PopArt.redError }
+            return defaultColor.opacity(0.35)
+        }
+        return mySide == side ? PopArt.yellow : defaultColor
+    }
+
+    private func disOrDatForegroundColor(side: String) -> Color {
+        let mySide = me?.lockedSide
+        if snap.stage == .couciCoucaReveal {
+            return .white
+        }
+        return mySide == side ? PopArt.ink : .white
+    }
 
     private var couciCoucaControllerSection: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: 12) {
             if let round = snap.activeDisOrDat {
                 let idx = snap.activeDisOrDatItemIndex ?? 0
                 let item = round.items.indices.contains(idx) ? round.items[idx] : nil
+                let cardBg = Self.itemCardPalette[idx % Self.itemCardPalette.count]
+                let badgeBg = Self.itemBadgePalette[idx % Self.itemBadgePalette.count]
 
-                PopArtCard(cornerRadius: 20, borderWidth: 3.5, backgroundColor: PopArt.white) {
+                if snap.stage == .couciCoucaReveal, let correctSide = snap.revealedBinarySide {
+                    let mySide = me?.lockedSide
+                    let isRight = (mySide != nil && mySide == correctSide)
+                    let delta = me?.lastDeltaScore ?? 0
+                    PopArtCard(
+                        cornerRadius: 18,
+                        borderWidth: 3.5,
+                        backgroundColor: isRight ? PopArt.greenSuccess : PopArt.redError
+                    ) {
+                        HStack {
+                            Spacer()
+                            Text(isRight ? "✅ BONNE RÉPONSE ! +\(delta) PTS" : (mySide == nil ? "⏰ TROP TARD ! (0 PT)" : "❌ FAUX ! \(delta) PTS"))
+                                .font(.system(size: 18, weight: .black, design: .rounded))
+                                .foregroundStyle(.white)
+                            Spacer()
+                        }
+                        .padding(.vertical, 12)
+                    }
+                }
+
+                PopArtCard(cornerRadius: 20, borderWidth: 3.5, backgroundColor: cardBg) {
                     VStack(spacing: 8) {
-                        Text("⚖️ \(round.funnyTitle)")
-                            .font(.system(size: 15, weight: .black))
-                            .foregroundStyle(PopArt.orange)
+                        HStack {
+                            Text("QUESTION \(idx + 1) / \(round.items.count)")
+                                .font(.system(size: 13, weight: .black, design: .rounded))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 5)
+                                .background(badgeBg, in: Capsule())
+                                .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
+
+                            Spacer()
+
+                            Text(round.isPunRound ? "🤪 JEUX DE MOTS" : "🧀 RACLETTE QUIZZ")
+                                .font(.system(size: 12, weight: .black, design: .rounded))
+                                .foregroundStyle(PopArt.ink.opacity(0.75))
+                        }
+
+                        Text(round.funnyTitle)
+                            .font(.system(size: 14, weight: .black))
+                            .foregroundStyle(badgeBg)
+                            .multilineTextAlignment(.center)
+
                         Text(item?.text ?? round.prompt)
-                            .font(.system(size: 22, weight: .black, design: .rounded))
+                            .font(.system(size: 21, weight: .black, design: .rounded))
                             .foregroundStyle(PopArt.ink)
                             .multilineTextAlignment(.center)
+                            .padding(.vertical, 4)
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(18)
+                    .padding(16)
                 }
+                .animation(.spring(response: 0.35, dampingFraction: 0.78), value: idx)
 
                 HStack(spacing: 12) {
                     Button {
                         session.submitBinarySide("left")
                     } label: {
-                        VStack(spacing: 10) {
-                            Text("⬅️")
-                                .font(.system(size: 38))
+                        VStack(spacing: 8) {
+                            Text(snap.stage == .couciCoucaReveal && snap.revealedBinarySide == "left" ? "✅" : "⬅️")
+                                .font(.system(size: 34))
                             Text(round.optionLeft)
-                                .font(.system(size: 20, weight: .black, design: .rounded))
+                                .font(.system(size: 19, weight: .black, design: .rounded))
                                 .multilineTextAlignment(.center)
                         }
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity, minHeight: 190)
-                        .padding(14)
+                        .foregroundStyle(disOrDatForegroundColor(side: "left"))
+                        .frame(maxWidth: .infinity, minHeight: round.optionBoth != nil ? 135 : 175)
+                        .padding(12)
                     }
                     .buttonStyle(
                         PopArtActionButtonStyle(
-                            backgroundColor: me?.lockedSide == "left" ? PopArt.yellow : PopArt.blue,
-                            foregroundColor: me?.lockedSide == "left" ? PopArt.ink : .white,
-                            cornerRadius: 24
+                            backgroundColor: disOrDatButtonColor(side: "left", defaultColor: PopArt.blue),
+                            foregroundColor: disOrDatForegroundColor(side: "left"),
+                            cornerRadius: 22
                         )
                     )
                     .disabled(me?.lockedSide != nil || snap.stage != .couciCoucaItem)
@@ -825,22 +904,46 @@ struct PlayerControllerView: View {
                     Button {
                         session.submitBinarySide("right")
                     } label: {
-                        VStack(spacing: 10) {
-                            Text("➡️")
-                                .font(.system(size: 38))
+                        VStack(spacing: 8) {
+                            Text(snap.stage == .couciCoucaReveal && snap.revealedBinarySide == "right" ? "✅" : "➡️")
+                                .font(.system(size: 34))
                             Text(round.optionRight)
-                                .font(.system(size: 20, weight: .black, design: .rounded))
+                                .font(.system(size: 19, weight: .black, design: .rounded))
                                 .multilineTextAlignment(.center)
                         }
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity, minHeight: 190)
-                        .padding(14)
+                        .foregroundStyle(disOrDatForegroundColor(side: "right"))
+                        .frame(maxWidth: .infinity, minHeight: round.optionBoth != nil ? 135 : 175)
+                        .padding(12)
                     }
                     .buttonStyle(
                         PopArtActionButtonStyle(
-                            backgroundColor: me?.lockedSide == "right" ? PopArt.yellow : PopArt.redError,
-                            foregroundColor: me?.lockedSide == "right" ? PopArt.ink : .white,
-                            cornerRadius: 24
+                            backgroundColor: disOrDatButtonColor(side: "right", defaultColor: PopArt.pink),
+                            foregroundColor: disOrDatForegroundColor(side: "right"),
+                            cornerRadius: 22
+                        )
+                    )
+                    .disabled(me?.lockedSide != nil || snap.stage != .couciCoucaItem)
+                }
+
+                if let bothLabel = round.optionBoth {
+                    Button {
+                        session.submitBinarySide("both")
+                    } label: {
+                        HStack(spacing: 10) {
+                            Text(snap.stage == .couciCoucaReveal && snap.revealedBinarySide == "both" ? "✅" : "🧀")
+                                .font(.system(size: 28))
+                            Text(bothLabel)
+                                .font(.system(size: 20, weight: .black, design: .rounded))
+                        }
+                        .foregroundStyle(disOrDatForegroundColor(side: "both"))
+                        .frame(maxWidth: .infinity, minHeight: 68)
+                        .padding(.horizontal, 16)
+                    }
+                    .buttonStyle(
+                        PopArtActionButtonStyle(
+                            backgroundColor: disOrDatButtonColor(side: "both", defaultColor: PopArt.purple),
+                            foregroundColor: disOrDatForegroundColor(side: "both"),
+                            cornerRadius: 20
                         )
                     )
                     .disabled(me?.lockedSide != nil || snap.stage != .couciCoucaItem)

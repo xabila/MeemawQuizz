@@ -4,17 +4,20 @@ public struct ShowGameDeck: Sendable {
     public var cashQuestions: [QuizMCQQuestion]
     public var soloQuestions: [QuizMCQQuestion]
     public var couciCoucaRound: QuizDisOrDatRound
+    public var quoizziPunRound: QuizDisOrDatRound
     public var finaleDoubleQuestions: [QuizMCQQuestion]
 
     public init(
         cashQuestions: [QuizMCQQuestion],
         soloQuestions: [QuizMCQQuestion],
         couciCoucaRound: QuizDisOrDatRound,
+        quoizziPunRound: QuizDisOrDatRound? = nil,
         finaleDoubleQuestions: [QuizMCQQuestion]
     ) {
         self.cashQuestions = cashQuestions
         self.soloQuestions = soloQuestions
         self.couciCoucaRound = couciCoucaRound
+        self.quoizziPunRound = quoizziPunRound ?? QuestionBank.allPunRounds[0]
         self.finaleDoubleQuestions = finaleDoubleQuestions
     }
 
@@ -45,22 +48,27 @@ public enum QuestionBank {
     }
 
     public static func disOrDatRounds(for pack: QuizThemePack) -> [QuizDisOrDatRound] {
+        let nonPun = allDisOrDatRounds.filter { !$0.isPunRound }
         switch pack {
         case .francaisMeemaw:
-            return allDisOrDatRounds.filter { $0.theme == .francaisMeemaw }
+            return nonPun.filter { $0.theme == .francaisMeemaw }
         case .mathMeemaw:
-            return allDisOrDatRounds.filter { $0.theme == .mathMeemaw }
+            return nonPun.filter { $0.theme == .mathMeemaw }
         case .seriesCinema:
-            return allDisOrDatRounds.filter { $0.theme == .seriesCinema }
+            return nonPun.filter { $0.theme == .seriesCinema }
         case .musiqueTubes:
-            return allDisOrDatRounds.filter { $0.theme == .musiqueTubes }
+            return nonPun.filter { $0.theme == .musiqueTubes }
         case .cultureGInsolite:
-            return allDisOrDatRounds.filter { $0.theme == .cultureGInsolite }
+            return nonPun.filter { $0.theme == .cultureGInsolite }
         case .ecoCash:
-            return allDisOrDatRounds.filter { $0.theme == .ecoCash }
+            return nonPun.filter { $0.theme == .ecoCash }
         case .grandMix:
-            return allDisOrDatRounds
+            return nonPun
         }
+    }
+
+    public static var allPunRounds: [QuizDisOrDatRound] {
+        allDisOrDatRounds.filter(\.isPunRound)
     }
 
     public static func buildShowDeck(
@@ -86,17 +94,23 @@ public enum QuestionBank {
         let finale = Array(freshPool.dropFirst(5).prefix(2))
 
         let themeCouci = disOrDatRounds(for: pack)
+        let unseenRaclette = themeCouci.filter { !excludingDisOrDatIDs.contains($0.id) && $0.optionBoth != nil }
         let unseenCouci = themeCouci.filter { !excludingDisOrDatIDs.contains($0.id) }
-        let fallbackUnseenCouci = allDisOrDatRounds.filter { !excludingDisOrDatIDs.contains($0.id) }
-        let couci = unseenCouci.randomElement()
+        let fallbackUnseenCouci = allDisOrDatRounds.filter { !$0.isPunRound && !excludingDisOrDatIDs.contains($0.id) }
+        let couci = unseenRaclette.randomElement()
+            ?? unseenCouci.randomElement()
             ?? fallbackUnseenCouci.randomElement()
             ?? themeCouci.randomElement()
             ?? allDisOrDatRounds[0]
+
+        let unseenPuns = allPunRounds.filter { !excludingDisOrDatIDs.contains($0.id) }
+        let punRound = unseenPuns.randomElement() ?? allPunRounds.randomElement() ?? allDisOrDatRounds[0]
 
         return ShowGameDeck(
             cashQuestions: cash,
             soloQuestions: solo,
             couciCoucaRound: couci,
+            quoizziPunRound: punRound,
             finaleDoubleQuestions: finale
         )
     }
@@ -977,6 +991,150 @@ public enum QuestionBank {
             meemawRoastOnWrong: "C'était en janvier 1993, avec près de 14 millions d'entrées en salles !",
             explanation: "💡 Sorti en 1993 et réalisé par Jean-Marie Poiré, « Les Visiteurs » a réuni 13,78 millions de spectateurs en France.",
             audioCueID: "q_CINE_16"
+        ),
+        QuizMCQQuestion(
+            id: "CINE_17",
+            theme: .seriesCinema,
+            preferredRound: .cashSpeed,
+            funnyTitle: "Le bleu le plus vieux du commissariat de Los Angeles",
+            prompt: "Dans la série « The Rookie : Le Flic de Los Angeles », quel métier exerçait John Nolan (Nathan Fillion) en Pennsylvanie avant de tout plaquer à 45 ans pour entrer dans la police du LAPD ?",
+            choices: [
+                "Entrepreneur dans le bâtiment (charpentier / rénovation)",
+                "Vendeur d'aspirateurs à domicile",
+                "Professeur de salsa acrobatique",
+                "Testeur de matelas orthopédiques"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "John Nolan était entrepreneur dans le bâtiment ! C'est d'ailleurs pour ça qu'il retape toute sa maison à Los Angeles !",
+            explanation: "💡 Après son divorce et un braquage de banque, John Nolan quitte son entreprise de construction pour devenir la recrue la plus âgée du LAPD.",
+            audioCueID: "q_CINE_17"
+        ),
+        QuizMCQQuestion(
+            id: "CINE_18",
+            theme: .seriesCinema,
+            preferredRound: .leSolo,
+            funnyTitle: "Arrestation immédiate pour excès de mignonnerie",
+            prompt: "Dans « The Rookie », comment les fans surnomment-ils le duo amoureux ultra-populaire formé par Lucy Chen et son ancien instructeur grincheux Tim Bradford ?",
+            choices: [
+                "Bradchen",
+                "Chenford (Chen + Bradford !)",
+                "Les Poulets Dorés",
+                "Timlucy"
+            ],
+            correctIndex: 1,
+            baseValue: 2500,
+            meemawRoastOnWrong: "C'est CHENFORD, voyons ! Même Meemaw attendait qu'ils s'embrassent depuis la saison 1 !",
+            explanation: "💡 Le couple « Chenford » (Lucy Chen & Tim Bradford) est devenu le phénomène absolu des fans de The Rookie.",
+            audioCueID: "q_CINE_18"
+        ),
+        QuizMCQQuestion(
+            id: "CINE_19",
+            theme: .seriesCinema,
+            preferredRound: .cashSpeed,
+            funnyTitle: "La chanson qui rend fou l'agent Nolan au démarrage",
+            prompt: "Dans une scène d'ouverture devenue virale sur TikTok dans « The Rookie », quelle chanson un groupe de garage chante-t-il dans son coffre pendant que John Nolan les contrôle : « Arrest me, but make it sexy » ?",
+            choices: [
+                "Cop Cuties (Daddy Cop)",
+                "Police Disco Fever",
+                "Menottes et Paillettes",
+                "Bad Boys de Los Angeles"
+            ],
+            correctIndex: 0,
+            baseValue: 2500,
+            meemawRoastOnWrong: "« Cop Cuties, cute and on duty, Navy blue booties ! » Nolan a mis trois saisons à s'en remettre !",
+            explanation: "💡 La chanson « Daddy Cop / Cop Cuties » chantée par Zander Hawley (le fils du créateur de la série !) est devenue un hymne viral.",
+            audioCueID: "q_CINE_19"
+        ),
+        QuizMCQQuestion(
+            id: "CINE_20",
+            theme: .seriesCinema,
+            preferredRound: .cashSpeed,
+            funnyTitle: "Perfusion de caféine à Stars Hollow",
+            prompt: "Dans la série culte « Gilmore Girls », quelle pancarte stricte est affichée derrière le comptoir du restaurant de Luke Danes (Luke's Diner) et que Lorelai ignore royalement tous les matins ?",
+            choices: [
+                "Interdit aux téléphones portables (No Cell Phones)",
+                "Un seul café par personne",
+                "Pas de blagues avant 10 heures",
+                "Port de la chemise à carreaux obligatoire"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "C'est le fameux panneau « NO CELL PHONES » de Luke, sous sa casquette à l'envers !",
+            explanation: "💡 Chez Luke's Diner à Stars Hollow, les téléphones portables sont formellement interdits — sauf quand Lorelai et Rory trichent !",
+            audioCueID: "q_CINE_20"
+        ),
+        QuizMCQQuestion(
+            id: "CINE_21",
+            theme: .seriesCinema,
+            preferredRound: .leSolo,
+            funnyTitle: "L'homme aux 62 métiers de Stars Hollow",
+            prompt: "Dans « Gilmore Girls », quel habitant excentrique de Stars Hollow a exercé plus de 60 petits boulots différents au fil des 7 saisons (livreur de cygnes, vendeur de boîtes aux lettres, esthéticien, serveur...) ?",
+            choices: [
+                "Michel Gérard",
+                "Kirk Gleason",
+                "Taylor Doose",
+                "Jackson Belleville"
+            ],
+            correctIndex: 1,
+            baseValue: 2500,
+            meemawRoastOnWrong: "C'est l'inimitable Kirk Gleason ! Il a même créé « Ooober » (avec deux O) dans le revival !",
+            explanation: "💡 Kirk Gleason (joué par Sean Gunn) cumule plus de 62 emplois farfelus à Stars Hollow et a économisé un quart de million de dollars !",
+            audioCueID: "q_CINE_21"
+        ),
+        QuizMCQQuestion(
+            id: "CINE_22",
+            theme: .seriesCinema,
+            preferredRound: .finaleDouble,
+            funnyTitle: "Le pacte sacré du vendredi soir à Hartford",
+            prompt: "Au tout premier épisode de « Gilmore Girls », qu'exige la grand-mère Emily Gilmore en échange du paiement des frais de scolarité de Rory au prestigieux lycée privé de Chilton ?",
+            choices: [
+                "Que Lorelai et Rory viennent dîner chez eux TOUS les vendredis soir sans exception",
+                "Que Lorelai arrête le café pendant 10 ans",
+                "Que Rory apprenne le golf et la harpe",
+                "Qu'elles renomment leur chien Paul Anka"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "Les fameux dîners du vendredi soir chez Emily et Richard Gilmore ! Meemaw trouve qu'Emily a tout compris !",
+            explanation: "💡 Le dîner obligatoire du vendredi soir chez Emily et Richard est le moteur dramatique et comique de toute la série Gilmore Girls.",
+            audioCueID: "q_CINE_22"
+        ),
+        QuizMCQQuestion(
+            id: "CINE_23",
+            theme: .seriesCinema,
+            preferredRound: .cashSpeed,
+            funnyTitle: "Une main baladeuse très bien élevée",
+            prompt: "Dans la série « Mercredi » (Wednesday) avec Jenna Ortega sur Netflix, comment s'appelle la main coupée vivante qui sert d'espionne et de meilleure amie à Mercredi Addams à l'académie Nevermore ?",
+            choices: [
+                "La Chose (Thing)",
+                "Cousin Machin",
+                "Cinq-Doigts",
+                "La Manucure"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "C'est La Chose ! Elle communique en claquant des doigts et fait même de meilleures coutures que Meemaw !",
+            explanation: "💡 « La Chose » (Thing T. Thing), incarnée par le magicien Victor Dorobantu, veille sur Mercredi Addams à Nevermore.",
+            audioCueID: "q_CINE_23"
+        ),
+        QuizMCQQuestion(
+            id: "CINE_24",
+            theme: .seriesCinema,
+            preferredRound: .cashSpeed,
+            funnyTitle: "Un baladeur cassette contre Vecna",
+            prompt: "Dans la saison 4 de « Stranger Things », quelle chanson de 1985 de Kate Bush sauve Max de l'emprise de Vecna dans le Monde à l'Envers ?",
+            choices: [
+                "Running Up That Hill (A Deal with God)",
+                "Wuthering Heights",
+                "Sweet Dreams",
+                "Girls Just Want to Have Fun"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "C'est « Running Up That Hill » de Kate Bush, revenue numéro 1 mondial 37 ans après sa sortie grâce à la série !",
+            explanation: "💡 Grâce à cette scène mythique de Stranger Things 4, le titre de Kate Bush (1985) a dépassé le milliard d'écoutes en 2022.",
+            audioCueID: "q_CINE_24"
         )
     ]
 
@@ -1270,6 +1428,150 @@ public enum QuestionBank {
             meemawRoastOnWrong: "C'était le 6 avril 1974 à Brighton, avec un chef d'orchestre déguisé en Napoléon !",
             explanation: "💡 La victoire d'ABBA à l'Eurovision 1974 avec « Waterloo » a lancé leur carrière mondiale.",
             audioCueID: "q_MUS_16"
+        ),
+        QuizMCQQuestion(
+            id: "MUS_17",
+            theme: .musiqueTubes,
+            preferredRound: .cashSpeed,
+            funnyTitle: "That's that me, un petit café serré !",
+            prompt: "Quelle pop-star américaine de la Gen Z a fait danser toute la planète en 2024 avec son méga-tube « Espresso » (« Now he's thinkin' 'bout me every night, oh, is it that sweet? I guess so ! ») ?",
+            choices: [
+                "Sabrina Carpenter",
+                "Ariana Grande",
+                "Madison Beer",
+                "Tate McRae"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "C'est Sabrina Carpenter ! Même Meemaw boit son déca en chantant « That's that me, Espresso » !",
+            explanation: "💡 Sorti au printemps 2024 sur l'album « Short n' Sweet », « Espresso » de Sabrina Carpenter a dépassé le milliard d'écoutes en un temps record.",
+            audioCueID: "q_MUS_17"
+        ),
+        QuizMCQQuestion(
+            id: "MUS_18",
+            theme: .musiqueTubes,
+            preferredRound: .cashSpeed,
+            funnyTitle: "Apateu, Apateu ! Le refrain qui reste collé dans le cerveau",
+            prompt: "Avec quelle chanteuse de K-Pop (membre du groupe BLACKPINK) Bruno Mars chante-t-il le tube planétaire « APT. » sorti fin 2024 ?",
+            choices: [
+                "ROSÉ",
+                "Lisa",
+                "Jennie",
+                "Jisoo"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "C'est ROSÉ de BLACKPINK avec Bruno Mars ! « Apateu, Apateu ! » inspiré d'un jeu coréen !",
+            explanation: "💡 « APT. » (abréviation d'appartement en coréen, Apateu) réunit Rosé et Bruno Mars sur l'un des plus gros cartons mondiaux de 2024-2025.",
+            audioCueID: "q_MUS_18"
+        ),
+        QuizMCQQuestion(
+            id: "MUS_19",
+            theme: .musiqueTubes,
+            preferredRound: .leSolo,
+            funnyTitle: "Les oiseaux qui volent ensemble jusqu'au bout",
+            prompt: "Quel titre de Billie Eilish (issu de son album « Hit Me Hard and Soft » en 2024, co-écrit avec son frère Finneas) est devenu la chanson la plus écoutée de toute sa carrière ?",
+            choices: [
+                "Birds of a Feather",
+                "Bad Guy",
+                "Lunch",
+                "What Was I Made For?"
+            ],
+            correctIndex: 0,
+            baseValue: 2500,
+            meemawRoastOnWrong: "C'est « Birds of a Feather » ! Un hymne magnifique qui a dépassé même Bad Guy en streaming !",
+            explanation: "💡 « Birds of a Feather » (2024) de Billie Eilish a battu tous les records d'écoutes mondiales sur Spotify.",
+            audioCueID: "q_MUS_19"
+        ),
+        QuizMCQQuestion(
+            id: "MUS_20",
+            theme: .musiqueTubes,
+            preferredRound: .cashSpeed,
+            funnyTitle: "Le permis de conduire le plus triste de l'histoire de la pop",
+            prompt: "Quelle jeune chanteuse a explosé mondialement à 17 ans en 2021 avec « drivers license », « good 4 u » et « vampire » ?",
+            choices: [
+                "Olivia Rodrigo",
+                "Gracie Abrams",
+                "Chappell Roan",
+                "Camila Cabello"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "C'est Olivia Rodrigo et ses albums « SOUR » et « GUTS » !",
+            explanation: "💡 Révélée dans la série High School Musical, Olivia Rodrigo a conquis la Gen Z dès son premier single « drivers license ».",
+            audioCueID: "q_MUS_20"
+        ),
+        QuizMCQQuestion(
+            id: "MUS_21",
+            theme: .musiqueTubes,
+            preferredRound: .finaleDouble,
+            funnyTitle: "Les Swifties font littéralement trembler la Terre",
+            prompt: "Lors de la tournée historique « The Eras Tour » de Taylor Swift à Seattle, qu'ont enregistré les sismologues américains pendant que 70 000 fans sautaient sur « Shake It Off » ?",
+            choices: [
+                "Une activité sismique équivalente à un tremblement de terre de magnitude 2,3 !",
+                "Une coupure d'eau dans tout l'État",
+                "Un envol de 10 000 pigeons",
+                "Une panne de paillettes"
+            ],
+            correctIndex: 0,
+            baseValue: 2500,
+            meemawRoastOnWrong: "Le « Swift Quake » a atteint une magnitude de 2,3 sur l'échelle de Richter ! Mieux qu'un cours de zumba de Meemaw !",
+            explanation: "💡 Les sismographes de Seattle ont officiellement baptisé « Swift Quake » la secousse de magnitude 2,3 générée par les fans de Taylor Swift.",
+            audioCueID: "q_MUS_21"
+        ),
+        QuizMCQQuestion(
+            id: "MUS_22",
+            theme: .musiqueTubes,
+            preferredRound: .cashSpeed,
+            funnyTitle: "Du château de Dammarie-les-Lys à toutes les radios",
+            prompt: "Quel gagnant de la Star Academy a fait chanter toute la France en 2024 avec son tube « Ceux qu'on était » ?",
+            choices: [
+                "Pierre Garnier",
+                "Héléna Bailly",
+                "Julien Lieb",
+                "Slimane"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "C'est Pierre Garnier ! Tout le monde connaissait déjà les paroles par cœur avant même sa sortie du château !",
+            explanation: "💡 « Ceux qu'on était » de Pierre Garnier a été certifié single de diamant en quelques mois seulement en 2024.",
+            audioCueID: "q_MUS_22"
+        ),
+        QuizMCQQuestion(
+            id: "MUS_23",
+            theme: .musiqueTubes,
+            preferredRound: .cashSpeed,
+            funnyTitle: "Bruxelles je t'aime et Balance ton quoi",
+            prompt: "Comment s'appelle le chien adoré de la chanteuse belge Angèle, qui apparaît sur la pochette de son album, dans ses clips et sur son compte Instagram ?",
+            choices: [
+                "Pépite",
+                "Gaufrette",
+                "Frite",
+                "Chouquette"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "Son chien s'appelle Pépite ! Une vraie star en Belgique et sur TikTok !",
+            explanation: "💡 Pépite, le chien adopté par Angèle, possède même son propre compte Instagram suivi par des centaines de milliers de fans.",
+            audioCueID: "q_MUS_23"
+        ),
+        QuizMCQQuestion(
+            id: "MUS_24",
+            theme: .musiqueTubes,
+            preferredRound: .leSolo,
+            funnyTitle: "Aveuglé par les néons à plus de 4 milliards d'écoutes",
+            prompt: "Quelle chanson de The Weeknd (sortie fin 2019 avec un synthé façon années 80) détient le record absolu du titre le plus streamé de toute l'histoire de Spotify ?",
+            choices: [
+                "Blinding Lights",
+                "Starboy",
+                "Save Your Tears",
+                "Shape of You"
+            ],
+            correctIndex: 0,
+            baseValue: 2500,
+            meemawRoastOnWrong: "C'est « Blinding Lights » de The Weeknd, avec plus de 4,5 milliards d'écoutes !",
+            explanation: "💡 « Blinding Lights » de The Weeknd trône en tête des morceaux les plus écoutés de tous les temps sur Spotify.",
+            audioCueID: "q_MUS_24"
         )
     ]
 
@@ -2077,6 +2379,160 @@ public enum QuestionBank {
                 QuizDisOrDatItem(index: 5, text: "Une plus-value crypto convertie en euros (> 305 €/an)", correctSide: "right")
             ],
             audioCueID: "dod_ECO_2"
+        ),
+        // MARK: - 🧀 La Raclette Quizz (3 choix façon Burger Quiz : Gauche, Droite, ou LES DEUX !)
+        QuizDisOrDatRound(
+            id: "RAC_CINE_1",
+            theme: .seriesCinema,
+            funnyTitle: "🧀 Raclette Séries : The Rookie, Gilmore Girls, ou LES DEUX ?",
+            prompt: "Façon Burger Quiz : est-ce dans THE ROOKIE, dans GILMORE GIRLS, ou dans LES DEUX séries ?",
+            optionLeft: "THE ROOKIE 🚓",
+            optionRight: "GILMORE GIRLS ☕️",
+            optionBoth: "🧀 LES DEUX !",
+            valuePerItem: 500,
+            items: [
+                QuizDisOrDatItem(index: 0, text: "Un personnage nommé Kirk qui change de métier toutes les semaines", correctSide: "right"),
+                QuizDisOrDatItem(index: 1, text: "Le couple chouchou des fans surnommé « Chenford »", correctSide: "left"),
+                QuizDisOrDatItem(index: 2, text: "Des héros qui boivent des litres de café à emporter dès 7h du matin", correctSide: "both"),
+                QuizDisOrDatItem(index: 3, text: "La chanson virale « Cop Cuties, cute and on duty »", correctSide: "left"),
+                QuizDisOrDatItem(index: 4, text: "Les dîners obligatoires du vendredi soir chez les grands-parents Emily & Richard", correctSide: "right"),
+                QuizDisOrDatItem(index: 5, text: "Tourné sous le soleil de Californie dans les studios de Los Angeles", correctSide: "both")
+            ],
+            audioCueID: "rac_CINE_1"
+        ),
+        QuizDisOrDatRound(
+            id: "RAC_MUS_1",
+            theme: .musiqueTubes,
+            funnyTitle: "🧀 Raclette Pop Gen Z : Sabrina Carpenter, Billie Eilish, ou LES DEUX ?",
+            prompt: "Chanteuses stars de la Gen Z : SABRINA CARPENTER, BILLIE EILISH, ou LES DEUX ?",
+            optionLeft: "SABRINA ☕️",
+            optionRight: "BILLIE EILISH 🦜",
+            optionBoth: "🧀 LES DEUX !",
+            valuePerItem: 500,
+            items: [
+                QuizDisOrDatItem(index: 0, text: "A chanté le méga-tube de l'été « Espresso »", correctSide: "left"),
+                QuizDisOrDatItem(index: 1, text: "Compose toutes ses chansons avec son grand frère Finneas", correctSide: "right"),
+                QuizDisOrDatItem(index: 2, text: "A dépassé le milliard de streams sur Spotify en 2024", correctSide: "both"),
+                QuizDisOrDatItem(index: 3, text: "A remporté deux Oscars de la meilleure chanson originale (James Bond & Barbie)", correctSide: "right"),
+                QuizDisOrDatItem(index: 4, text: "A assuré la première partie de la tournée The Eras Tour de Taylor Swift", correctSide: "left"),
+                QuizDisOrDatItem(index: 5, text: "Adorée par la fille de Xabi dans les playlists de la voiture", correctSide: "both")
+            ],
+            audioCueID: "rac_MUS_1"
+        ),
+        QuizDisOrDatRound(
+            id: "RAC_CUL_1",
+            theme: .cultureGInsolite,
+            funnyTitle: "🧀 La Vraie Raclette : Fromage AOP, Village de Montagne, ou LES DEUX ?",
+            prompt: "Attention ça fond dans le poêlon : c'est un FROMAGE, un VILLAGE/VILLE, ou LES DEUX à la fois ?",
+            optionLeft: "FROMAGE 🧀",
+            optionRight: "VILLAGE 🏔️",
+            optionBoth: "🧀 LES DEUX !",
+            valuePerItem: 500,
+            items: [
+                QuizDisOrDatItem(index: 0, text: "Saint-Nectaire", correctSide: "both"),
+                QuizDisOrDatItem(index: 1, text: "Boursin (créé par François Boursin)", correctSide: "left"),
+                QuizDisOrDatItem(index: 2, text: "Roquefort-sur-Soulzon", correctSide: "both"),
+                QuizDisOrDatItem(index: 3, text: "Courchevel", correctSide: "right"),
+                QuizDisOrDatItem(index: 4, text: "Maroilles", correctSide: "both"),
+                QuizDisOrDatItem(index: 5, text: "Kiri", correctSide: "left")
+            ],
+            audioCueID: "rac_CUL_1"
+        ),
+        QuizDisOrDatRound(
+            id: "RAC_FR_1",
+            theme: .francaisMeemaw,
+            funnyTitle: "🧀 Raclette du Dico : Mot Masculin, Mot Féminin, ou LES DEUX ?",
+            prompt: "Dans le dictionnaire français : peut-on dire UN (masculin), UNE (féminin), ou LES DEUX ?",
+            optionLeft: "MASCULIN (UN) 🎩",
+            optionRight: "FÉMININ (UNE) 👒",
+            optionBoth: "🧀 LES DEUX !",
+            valuePerItem: 500,
+            items: [
+                QuizDisOrDatItem(index: 0, text: "___ après-midi", correctSide: "both"),
+                QuizDisOrDatItem(index: 1, text: "___ tentacule", correctSide: "left"),
+                QuizDisOrDatItem(index: 2, text: "___ oasis", correctSide: "right"),
+                QuizDisOrDatItem(index: 3, text: "___ crêpe (celle qui se mange ou le tissu/caoutchouc !)", correctSide: "both"),
+                QuizDisOrDatItem(index: 4, text: "___ pétale", correctSide: "left"),
+                QuizDisOrDatItem(index: 5, text: "___ livre (de lecture ou de beurre !)", correctSide: "both")
+            ],
+            audioCueID: "rac_FR_1"
+        ),
+        // MARK: - 🤪 Manche 4 : Le Quoizzi-Quoissa (Spécial Jeux de Mots & Calembours)
+        QuizDisOrDatRound(
+            id: "PUN_1",
+            theme: .francaisMeemaw,
+            funnyTitle: "🤪 Quoizzi-Quoissa : Vrai commerce à jeu de mots ou Invention de Meemaw ?",
+            prompt: "Les coiffeurs et commerçants français sont les rois du calembour : VRAIE enseigne qui existe en France ou INVENTION de Meemaw ?",
+            optionLeft: "VRAIE ENSEIGNE 💈",
+            optionRight: "INVENTION MEEMAW 👵",
+            valuePerItem: 500,
+            items: [
+                QuizDisOrDatItem(index: 0, text: "Un salon de coiffure baptisé «tif & Tondu »", correctSide: "left"),
+                QuizDisOrDatItem(index: 1, text: "Un salon de coiffure baptisé « L'Hair du Temps »", correctSide: "left"),
+                QuizDisOrDatItem(index: 2, text: "Un plombier-chauffagiste baptisé « Obi-Wan Tuyauterie »", correctSide: "right"),
+                QuizDisOrDatItem(index: 3, text: "Une friterie baptisée « Beautés Frites »", correctSide: "left"),
+                QuizDisOrDatItem(index: 4, text: "Un pressing de mamie baptisé « Repasse-moi l'éponge »", correctSide: "right"),
+                QuizDisOrDatItem(index: 5, text: "Un toiletteur pour chiens baptisé « Doggy Style »", correctSide: "left")
+            ],
+            audioCueID: "pun_1",
+            isPunRound: true
+        ),
+        QuizDisOrDatRound(
+            id: "PUN_2",
+            theme: .cultureGInsolite,
+            funnyTitle: "🤪 Quoizzi-Quoissa : Vraie commune de France à jeu de mots ou Bobard ?",
+            prompt: "Sur les panneaux routiers de France : VRAIE commune française ou FAUX village inventé ?",
+            optionLeft: "VRAI VILLAGE 🪧",
+            optionRight: "FAUX VILLAGE 🤥",
+            valuePerItem: 500,
+            items: [
+                QuizDisOrDatItem(index: 0, text: "Arnac-la-Poste (en Haute-Vienne)", correctSide: "left"),
+                QuizDisOrDatItem(index: 1, text: "Moncuq (dans le Lot)", correctSide: "left"),
+                QuizDisOrDatItem(index: 2, text: "Saint-Fromage-sur-Tartine (en Savoie)", correctSide: "right"),
+                QuizDisOrDatItem(index: 3, text: "Angoisse (en Dordogne)", correctSide: "left"),
+                QuizDisOrDatItem(index: 4, text: "Gratte-Bidou-les-Oies (dans le Gers)", correctSide: "right"),
+                QuizDisOrDatItem(index: 5, text: "La Tronche (en Isère)", correctSide: "left")
+            ],
+            audioCueID: "pun_2",
+            isPunRound: true
+        ),
+        QuizDisOrDatRound(
+            id: "PUN_3",
+            theme: .francaisMeemaw,
+            funnyTitle: "🤪 Quoizzi-Quoissa : Monsieur & Madame ont un fils ou une fille !",
+            prompt: "Trouve la fin du jeu de mots « Monsieur et Madame » en tapant à GAUCHE ou à DROITE !",
+            optionLeft: "PRÉNOM DE GAUCHE 👈",
+            optionRight: "PRÉNOM DE DROITE 👉",
+            valuePerItem: 500,
+            items: [
+                QuizDisOrDatItem(index: 0, text: "M. et Mme « D'ŒUF » ont un fils : JOHN (Jaune d'œuf) 👈 ou BLANC 👉 ?", correctSide: "left"),
+                QuizDisOrDatItem(index: 1, text: "M. et Mme « COUVERT » ont un fils : MARC 👈 ou HARRY (Haricots verts) 👉 ?", correctSide: "right"),
+                QuizDisOrDatItem(index: 2, text: "M. et Mme « ZÉTOFRAIS » ont une fille : MÉLANIE (Mets l'anis et l'eau fraîche) 👈 ou CHLOÉ 👉 ?", correctSide: "left"),
+                QuizDisOrDatItem(index: 3, text: "M. et Mme « FROID » ont sept enfants : EVA, AUDE, ANNE, MARC, SAMSON, GILLES & ELLA (Il va au Danemark, sans gilet, il a froid !) 👉 ou KÉVIN 👈 ?", correctSide: "right"),
+                QuizDisOrDatItem(index: 4, text: "M. et Mme « Térieur » ont deux fils : ALAIN & ALEX (À l'intérieur / À l'extérieur) 👈 ou PAUL & MICHEL 👉 ?", correctSide: "left"),
+                QuizDisOrDatItem(index: 5, text: "M. et Mme « CROCHE » ont une fille : LUCIE 👈 ou SARAH (Ça raccroche !) 👉 ?", correctSide: "right")
+            ],
+            audioCueID: "pun_3",
+            isPunRound: true
+        ),
+        QuizDisOrDatRound(
+            id: "PUN_4",
+            theme: .seriesCinema,
+            funnyTitle: "🤪 Quoizzi-Quoissa : Le Jeu de Mots Pop-Culture de Meemaw !",
+            prompt: "Trouve la bonne réponse au calembour de Meemaw entre GAUCHE et DROITE !",
+            optionLeft: "RÉPONSE A 👈",
+            optionRight: "RÉPONSE B 👉",
+            valuePerItem: 500,
+            items: [
+                QuizDisOrDatItem(index: 0, text: "Quel super-héros déteste le repassage ? IRON MAN (L'homme fer à repasser) 👈 ou HULK 👉", correctSide: "left"),
+                QuizDisOrDatItem(index: 1, text: "Quel chanteur adore les pâtisseries ? GÂTEAU-RAMA 👈 ou ÉCLAIR OBISPO (Pascal Obispo) 👉", correctSide: "right"),
+                QuizDisOrDatItem(index: 2, text: "Quel poisson écoute de la K-Pop avec Bruno Mars ? LA RAIE-PARTEMENT (APT.) 👈 ou LE THON 👉", correctSide: "left"),
+                QuizDisOrDatItem(index: 3, text: "Quel fromage écoute Sabrina Carpenter au petit-déj ? LE BRIE 👈 ou LE CAPPUCCINO-REBLOCHON (Espresso !) 👉", correctSide: "right"),
+                QuizDisOrDatItem(index: 4, text: "Quelle série adore faire du pain ? THE ROOKIE (Le Fournil) 👈 ou LA MIE GILMORE (Gilmore Girls) 👉", correctSide: "right"),
+                QuizDisOrDatItem(index: 5, text: "Quel légume fait la course en Formule 1 ? LE CHOU-MACHER (Schumacher) 👈 ou LE RADIS 👉", correctSide: "left")
+            ],
+            audioCueID: "pun_4",
+            isPunRound: true
         )
     ]
 }
