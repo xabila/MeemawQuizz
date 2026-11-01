@@ -405,6 +405,78 @@ public enum QuestionBank {
             meemawRoastOnWrong: "Sans table ni assiette, on tenait le morceau de lard ou de fromage calé sous le pouce sur un quignon de pain en le tranchant au couteau !",
             explanation: "💡 Au XIXe siècle, les travailleurs mangeaient leur casse-croûte en coupant la nourriture au couteau directement sur leur pouce.",
             audioCueID: "q_FR_16"
+        ),
+        QuizMCQQuestion(
+            id: "FR_17",
+            theme: .francaisMeemaw,
+            preferredRound: .cashSpeed,
+            funnyTitle: "Avoir un poil dans la main (et pas une moustache)",
+            prompt: "Que signifie l'expression « avoir un poil dans la main » que Meemaw utilise quand tu traînes pour débarrasser la table ?",
+            choices: [
+                "Être extrêmement paresseux (tellement qu'un poil aurait eu le temps de pousser dans la paume !)",
+                "Avoir beaucoup de chance aux cartes",
+                "Être très habile en bricolage",
+                "Avoir besoin de gants en hiver"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "Comme les poils ne poussent jamais dans la paume de la main, il faut vraiment ne rien faire pendant très longtemps pour qu'il y en ait un !",
+            explanation: "💡 Apparue au XIXe siècle, l'image exagère l'inactivité d'une main qui ne travaille jamais.",
+            audioCueID: "q_FR_17"
+        ),
+        QuizMCQQuestion(
+            id: "FR_18",
+            theme: .francaisMeemaw,
+            preferredRound: .leSolo,
+            funnyTitle: "Le seul mot français où l'on prononce « O-I » autrement",
+            prompt: "Quel mot bien connu de la cuisine de Meemaw s'écrit avec « OI » mais se prononce « O » (et pas « OUA ») ?",
+            choices: [
+                "Un oignon",
+                "Un poireau",
+                "Une passoire",
+                "Un entonnoir"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "C'est l'oignon ! Le I servait autrefois juste à indiquer qu'il fallait mouiller le GN !",
+            explanation: "💡 En ancien français, le « i » devant « gn » servait à noter le son « gn » mouillé ; la réforme de 1990 autorise d'ailleurs d'écrire « ognon ».",
+            audioCueID: "q_FR_18"
+        ),
+        QuizMCQQuestion(
+            id: "FR_19",
+            theme: .francaisMeemaw,
+            preferredRound: .cashSpeed,
+            funnyTitle: "Poser un lapin au coin de la rue",
+            prompt: "D'où vient l'expression « poser un lapin » (ne pas venir à un rendez-vous sans prévenir) ?",
+            choices: [
+                "De l'argot étudiant du XIXe siècle où « laisser un lapin » signifiait partir sans payer (donc laisser l'autre sans rien)",
+                "D'Alice au Pays des Merveilles",
+                "Des chasseurs bredouilles du dimanche",
+                "D'un magicien qui avait oublié son chapeau"
+            ],
+            correctIndex: 0,
+            baseValue: 2500,
+            meemawRoastOnWrong: "Vers 1880, « poser un lapin » voulait dire partir sans payer, avant de prendre le sens de laisser quelqu'un attendre pour rien !",
+            explanation: "💡 Vers 1890 chez les étudiants parisiens, « poser un lapin » glisse du sens de « ne pas payer » à « ne pas honorer un rendez-vous ».",
+            audioCueID: "q_FR_19"
+        ),
+        QuizMCQQuestion(
+            id: "FR_20",
+            theme: .francaisMeemaw,
+            preferredRound: .finaleDouble,
+            funnyTitle: "Les chevaux, les pneus et les landaus",
+            prompt: "Parmi ces quatre mots en « -AU » ou « -EU », lequel prend un « S » au pluriel au lieu d'un « X » ?",
+            choices: [
+                "Un pneu -> Des pneus (et un landau -> des landaus !)",
+                "Un tuyau -> Des tuyaus",
+                "Un cheveu -> Des cheveus",
+                "Un noyau -> Des noyaus"
+            ],
+            correctIndex: 0,
+            baseValue: 2500,
+            meemawRoastOnWrong: "Des pneus, des bleus, des landaus et des sarraus prennent un S ! Tous les autres prennent un X !",
+            explanation: "💡 Exceptions célèbres du pluriel : « des pneus, des bleus » (en -eu) et « des landaus, des sarraus » (en -au) prennent un S.",
+            audioCueID: "q_FR_20"
         )
     ]
 
@@ -698,6 +770,78 @@ public enum QuestionBank {
             meemawRoastOnWrong: "2 puissance 42 fois 0,1 millimètre fait 439 800 kilomètres, soit plus que la distance Terre-Lune !",
             explanation: "💡 Puissance de 2 : 0,1 mm × 2^42 ≈ 439 804 km, dépassant la distance moyenne Terre-Lune (384 400 km).",
             audioCueID: "q_MATH_16"
+        ),
+        QuizMCQQuestion(
+            id: "MATH_17",
+            theme: .mathMeemaw,
+            preferredRound: .cashSpeed,
+            funnyTitle: "Une livre de plumes contre une livre de plomb",
+            prompt: "Qu'est-ce qui est le plus lourd sur la balance de Meemaw : 1 kilo de plumes d'oie ou 1 kilo de plomb ?",
+            choices: [
+                "Ils ont exactement le même poids : 1 kilo chacun !",
+                "1 kilo de plomb, forcément",
+                "1 kilo de plumes car ça prend tout le salon",
+                "Ça dépend du sens du vent"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "1 kilo, c'est 1 kilo ! Par contre, si ça te tombe sur le gros orteil, tu préféreras les plumes !",
+            explanation: "💡 Piège d'attention vieux comme le monde : la masse est identique (1 kg), seul le volume change.",
+            audioCueID: "q_MATH_17"
+        ),
+        QuizMCQQuestion(
+            id: "MATH_18",
+            theme: .mathMeemaw,
+            preferredRound: .leSolo,
+            funnyTitle: "Le paradoxe des anniversaires au repas de famille",
+            prompt: "Dans une pièce de 23 personnes réunies au hasard, quelle est la probabilité qu'au moins DEUX personnes fêtent leur anniversaire le même jour de l'année ?",
+            choices: [
+                "Plus de 50 % (1 chance sur 2 !)",
+                "Moins de 5 %",
+                "Exactement 23 sur 365 (environ 6 %)",
+                "Zéro, sauf si ce sont des jumeaux"
+            ],
+            correctIndex: 0,
+            baseValue: 2500,
+            meemawRoastOnWrong: "C'est le fameux paradoxe des anniversaires : dès 23 personnes, il y a 50,7 % de chances qu'une paire partage la même date !",
+            explanation: "💡 Avec 23 personnes, on compare 253 paires possibles (23 × 22 ÷ 2), ce qui fait dépasser 50 % de probabilité !",
+            audioCueID: "q_MATH_18"
+        ),
+        QuizMCQQuestion(
+            id: "MATH_19",
+            theme: .mathMeemaw,
+            preferredRound: .cashSpeed,
+            funnyTitle: "Les moutons survivants du pré",
+            prompt: "Le berger du village a 17 moutons dans son pré. Tous, sauf 9, s'échappent par la barrière ouverte. Combien lui reste-t-il de moutons dans le pré ?",
+            choices: [
+                "9 moutons !",
+                "8 moutons (17 moins 9)",
+                "Aucun mouton",
+                "26 moutons"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "Ne calcule pas 17 moins 9 ! La phrase te dit « Tous, SAUF 9, s'échappent » : il en reste donc 9 !",
+            explanation: "💡 Énigme d'écoute : « tous sauf 9 partent » signifie directement que 9 restent.",
+            audioCueID: "q_MATH_19"
+        ),
+        QuizMCQQuestion(
+            id: "MATH_20",
+            theme: .mathMeemaw,
+            preferredRound: .finaleDouble,
+            funnyTitle: "La somme éclair du petit Carl Friedrich Gauss",
+            prompt: "Quelle est la somme de tous les nombres entiers de 1 jusqu'à 100 (1 + 2 + 3 + ... + 99 + 100) ?",
+            choices: [
+                "5 050 (50 paires qui valent toutes 101 !)",
+                "5 000 tout rond",
+                "10 000",
+                "4 950"
+            ],
+            correctIndex: 0,
+            baseValue: 2500,
+            meemawRoastOnWrong: "À 9 ans, Gauss a regroupé 1+100=101, 2+99=101... 50 paires de 101 donnent 5 050 en 3 secondes !",
+            explanation: "💡 Formule de Gauss : n × (n + 1) ÷ 2 = 100 × 101 ÷ 2 = 5 050.",
+            audioCueID: "q_MATH_20"
         )
     ]
 
@@ -1032,18 +1176,18 @@ public enum QuestionBank {
             id: "CINE_19",
             theme: .seriesCinema,
             preferredRound: .cashSpeed,
-            funnyTitle: "346 422 allumettes et un tube de colle",
-            prompt: "Dans la comédie culte « Le Dîner de Cons » (1998) de Francis Veber, quelle est la grande passion de François Pignon (Jacques Villeret) dont il est extrêmement fier ?",
+            funnyTitle: "C'est une bonne situation, ça, scribe ?",
+            prompt: "Dans « Astérix & Obélix : Mission Cléopâtre » (2002) d'Alain Chabat, comment s'appelle le scribe égyptien joué par Édouard Baer qui improvise un monologue mythique sur les rencontres et le destin ?",
             choices: [
-                "Construire des maquettes géantes de ponts et de monuments en allumettes",
-                "Collectionner les bouchons de champagne",
-                "Imiter le cri de la mouette rieuse",
-                "Faire des puzzles de 50 000 pièces dans le noir"
+                "Otis",
+                "Numérobis",
+                "Amonbofis",
+                "Itinéris"
             ],
             correctIndex: 0,
             baseValue: 2000,
-            meemawRoastOnWrong: "Ses maquettes en allumettes, dont le pont de Tancarville et la Tour Eiffel ! « Il est mignon monsieur Pignon, il est méchant monsieur Brochant ! »",
-            explanation: "💡 François Pignon réalise des maquettes géantes en allumettes (346 422 allumettes pour le pont de Tancarville !).",
+            meemawRoastOnWrong: "C'est Otis ! « Vous savez, moi je ne crois pas qu'il y ait de bonne ou de mauvaise situation... »",
+            explanation: "💡 Le monologue d'Otis (Édouard Baer) a été largement improvisé sur le tournage devant la caméra d'Alain Chabat.",
             audioCueID: "q_CINE_19"
         ),
         QuizMCQQuestion(
@@ -1086,18 +1230,18 @@ public enum QuestionBank {
             id: "CINE_22",
             theme: .seriesCinema,
             preferredRound: .finaleDouble,
-            funnyTitle: "La botte secrète de Karadoc et Perceval",
-            prompt: "Dans la série « Kaamelott » d'Alexandre Astier, quelle réplique magique Perceval utilise-t-il pour avoir l'air intelligent quand il ne comprend pas un mot (comme « péremptoire » ou « côtes de porc ») ?",
+            funnyTitle: "Nouvelle émotion orange dans le quartier cérébral",
+            prompt: "Dans le film d'animation « Vice-Versa 2 » (Inside Out 2) de Pixar, quelle nouvelle émotion toute orange à la coiffure ébouriffée débarque dans la tête de Riley à l'adolescence ?",
             choices: [
-                "« C'est pas faux ! »",
-                "« Tout à fait Thierry ! »",
-                "« On en a gros ! »",
-                "« Le gras, c'est la vie ! »"
+                "Anxiété",
+                "Nostalgie",
+                "Gourmandise",
+                "Sieste"
             ],
             correctIndex: 0,
             baseValue: 2000,
-            meemawRoastOnWrong: "« C'est pas faux ! » Et quand tu réponds à côté, c'est quelle côte que t'as pas comprise ?",
-            explanation: "💡 La botte secrète de Karadoc enseignée à Perceval consiste à répondre « C'est pas faux » dès qu'un mot de vocabulaire lui échappe.",
+            meemawRoastOnWrong: "C'est Anxiété, avec ses six valises remplies de scénarios catastrophes !",
+            explanation: "💡 Dans « Vice-Versa 2 » (2024), Anxiété, Envie, Ennui et Embarras rejoignent Joie, Tristesse, Colère, Peur et Dégoût.",
             audioCueID: "q_CINE_22"
         ),
         QuizMCQQuestion(
@@ -1135,6 +1279,78 @@ public enum QuestionBank {
             meemawRoastOnWrong: "C'est « Running Up That Hill » de Kate Bush, revenue numéro 1 mondial 37 ans après sa sortie grâce à la série !",
             explanation: "💡 Grâce à cette scène mythique de Stranger Things 4, le titre de Kate Bush (1985) a dépassé le milliard d'écoutes en 2022.",
             audioCueID: "q_CINE_24"
+        ),
+        QuizMCQQuestion(
+            id: "CINE_25",
+            theme: .seriesCinema,
+            preferredRound: .cashSpeed,
+            funnyTitle: "Combinaison rouge et masque à moustaches",
+            prompt: "Dans la série espagnole « La Casa de Papel », le masque porté par les braqueurs représente le visage de quel célèbre peintre surréaliste ?",
+            choices: [
+                "Salvador Dalí",
+                "Pablo Picasso",
+                "Vincent van Gogh",
+                "Claude Monet"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "Avec ses moustaches en pointes relevées vers le ciel, c'est Salvador Dalí !",
+            explanation: "💡 Les braqueurs du Professeur portent une combinaison rouge et le masque à l'effigie du peintre catalan Salvador Dalí.",
+            audioCueID: "q_CINE_25"
+        ),
+        QuizMCQQuestion(
+            id: "CINE_26",
+            theme: .seriesCinema,
+            preferredRound: .leSolo,
+            funnyTitle: "Un rat sous la toque dans un grand restaurant parisien",
+            prompt: "Dans le film d'animation « Ratatouille » de Pixar, comment s'appelle le petit rat gourmet qui rêve de devenir grand chef étoilé à Paris ?",
+            choices: [
+                "Rémy",
+                "Linguini",
+                "Gusteau",
+                "Émile"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "Le petit rat s'appelle Rémy ! Linguini, c'est le commis maladroit dont il tire les cheveux sous la toque !",
+            explanation: "💡 Rémy guide Alfredo Linguini en tirant ses mèches de cheveux comme une marionnette dans les cuisines de chez Gusteau.",
+            audioCueID: "q_CINE_26"
+        ),
+        QuizMCQQuestion(
+            id: "CINE_27",
+            theme: .seriesCinema,
+            preferredRound: .cashSpeed,
+            funnyTitle: "Le lionceau présenté au sommet du rocher",
+            prompt: "Dans « Le Roi Lion » de Disney, comment s'appelle le vieux mandrill sage qui présente Simba aux animaux de la Terre des Lions ?",
+            choices: [
+                "Rafiki",
+                "Zazu",
+                "Timon",
+                "Mufasa"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "C'est Rafiki (qui veut dire « ami » en swahili) avec son bâton à calebasses !",
+            explanation: "💡 En swahili, Rafiki signifie « ami », Simba « lion » et Pumbaa « étourdi ».",
+            audioCueID: "q_CINE_27"
+        ),
+        QuizMCQQuestion(
+            id: "CINE_28",
+            theme: .seriesCinema,
+            preferredRound: .finaleDouble,
+            funnyTitle: "La revanche d'Edmond Dantès au cinéma",
+            prompt: "Quel acteur français incarne Edmond Dantès dans l'immense succès cinéma de 2024 « Le Comte de Monte-Cristo » (plus de 9 millions d'entrées) ?",
+            choices: [
+                "Pierre Niney",
+                "François Civil",
+                "Louis Garrel",
+                "Tahar Rahim"
+            ],
+            correctIndex: 0,
+            baseValue: 2500,
+            meemawRoastOnWrong: "C'est Pierre Niney, grimé sous des heures de prothèses pour préparer sa vengeance au château d'If !",
+            explanation: "💡 Sorti en juin 2024 et réalisé par Matthieu Delaporte et Alexandre de La Patellière, ce Monte-Cristo avec Pierre Niney a dépassé 9,4 millions d'entrées.",
+            audioCueID: "q_CINE_28"
         )
     ]
 
@@ -1572,6 +1788,186 @@ public enum QuestionBank {
             meemawRoastOnWrong: "C'est « Blinding Lights » de The Weeknd, avec plus de 4,5 milliards d'écoutes !",
             explanation: "💡 « Blinding Lights » de The Weeknd trône en tête des morceaux les plus écoutés de tous les temps sur Spotify.",
             audioCueID: "q_MUS_24"
+        ),
+        QuizMCQQuestion(
+            id: "MUS_25",
+            theme: .musiqueTubes,
+            preferredRound: .cashSpeed,
+            funnyTitle: "Les lunettes noires les plus célèbres de France",
+            prompt: "Quel chanteur aux lunettes noires indéboulonnables a enchaîné en 2024-2025 les méga-tubes « Spider », « Sois pas timide » et « Ciel » ?",
+            choices: [
+                "Gims",
+                "Dadju",
+                "Soprano",
+                "Black M"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "C'est Gims ! « Spider », « Sois pas timide » et « Ciel » ont squatté la 1re place du Top Singles en France !",
+            explanation: "💡 Gims a réalisé un triplé historique en classant « Spider », « Sois pas timide » et « Ciel » n°1 des écoutes en France.",
+            audioCueID: "q_MUS_25"
+        ),
+        QuizMCQQuestion(
+            id: "MUS_26",
+            theme: .musiqueTubes,
+            preferredRound: .cashSpeed,
+            funnyTitle: "Basique, simple : vous n'avez pas les bases !",
+            prompt: "Quel rappeur normand répète « Simple, basique » dans son clip tourné en un seul plan-séquence sur un pont géant en Ukraine ?",
+            choices: [
+                "Orelsan",
+                "Vald",
+                "Nekfeu",
+                "Bigflo & Oli"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "C'est Orelsan dans « Basique » (2017) ! Simple, basique !",
+            explanation: "💡 Extrait de l'album « La fête est finie » d'Orelsan, « Basique » est devenu une réplique culte de toute une génération.",
+            audioCueID: "q_MUS_26"
+        ),
+        QuizMCQQuestion(
+            id: "MUS_27",
+            theme: .musiqueTubes,
+            preferredRound: .leSolo,
+            funnyTitle: "La Symphonie des éclairs aux Victoires de la Musique",
+            prompt: "Quelle jeune artiste française a remporté 4 Victoires de la Musique en 2024 avec son hymne électro-poétique « La Symphonie des éclairs » ?",
+            choices: [
+                "Zaho de Sagazan",
+                "Santa",
+                "Clara Luciani",
+                "Juliette Armanet"
+            ],
+            correctIndex: 0,
+            baseValue: 2500,
+            meemawRoastOnWrong: "C'est Zaho de Sagazan ! « Il fait toujours beau au-dessus des nuages... »",
+            explanation: "💡 Zaho de Sagazan a raflé 4 trophées aux Victoires de la Musique 2024 avant de chanter à la clôture des JO.",
+            audioCueID: "q_MUS_27"
+        ),
+        QuizMCQQuestion(
+            id: "MUS_28",
+            theme: .musiqueTubes,
+            preferredRound: .cashSpeed,
+            funnyTitle: "Dance the Night dans la maison de Barbie",
+            prompt: "Quelle pop-star britannico-albanaise chante « Levitating », « Houdini » et le tube « Dance the Night » du film Barbie ?",
+            choices: [
+                "Dua Lipa",
+                "Rita Ora",
+                "Charli XCX",
+                "Bebe Rexha"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "C'est Dua Lipa, qui joue même la Barbie Sirène aux cheveux bleus dans le film !",
+            explanation: "💡 Dua Lipa a signé « Dance the Night » pour la bande originale de Barbie avant de sortir son album « Radical Optimism ».",
+            audioCueID: "q_MUS_28"
+        ),
+        QuizMCQQuestion(
+            id: "MUS_29",
+            theme: .musiqueTubes,
+            preferredRound: .cashSpeed,
+            funnyTitle: "Le signe des deux mains à Marseille",
+            prompt: "Quel rappeur marseillais surnommé « l'Ovni » est devenu le plus gros vendeur d'albums de toute l'histoire du rap français (et a allumé le chaudron olympique à Marseille) ?",
+            choices: [
+                "Jul",
+                "SCH",
+                "Soprano",
+                "Akhenaton"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "C'est Jul, le J ! Avec « Bande organisée » (« En bande organisée, personne peut nous canaliser ! ») !",
+            explanation: "💡 Avec plus de 7 millions d'albums vendus, Jul détient le record absolu du rap français.",
+            audioCueID: "q_MUS_29"
+        ),
+        QuizMCQQuestion(
+            id: "MUS_30",
+            theme: .musiqueTubes,
+            preferredRound: .finaleDouble,
+            funnyTitle: "Salto arrière sur le piano et voix surpuissante",
+            prompt: "Quel jeune chanteur américain célèbre pour ses saltos arrière sur scène a explosé en 2024 avec le tube « Beautiful Things » (« Please stay, I want you, I need you, oh God ! ») ?",
+            choices: [
+                "Benson Boone",
+                "Shawn Mendes",
+                "Harry Styles",
+                "Teddy Swims"
+            ],
+            correctIndex: 0,
+            baseValue: 2500,
+            meemawRoastOnWrong: "C'est Benson Boone ! Si Meemaw tente son salto arrière depuis le piano, appelez les pompiers !",
+            explanation: "💡 « Beautiful Things » de Benson Boone a été le single le plus écouté dans le monde en 2024 selon l'IFPI.",
+            audioCueID: "q_MUS_30"
+        ),
+        QuizMCQQuestion(
+            id: "MUS_31",
+            theme: .musiqueTubes,
+            preferredRound: .cashSpeed,
+            funnyTitle: "H-O-T-T-O-G-O ! La chorégraphie façon YMCA de la Gen Z",
+            prompt: "Quelle chanteuse pop américaine au look flamboyant a enflammé TikTok et les festivals en 2024 avec « Good Luck, Babe! » et « HOT TO GO! » ?",
+            choices: [
+                "Chappell Roan",
+                "Sabrina Carpenter",
+                "Reneé Rapp",
+                "Lana Del Rey"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "C'est Chappell Roan, sacrée révélation pop de l'année aux Grammy Awards !",
+            explanation: "💡 Chappell Roan a transformé ses concerts en géantes chorégraphies collectives sur « HOT TO GO! » et « Good Luck, Babe! ».",
+            audioCueID: "q_MUS_31"
+        ),
+        QuizMCQQuestion(
+            id: "MUS_32",
+            theme: .musiqueTubes,
+            preferredRound: .cashSpeed,
+            funnyTitle: "Du pop-corn salé et un piano en flammes",
+            prompt: "Quelle chanteuse française (ex-leader du groupe Hyphen Hyphen) a ému toute la France avec sa ballade au piano « Popcorn salé » et son tube « Recommence-moi » ?",
+            choices: [
+                "Santa",
+                "Pomme",
+                "Louane",
+                "Hoshi"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "C'est Santa ! Avec son piano suspendu dans les airs et son hymne « Recommence-moi » !",
+            explanation: "💡 Samanta Cotta, dite Santa, a triomphé en solo avec « Popcorn salé » et « Recommence-moi » (hymne de la Star Academy 2024).",
+            audioCueID: "q_MUS_32"
+        ),
+        QuizMCQQuestion(
+            id: "MUS_33",
+            theme: .musiqueTubes,
+            preferredRound: .leSolo,
+            funnyTitle: "L'Hymne à l'amour du haut du 1er étage de la Tour Eiffel",
+            prompt: "Quelle légende de la chanson a clôturé la cérémonie d'ouverture des Jeux Olympiques de Paris 2024 en chantant « L'Hymne à l'amour » d'Édith Piaf depuis la Tour Eiffel sous la pluie ?",
+            choices: [
+                "Céline Dion",
+                "Lady Gaga",
+                "Aya Nakamura",
+                "Mireille Mathieu"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "C'était le grand retour historique de Céline Dion au premier étage de la Tour Eiffel !",
+            explanation: "💡 Le 26 juillet 2024, Céline Dion a signé son retour sur scène en direct de la Tour Eiffel devant plus d'un milliard de téléspectateurs.",
+            audioCueID: "q_MUS_33"
+        ),
+        QuizMCQQuestion(
+            id: "MUS_34",
+            theme: .musiqueTubes,
+            preferredRound: .finaleDouble,
+            funnyTitle: "Trois nuits par semaine avec Bob Morane",
+            prompt: "Quel groupe de rock français mené par Nicola Sirkis depuis 1981 a chanté « L'Aventurier », « 3 Nuits par semaine » et « J'ai demandé à la lune » ?",
+            choices: [
+                "Indochine",
+                "Téléphone",
+                "Cure",
+                "Dépêche Mode"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "C'est Indochine ! Le seul groupe qui fait chanter ensemble les grands-parents, les parents et les ados !",
+            explanation: "💡 Fondé en 1981, Indochine détient les records d'affluence dans les stades français.",
+            audioCueID: "q_MUS_34"
         )
     ]
 
@@ -1865,6 +2261,114 @@ public enum QuestionBank {
             meemawRoastOnWrong: "C'est le fémur ! Il peut supporter une pression verticale de plus d'une tonne !",
             explanation: "💡 Le fémur représente environ un quart de la taille d'un adulte et est l'os le plus résistant du squelette.",
             audioCueID: "q_CUL_16"
+        ),
+        QuizMCQQuestion(
+            id: "CUL_17",
+            theme: .cultureGInsolite,
+            preferredRound: .cashSpeed,
+            funnyTitle: "L'animal qui retient son souffle mieux qu'un sous-marin",
+            prompt: "Entre le grand dauphin et le paresseux à trois doigts, lequel peut retenir sa respiration le plus longtemps sous l'eau ?",
+            choices: [
+                "Le paresseux (jusqu'à 40 minutes en ralentissant son cœur !)",
+                "Le dauphin (jusqu'à 3 heures)",
+                "Ils coulent tous les deux",
+                "Le caniche de Meemaw"
+            ],
+            correctIndex: 0,
+            baseValue: 2500,
+            meemawRoastOnWrong: "Incroyable mais vrai : un dauphin remonte respirer toutes les 10 minutes, alors que le paresseux ralentit son rythme cardiaque et tient 40 minutes sous l'eau !",
+            explanation: "💡 En ralentissant son métabolisme au tiers de la normale, le paresseux peut retenir son souffle 40 minutes sous l'eau !",
+            audioCueID: "q_CUL_17"
+        ),
+        QuizMCQQuestion(
+            id: "CUL_18",
+            theme: .cultureGInsolite,
+            preferredRound: .leSolo,
+            funnyTitle: "Le pays qui compte le plus de fuseaux horaires au monde",
+            prompt: "Quel pays détient le record mondial du plus grand nombre de fuseaux horaires différents (12 fuseaux horaires) ?",
+            choices: [
+                "La France (grâce à ses territoires d'outre-mer sur tous les océans !)",
+                "La Russie",
+                "Les États-Unis",
+                "La Chine"
+            ],
+            correctIndex: 0,
+            baseValue: 2500,
+            meemawRoastOnWrong: "C'est la France avec 12 fuseaux horaires grâce aux outre-mer (Polynésie, Antilles, Réunion, Nouvelle-Calédonie...), devant la Russie et les États-Unis (11) !",
+            explanation: "💡 Grâce à sa présence dans tous les océans du globe, la République française couvre 12 fuseaux horaires (tandis que la Chine n'en utilise qu'un seul !).",
+            audioCueID: "q_CUL_18"
+        ),
+        QuizMCQQuestion(
+            id: "CUL_19",
+            theme: .cultureGInsolite,
+            preferredRound: .cashSpeed,
+            funnyTitle: "Pourquoi les flamants roses ne naissent pas roses",
+            prompt: "De quelle couleur naissent les bébés flamants roses, et qu'est-ce qui leur donne leur plumage rose vif en grandissant ?",
+            choices: [
+                "Ils naissent gris-blanc et deviennent roses grâce aux pigments (caroténoïdes) des petites crevettes et algues qu'ils mangent",
+                "Ils naissent déjà rose fluo",
+                "Ils bronzent au soleil de Camargue",
+                "Leur maman les peint avec du sirop de grenadine"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "Ils naissent tout gris ! Ce sont les caroténoïdes contenus dans les crevettes artémies qui colorent leurs plumes en rose !",
+            explanation: "💡 Sans l'astaxanthine présente dans les crustacés et micro-algues qu'ils filtrent, les flamants redeviendraient blancs.",
+            audioCueID: "q_CUL_19"
+        ),
+        QuizMCQQuestion(
+            id: "CUL_20",
+            theme: .cultureGInsolite,
+            preferredRound: .cashSpeed,
+            funnyTitle: "La bêtise qui a donné naissance aux chips",
+            prompt: "En 1853 à Saratoga Springs, pourquoi le chef George Crum a-t-il coupé ses pommes de terre en tranches fines comme du papier et les a frites jusqu'à les rendre ultra-croquantes ?",
+            choices: [
+                "Pour se venger d'un client pénible qui avait renvoyé son assiette en trouvant ses frites « trop épaisses et trop molles » !",
+                "Parce qu'il avait cassé son couteau",
+                "Pour nourrir son perroquet",
+                "Parce qu'il n'avait plus d'eau pour faire de la purée"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "Il voulait donner une leçon à un client capricieux en rendant les patates impossibles à piquer à la fourchette... et le client a adoré !",
+            explanation: "💡 Selon la légende culinaire de Saratoga, George Crum a tranché ses pommes de terre ultra-fines par défi, inventant ainsi les « Saratoga Chips ».",
+            audioCueID: "q_CUL_20"
+        ),
+        QuizMCQQuestion(
+            id: "CUL_21",
+            theme: .cultureGInsolite,
+            preferredRound: .leSolo,
+            funnyTitle: "Combien d'arbres sur Terre par rapport aux étoiles de la Voie lactée ?",
+            prompt: "Y a-t-il plus d'arbres sur la planète Terre ou plus d'étoiles dans toute notre galaxie (la Voie lactée) ?",
+            choices: [
+                "Beaucoup plus d'arbres sur Terre (environ 3 000 milliards d'arbres contre 100 à 400 milliards d'étoiles !)",
+                "Beaucoup plus d'étoiles dans la Voie lactée",
+                "Exactement le même nombre",
+                "Moins d'un million des deux"
+            ],
+            correctIndex: 0,
+            baseValue: 2500,
+            meemawRoastOnWrong: "Il y a environ 10 fois plus d'arbres sur Terre (3 000 milliards) que d'étoiles dans la Voie lactée (environ 200 à 400 milliards) !",
+            explanation: "💡 Une étude publiée dans la revue Nature recense ~3 040 milliards d'arbres sur Terre, bien au-dessus des 100 à 400 milliards d'étoiles de notre galaxie.",
+            audioCueID: "q_CUL_21"
+        ),
+        QuizMCQQuestion(
+            id: "CUL_22",
+            theme: .cultureGInsolite,
+            preferredRound: .finaleDouble,
+            funnyTitle: "Le chocolat fondu dans la poche du radar",
+            prompt: "Comment l'ingénieur américain Percy Spencer a-t-il découvert par hasard le principe du four à micro-ondes en 1945 ?",
+            choices: [
+                "Une barre chocolatée a fondu toute seule dans sa poche alors qu'il travaillait devant un magnétron de radar militaire !",
+                "Son chat s'est mis à briller dans le noir",
+                "Sa tasse de café s'est transformée en glaçon",
+                "Il voulait sécher ses chaussettes mouillées"
+            ],
+            correctIndex: 0,
+            baseValue: 2500,
+            meemawRoastOnWrong: "Sa barre chocolatée aux cacahuètes a fondu dans sa poche devant le radar ! Il a tout de suite testé avec du maïs à pop-corn !",
+            explanation: "💡 Après sa barre chocolatée fondue, le premier aliment volontairement cuit au micro-ondes par Percy Spencer fut du pop-corn !",
+            audioCueID: "q_CUL_22"
         )
     ]
 
@@ -2158,6 +2662,78 @@ public enum QuestionBank {
             meemawRoastOnWrong: "C'est la fameuse Tulipomanie hollandaise de 1637, où un bulbe de tulipe Semper Augustus valait le prix d'un hôtel particulier !",
             explanation: "💡 La crise des tulipes de 1637 aux Pays-Bas est considérée par les historiens comme la première bulle spéculative moderne.",
             audioCueID: "q_ECO_16"
+        ),
+        QuizMCQQuestion(
+            id: "ECO_17",
+            theme: .ecoCash,
+            preferredRound: .cashSpeed,
+            funnyTitle: "Le paquet de gâteaux qui rétrécit sans baisser de prix",
+            prompt: "Comment appelle-t-on la technique des supermarchés qui consiste à réduire le poids d'un produit (passer de 500 g à 420 g) tout en gardant exactement le même prix et la même boîte ?",
+            choices: [
+                "La « Shrinkflation » (ou réduflation)",
+                "La déflation magique",
+                "Le régime forcé de Meemaw",
+                "L'effet parachute"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "C'est la Shrinkflation (réduflation) ! Pour ne jamais te faire avoir, regarde toujours le prix au kilo sur l'étiquette !",
+            explanation: "💡 La « shrinkflation » (de l'anglais to shrink, rétrécir) masque une hausse du prix au kilo en diminuant la quantité vendue.",
+            audioCueID: "q_ECO_17"
+        ),
+        QuizMCQQuestion(
+            id: "ECO_18",
+            theme: .ecoCash,
+            preferredRound: .leSolo,
+            funnyTitle: "La pizza la plus chère de toute l'histoire de l'humanité",
+            prompt: "Le 22 mai 2010, le programmeur Laszlo Hanyecz a payé le tout premier achat réel en Bitcoin : combien de Bitcoins a-t-il donnés pour se faire livrer DEUX pizzas ?",
+            choices: [
+                "10 000 Bitcoins (soit des centaines de millions d'euros aujourd'hui !)",
+                "2 Bitcoins",
+                "100 Bitcoins",
+                "0,5 Bitcoin"
+            ],
+            correctIndex: 0,
+            baseValue: 2500,
+            meemawRoastOnWrong: "10 000 Bitcoins pour deux pizzas Papa John's ! À l'époque ça valait 40 dollars, aujourd'hui ça vaut une île entière !",
+            explanation: "💡 Le 22 mai est célébré chaque année comme le « Bitcoin Pizza Day » en mémoire de ces 2 pizzas payées 10 000 BTC en 2010.",
+            audioCueID: "q_ECO_18"
+        ),
+        QuizMCQQuestion(
+            id: "ECO_19",
+            theme: .ecoCash,
+            preferredRound: .cashSpeed,
+            funnyTitle: "Le prix qui finit par 9,99 €",
+            prompt: "Pourquoi les commerçants affichent-ils un prix à 19,99 € au lieu de 20,00 € alors qu'il n'y a qu'un seul centime d'écart ?",
+            choices: [
+                "À cause du « biais du chiffre de gauche » : notre cerveau retient le 1 de 19 et classe l'objet dans la dizaine inférieure !",
+                "Pour écouler les pièces de 1 centime",
+                "Parce que le chiffre 9 porte bonheur aux caissiers",
+                "Pour payer moins de TVA"
+            ],
+            correctIndex: 0,
+            baseValue: 2000,
+            meemawRoastOnWrong: "En lisant de gauche à droite, notre cerveau ancre son jugement sur le premier chiffre (19 au lieu de 20) : c'est le prix psychologique !",
+            explanation: "💡 Le « Left-Digit Effect » démontre que passer de 20,00 € à 19,99 € augmente significativement les ventes.",
+            audioCueID: "q_ECO_19"
+        ),
+        QuizMCQQuestion(
+            id: "ECO_20",
+            theme: .ecoCash,
+            preferredRound: .finaleDouble,
+            funnyTitle: "La règle des 4 % pour vivre de ses rentes",
+            prompt: "Selon la célèbre « Règle des 4 % » (étude Trinity), de quel capital investi as-tu besoin pour retirer 1 000 € par mois (12 000 € par an) sans épuiser ton patrimoine sur 30 ans ?",
+            choices: [
+                "300 000 € (soit 25 fois tes dépenses annuelles : 12 000 × 25 !)",
+                "48 000 €",
+                "1 000 000 €",
+                "120 000 €"
+            ],
+            correctIndex: 0,
+            baseValue: 2500,
+            meemawRoastOnWrong: "Retirer 4 % par an revient à multiplier ton besoin annuel par 25 : 12 000 € fois 25 égale 300 000 € !",
+            explanation: "💡 Règle des 4 % (mouvement FIRE) : détenir 25 fois ses dépenses annuelles permet statistiquement de retirer 4 % par an pendant 30 ans.",
+            audioCueID: "q_ECO_20"
         )
     ]
 
@@ -2494,6 +3070,44 @@ public enum QuestionBank {
                 QuizDisOrDatItem(index: 5, text: "Limité à un seul par personne majeure", correctSide: "both")
             ],
             audioCueID: "pun_2"
+        ),
+        QuizDisOrDatRound(
+            id: "RAC_MUS_2",
+            theme: .musiqueTubes,
+            funnyTitle: "🧀 Raclette du Son : Gims, Stromae, ou LES DEUX ?",
+            prompt: "Les géants du son francophone : c'est GIMS, c'est STROMAE, ou c'est LES DEUX ?",
+            optionLeft: "GIMS 🕶️",
+            optionRight: "STROMAE 🦋",
+            optionBoth: "🧀 LES DEUX !",
+            valuePerItem: 500,
+            items: [
+                QuizDisOrDatItem(index: 0, text: "Ne quitte presque jamais ses lunettes de soleil noires", correctSide: "left"),
+                QuizDisOrDatItem(index: 1, text: "A sorti l'album culte « Racine carrée » avec « Papaoutai »", correctSide: "right"),
+                QuizDisOrDatItem(index: 2, text: "Ils ont chanté ensemble sur le tube « La Même » en 2018", correctSide: "both"),
+                QuizDisOrDatItem(index: 3, text: "A cartonné en 2024-2025 avec « Spider » et « Ciel »", correctSide: "left"),
+                QuizDisOrDatItem(index: 4, text: "Est né à Bruxelles en Belgique", correctSide: "right"),
+                QuizDisOrDatItem(index: 5, text: "A rempli les plus grands stades de France", correctSide: "both")
+            ],
+            audioCueID: "rac_MUS_2"
+        ),
+        QuizDisOrDatRound(
+            id: "RAC_CINE_2",
+            theme: .seriesCinema,
+            funnyTitle: "🧀 Raclette Séries : The Rookie, Friends, ou LES DEUX ?",
+            prompt: "Séries cultes en famille : c'est dans THE ROOKIE, dans FRIENDS, ou dans LES DEUX ?",
+            optionLeft: "THE ROOKIE 🚓",
+            optionRight: "FRIENDS ☕️",
+            optionBoth: "🧀 LES DEUX !",
+            valuePerItem: 500,
+            items: [
+                QuizDisOrDatItem(index: 0, text: "John Nolan devient la recrue la plus âgée de la police de Los Angeles", correctSide: "left"),
+                QuizDisOrDatItem(index: 1, text: "On boit des cafés sur un canapé orange au Central Perk", correctSide: "right"),
+                QuizDisOrDatItem(index: 2, text: "Le couple chouchou des fans est surnommé « Chenford »", correctSide: "left"),
+                QuizDisOrDatItem(index: 3, text: "Ross hurle « PIVOT ! » dans l'escalier avec son canapé", correctSide: "right"),
+                QuizDisOrDatItem(index: 4, text: "C'est une série américaine qui compte au moins 6 saisons", correctSide: "both"),
+                QuizDisOrDatItem(index: 5, text: "Un personnage s'appelle Rachel Green", correctSide: "right")
+            ],
+            audioCueID: "rac_CINE_2"
         )
     ]
 }

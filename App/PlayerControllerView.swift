@@ -403,12 +403,27 @@ struct PlayerControllerView: View {
             if session.role == .hostAndPlayer1 {
                 PopArtCard(cornerRadius: 22, borderWidth: 3.5, backgroundColor: PopArt.white) {
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("📚 CHOISIS LE THÈME DU SHOW (100 % GÉNÉRÉ)")
-                            .font(.system(size: 14, weight: .black, design: .rounded))
-                            .foregroundStyle(PopArt.orange)
+                        HStack {
+                            Text("📚 CHOISIS LE THÈME DU SHOW")
+                                .font(.system(size: 14, weight: .black, design: .rounded))
+                                .foregroundStyle(PopArt.orange)
+                            Spacer()
+                            Button {
+                                session.resetSeenQuestionsHistory()
+                            } label: {
+                                Text("🔄 Reset vues")
+                                    .font(.system(size: 11, weight: .black, design: .rounded))
+                                    .foregroundStyle(PopArt.ink)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(PopArt.cream, in: Capsule())
+                                    .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 1.5))
+                            }
+                        }
 
                         ForEach(QuizThemePack.allCases) { pack in
                             let isSelected = (snap.selectedPack == pack)
+                            let counts = session.unseenQuestionsCount(for: pack)
                             Button {
                                 session.selectThemePack(pack)
                             } label: {
@@ -419,9 +434,17 @@ struct PlayerControllerView: View {
                                         .overlay(Circle().strokeBorder(PopArt.ink, lineWidth: 2))
 
                                     VStack(alignment: .leading, spacing: 2) {
-                                        Text(pack.title)
-                                            .font(.system(size: 16, weight: .black, design: .rounded))
-                                            .foregroundStyle(PopArt.ink)
+                                        HStack(spacing: 6) {
+                                            Text(pack.title)
+                                                .font(.system(size: 16, weight: .black, design: .rounded))
+                                                .foregroundStyle(PopArt.ink)
+                                            Text("\(counts.unseen)/\(counts.total) inédites")
+                                                .font(.system(size: 10, weight: .black, design: .rounded))
+                                                .foregroundStyle(.white)
+                                                .padding(.horizontal, 7)
+                                                .padding(.vertical, 2)
+                                                .background(Color(hex: pack.accentHex), in: Capsule())
+                                        }
                                         Text(pack.subtitle)
                                             .font(.system(size: 12, weight: .bold))
                                             .foregroundStyle(PopArt.ink.opacity(0.65))
@@ -935,7 +958,35 @@ struct PlayerControllerView: View {
 
     private var couciCoucaControllerSection: some View {
         VStack(spacing: 12) {
-            if let round = snap.activeDisOrDat {
+            if snap.stage == .couciCoucaSummary {
+                PopArtCard(cornerRadius: 22, borderWidth: 4, backgroundColor: PopArt.yellow) {
+                    VStack(spacing: 10) {
+                        Text("🧀 FIN DE LA RACLETTE QUIZZ !")
+                            .font(.system(size: 22, weight: .black, design: .rounded))
+                            .foregroundStyle(PopArt.ink)
+                        Text("Ton score actuel : \(me?.score ?? 0) PTS")
+                            .font(.system(size: 20, weight: .black, design: .monospaced))
+                            .foregroundStyle(PopArt.redError)
+                        Text("🔥 Prépare-toi : la Rafale Finale Points ×2 démarre dans \(max(1, Int(ceil(snap.timeRemainingSec))))s...")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(PopArt.ink.opacity(0.85))
+                            .multilineTextAlignment(.center)
+                        if session.role == .hostAndPlayer1 {
+                            Button {
+                                session.skipToNextStep()
+                            } label: {
+                                Text("Lancer la Finale ×2 ➡️")
+                                    .font(.system(size: 15, weight: .black))
+                                    .padding(.horizontal, 18)
+                                    .padding(.vertical, 10)
+                            }
+                            .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.orange, cornerRadius: 14))
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(20)
+                }
+            } else if let round = snap.activeDisOrDat {
                 let idx = snap.activeDisOrDatItemIndex ?? 0
                 let item = round.items.indices.contains(idx) ? round.items[idx] : nil
                 let cardBg = Self.itemCardPalette[idx % Self.itemCardPalette.count]
@@ -956,32 +1007,6 @@ struct PlayerControllerView: View {
                         .multilineTextAlignment(.center)
                         .frame(maxWidth: .infinity)
                         .padding(10)
-                    }
-                }
-
-                if snap.stage == .couciCoucaReveal, let correctSide = snap.revealedBinarySide {
-                    let mySide = me?.lockedSide
-                    let isRight = (mySide != nil && mySide == correctSide)
-                    let delta = me?.lastDeltaScore ?? 0
-                    let correctLabel = (correctSide == "left") ? round.optionLeft : (correctSide == "both" ? (round.optionBoth ?? "🧀 LES DEUX !") : round.optionRight)
-                    PopArtCard(
-                        cornerRadius: 18,
-                        borderWidth: 4,
-                        backgroundColor: isRight ? PopArt.greenSuccess : PopArt.redError
-                    ) {
-                        VStack(spacing: 4) {
-                            Text(isRight ? "🎉✅ BONNE RÉPONSE ! +\(delta) PTS" : (mySide == nil ? "⏰ TROP TARD ! (0 PT)" : "💥❌ FAUX ! (\(delta) PTS)"))
-                                .font(.system(size: 19, weight: .black, design: .rounded))
-                                .foregroundStyle(.white)
-                            if !isRight {
-                                Text("👉 C'était : \(correctLabel)")
-                                    .font(.system(size: 14, weight: .heavy, design: .rounded))
-                                    .foregroundStyle(PopArt.yellow)
-                            }
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .padding(.horizontal, 10)
                     }
                 }
 
@@ -1019,82 +1044,145 @@ struct PlayerControllerView: View {
                 }
                 .animation(.spring(response: 0.35, dampingFraction: 0.78), value: idx)
 
-                let hasLockedSide = (me?.lockedSide != nil)
-                let isReveal = (snap.stage == .couciCoucaReveal)
+                // En mode Révélation : Grande Carte Verdict Plein Écran immanquable à la place des 3 boutons !
+                if snap.stage == .couciCoucaReveal, let correctSide = snap.revealedBinarySide {
+                    let mySide = me?.lockedSide
+                    let isRight = (mySide != nil && mySide == correctSide)
+                    let delta = me?.lastDeltaScore ?? 0
+                    let correctLabel = (correctSide == "left") ? round.optionLeft : (correctSide == "both" ? (round.optionBoth ?? "🧀 LES DEUX !") : round.optionRight)
+                    let myChosenLabel: String = {
+                        guard let mySide else { return "Aucune réponse (Temps écoulé)" }
+                        if mySide == "left" { return round.optionLeft }
+                        if mySide == "both" { return round.optionBoth ?? "🧀 LES DEUX !" }
+                        return round.optionRight
+                    }()
 
-                HStack(spacing: 12) {
-                    Button {
-                        session.submitBinarySide("left")
-                    } label: {
-                        VStack(spacing: 8) {
-                            Text(snap.stage == .couciCoucaReveal && snap.revealedBinarySide == "left" ? "✅" : "⬅️")
-                                .font(.system(size: 34))
-                            Text(round.optionLeft)
-                                .font(.system(size: 19, weight: .black, design: .rounded))
-                                .multilineTextAlignment(.center)
-                        }
-                        .foregroundStyle(disOrDatForegroundColor(side: "left"))
-                        .frame(maxWidth: .infinity, minHeight: round.optionBoth != nil ? 135 : 175)
-                        .padding(12)
-                    }
-                    .buttonStyle(
-                        PopArtActionButtonStyle(
-                            backgroundColor: disOrDatButtonColor(side: "left", defaultColor: PopArt.blue),
-                            foregroundColor: disOrDatForegroundColor(side: "left"),
-                            cornerRadius: 22
-                        )
-                    )
-                    .opacity((hasLockedSide && me?.lockedSide != "left" && !isReveal) ? 0.35 : 1.0)
-                    .disabled(me?.lockedSide != nil || snap.stage != .couciCoucaItem)
+                    PopArtCard(
+                        cornerRadius: 22,
+                        borderWidth: 4,
+                        backgroundColor: isRight ? PopArt.greenSuccess : PopArt.redError
+                    ) {
+                        VStack(spacing: 10) {
+                            Text(isRight ? "🎉✅ C'EST GAGNÉ !" : (mySide == nil ? "⏰ TROP TARD !" : "💥❌ C'EST PERDU !"))
+                                .font(.system(size: 26, weight: .black, design: .rounded))
+                                .foregroundStyle(.white)
 
-                    Button {
-                        session.submitBinarySide("right")
-                    } label: {
-                        VStack(spacing: 8) {
-                            Text(snap.stage == .couciCoucaReveal && snap.revealedBinarySide == "right" ? "✅" : "➡️")
-                                .font(.system(size: 34))
-                            Text(round.optionRight)
-                                .font(.system(size: 19, weight: .black, design: .rounded))
-                                .multilineTextAlignment(.center)
-                        }
-                        .foregroundStyle(disOrDatForegroundColor(side: "right"))
-                        .frame(maxWidth: .infinity, minHeight: round.optionBoth != nil ? 135 : 175)
-                        .padding(12)
-                    }
-                    .buttonStyle(
-                        PopArtActionButtonStyle(
-                            backgroundColor: disOrDatButtonColor(side: "right", defaultColor: PopArt.pink),
-                            foregroundColor: disOrDatForegroundColor(side: "right"),
-                            cornerRadius: 22
-                        )
-                    )
-                    .opacity((hasLockedSide && me?.lockedSide != "right" && !isReveal) ? 0.35 : 1.0)
-                    .disabled(me?.lockedSide != nil || snap.stage != .couciCoucaItem)
-                }
+                            Text(isRight ? "+\(delta) POINTS" : "\(delta) POINTS")
+                                .font(.system(size: 20, weight: .black, design: .monospaced))
+                                .foregroundStyle(PopArt.ink)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 6)
+                                .background(PopArt.yellow, in: Capsule())
+                                .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2.5))
 
-                if let bothLabel = round.optionBoth {
-                    Button {
-                        session.submitBinarySide("both")
-                    } label: {
-                        HStack(spacing: 10) {
-                            Text(snap.stage == .couciCoucaReveal && snap.revealedBinarySide == "both" ? "✅" : "🧀")
-                                .font(.system(size: 28))
-                            Text(bothLabel)
-                                .font(.system(size: 20, weight: .black, design: .rounded))
+                            VStack(spacing: 4) {
+                                Text("Ton choix : \(myChosenLabel)")
+                                    .font(.system(size: 15, weight: .heavy, design: .rounded))
+                                    .foregroundStyle(.white.opacity(0.92))
+                                Text("👉 Bonne réponse : \(correctLabel)")
+                                    .font(.system(size: 18, weight: .black, design: .rounded))
+                                    .foregroundStyle(PopArt.yellow)
+                            }
+                            .multilineTextAlignment(.center)
+
+                            HStack(spacing: 12) {
+                                Text("⏭️ Suite auto dans \(max(1, Int(ceil(snap.timeRemainingSec))))s...")
+                                    .font(.system(size: 12, weight: .black, design: .monospaced))
+                                    .foregroundStyle(.white.opacity(0.9))
+
+                                if session.role == .hostAndPlayer1 {
+                                    Button {
+                                        session.skipToNextStep()
+                                    } label: {
+                                        Text("Suivant ➡️")
+                                            .font(.system(size: 13, weight: .black))
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 6)
+                                    }
+                                    .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.yellow, cornerRadius: 10))
+                                }
+                            }
                         }
-                        .foregroundStyle(disOrDatForegroundColor(side: "both"))
-                        .frame(maxWidth: .infinity, minHeight: 68)
-                        .padding(.horizontal, 16)
+                        .frame(maxWidth: .infinity)
+                        .padding(18)
                     }
-                    .buttonStyle(
-                        PopArtActionButtonStyle(
-                            backgroundColor: disOrDatButtonColor(side: "both", defaultColor: PopArt.purple),
-                            foregroundColor: disOrDatForegroundColor(side: "both"),
-                            cornerRadius: 20
+                } else {
+                    let hasLockedSide = (me?.lockedSide != nil)
+
+                    HStack(spacing: 12) {
+                        Button {
+                            session.submitBinarySide("left")
+                        } label: {
+                            VStack(spacing: 8) {
+                                Text(me?.lockedSide == "left" ? "🔒" : "⬅️")
+                                    .font(.system(size: 34))
+                                Text(round.optionLeft)
+                                    .font(.system(size: 19, weight: .black, design: .rounded))
+                                    .multilineTextAlignment(.center)
+                            }
+                            .foregroundStyle(disOrDatForegroundColor(side: "left"))
+                            .frame(maxWidth: .infinity, minHeight: round.optionBoth != nil ? 135 : 175)
+                            .padding(12)
+                        }
+                        .buttonStyle(
+                            PopArtActionButtonStyle(
+                                backgroundColor: disOrDatButtonColor(side: "left", defaultColor: PopArt.blue),
+                                foregroundColor: disOrDatForegroundColor(side: "left"),
+                                cornerRadius: 22
+                            )
                         )
-                    )
-                    .opacity((hasLockedSide && me?.lockedSide != "both" && !isReveal) ? 0.35 : 1.0)
-                    .disabled(me?.lockedSide != nil || snap.stage != .couciCoucaItem)
+                        .opacity((hasLockedSide && me?.lockedSide != "left") ? 0.35 : 1.0)
+                        .disabled(me?.lockedSide != nil || snap.stage != .couciCoucaItem)
+
+                        Button {
+                            session.submitBinarySide("right")
+                        } label: {
+                            VStack(spacing: 8) {
+                                Text(me?.lockedSide == "right" ? "🔒" : "➡️")
+                                    .font(.system(size: 34))
+                                Text(round.optionRight)
+                                    .font(.system(size: 19, weight: .black, design: .rounded))
+                                    .multilineTextAlignment(.center)
+                            }
+                            .foregroundStyle(disOrDatForegroundColor(side: "right"))
+                            .frame(maxWidth: .infinity, minHeight: round.optionBoth != nil ? 135 : 175)
+                            .padding(12)
+                        }
+                        .buttonStyle(
+                            PopArtActionButtonStyle(
+                                backgroundColor: disOrDatButtonColor(side: "right", defaultColor: PopArt.pink),
+                                foregroundColor: disOrDatForegroundColor(side: "right"),
+                                cornerRadius: 22
+                            )
+                        )
+                        .opacity((hasLockedSide && me?.lockedSide != "right") ? 0.35 : 1.0)
+                        .disabled(me?.lockedSide != nil || snap.stage != .couciCoucaItem)
+                    }
+
+                    if let bothLabel = round.optionBoth {
+                        Button {
+                            session.submitBinarySide("both")
+                        } label: {
+                            HStack(spacing: 10) {
+                                Text(me?.lockedSide == "both" ? "🔒" : "🧀")
+                                    .font(.system(size: 28))
+                                Text(bothLabel)
+                                    .font(.system(size: 20, weight: .black, design: .rounded))
+                            }
+                            .foregroundStyle(disOrDatForegroundColor(side: "both"))
+                            .frame(maxWidth: .infinity, minHeight: 68)
+                            .padding(.horizontal, 16)
+                        }
+                        .buttonStyle(
+                            PopArtActionButtonStyle(
+                                backgroundColor: disOrDatButtonColor(side: "both", defaultColor: PopArt.purple),
+                                foregroundColor: disOrDatForegroundColor(side: "both"),
+                                cornerRadius: 20
+                            )
+                        )
+                        .opacity((hasLockedSide && me?.lockedSide != "both") ? 0.35 : 1.0)
+                        .disabled(me?.lockedSide != nil || snap.stage != .couciCoucaItem)
+                    }
                 }
             }
         }

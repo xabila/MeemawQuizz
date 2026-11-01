@@ -38,8 +38,8 @@ final class QuestionBankTests: XCTestCase {
         XCTAssertEqual(deck.soloQuestions.count, 2)
         XCTAssertEqual(deck.finaleDoubleQuestions.count, 2)
         XCTAssertFalse(deck.couciCoucaRound.isPunRound)
-        XCTAssertEqual(QuestionBank.questions(for: .grandMix).count, 112)
-        XCTAssertEqual(QuestionBank.allDisOrDatRounds.count, 18)
+        XCTAssertEqual(QuestionBank.questions(for: .grandMix).count, 144)
+        XCTAssertEqual(QuestionBank.allDisOrDatRounds.count, 20)
     }
 
     func testWholeEveningSessionNeverRepeatsQuestionsAcrossTwelveConsecutiveGames() {

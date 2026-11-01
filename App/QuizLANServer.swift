@@ -14,6 +14,7 @@ final class QuizLANServer {
     private(set) var listeningPort: UInt16 = 8420
     private(set) var isRunning: Bool = false
     private var retryCount: Int = 0
+    private var cachedWiFiIP: String?
 
     var onClientMessage: ((UUID, ClientToHostMessage) -> Void)?
     var onClientDisconnected: ((UUID) -> Void)?
@@ -23,6 +24,7 @@ final class QuizLANServer {
     func start(preferredPort: UInt16 = 8420) {
         stop()
         retryCount = 0
+        cachedWiFiIP = Self.localWiFiIPv4Address()
         startListenerInternal(portToTry: preferredPort)
     }
 
@@ -58,6 +60,7 @@ final class QuizLANServer {
                     if let actualPort = listenerInstance.port?.rawValue {
                         self.listeningPort = actualPort
                     }
+                    self.cachedWiFiIP = Self.localWiFiIPv4Address()
                     self.isRunning = true
                     self.retryCount = 0
                     self.onServerStateChanged?()
@@ -100,7 +103,10 @@ final class QuizLANServer {
     }
 
     var joinURLString: String {
-        let ip = Self.localWiFiIPv4Address() ?? "meemaw.local"
+        let ip = cachedWiFiIP ?? Self.localWiFiIPv4Address() ?? "meemaw.local"
+        if cachedWiFiIP == nil, ip != "meemaw.local" {
+            cachedWiFiIP = ip
+        }
         return "http://\(ip):\(listeningPort)"
     }
 

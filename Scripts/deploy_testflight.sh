@@ -5,9 +5,15 @@ cd "$(dirname "$0")/.."
 
 ASC_KEY_ID="T2P452FSM8"
 ASC_ISSUER_ID="92e1b925-7e06-4a57-9f7a-143e9e7a2fc0"
-ASC_KEY_PATH="$HOME/Downloads/AuthKey_T2P452FSM8.p8"
+ASC_KEY_PATH="$HOME/.appstoreconnect/private_keys/AuthKey_T2P452FSM8.p8"
 ARCHIVE_PATH="/tmp/MeemawQuizz.xcarchive"
 EXPORT_DIR="/tmp/MeemawQuizzExport"
+
+mkdir -p "$HOME/.appstoreconnect/private_keys"
+if [ ! -f "$ASC_KEY_PATH" ] && [ -f "$HOME/Downloads/AuthKey_T2P452FSM8.p8" ]; then
+  cp "$HOME/Downloads/AuthKey_T2P452FSM8.p8" "$ASC_KEY_PATH"
+  chmod 600 "$ASC_KEY_PATH"
+fi
 
 echo "1/4 Regeneration du projet Xcode via XcodeGen..."
 xcodegen generate
@@ -19,21 +25,13 @@ xcodebuild archive \
   -scheme MeemawQuizz \
   -configuration Release \
   -destination "generic/platform=iOS" \
-  -archivePath "$ARCHIVE_PATH" \
-  -allowProvisioningUpdates \
-  -authenticationKeyPath "$ASC_KEY_PATH" \
-  -authenticationKeyID "$ASC_KEY_ID" \
-  -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+  -archivePath "$ARCHIVE_PATH"
 
 echo "3/4 Export de l'IPA App Store Connect..."
 xcodebuild -exportArchive \
   -archivePath "$ARCHIVE_PATH" \
   -exportOptionsPlist ExportOptions.plist \
-  -exportPath "$EXPORT_DIR" \
-  -allowProvisioningUpdates \
-  -authenticationKeyPath "$ASC_KEY_PATH" \
-  -authenticationKeyID "$ASC_KEY_ID" \
-  -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+  -exportPath "$EXPORT_DIR"
 
 IPA_FILE="$EXPORT_DIR/MeemawQuizz.ipa"
 echo "4/4 Upload vers TestFlight : $IPA_FILE"

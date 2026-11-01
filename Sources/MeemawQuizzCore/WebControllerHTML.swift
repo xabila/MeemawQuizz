@@ -365,6 +365,16 @@ public enum WebControllerHTML {
                 return;
               }
 
+              if (st.stage === 'couci_couca_summary') {
+                stageCard.style.background = '#FEF9C3';
+                titleEl.innerText = '🧀 FIN DE LA RACLETTE QUIZZ !';
+                contentEl.innerHTML = `<div style="background:#FFF8EE;border:3px solid #1A1A1A;border-radius:16px;padding:16px;text-align:center;">
+                  <div style="font-size:22px;font-weight:900;color:#1A1A1A;">Score actuel : ${me ? me.score : 0} PTS</div>
+                  <div style="font-size:15px;font-weight:800;color:#8E44AD;margin-top:8px;">🔥 Prépare-toi pour la Finale ×2 !</div>
+                </div>`;
+                return;
+              }
+
               if ((st.stage === 'couci_couca_item' || st.stage === 'couci_couca_reveal') && st.activeDisOrDat) {
                 const idx = st.activeDisOrDatItemIndex || 0;
                 const item = (st.activeDisOrDat.items || [])[idx];
@@ -374,45 +384,56 @@ public enum WebControllerHTML {
                 const correctSide = st.revealedBinarySide;
                 const mySide = effectiveSide;
                 const delta = me ? (me.lastDeltaScore || 0) : 0;
+                const labelForSide = (s) => {
+                  if (s === 'left') return st.activeDisOrDat.optionLeft;
+                  if (s === 'right') return st.activeDisOrDat.optionRight;
+                  if (s === 'both') return st.activeDisOrDat.optionBoth || '🧀 LES DEUX !';
+                  return 'Aucune réponse';
+                };
 
-                let feedbackHTML = '';
-                if (!isReveal && mySide) {
-                  const chosenLbl = (mySide === 'left') ? st.activeDisOrDat.optionLeft : (mySide === 'both' ? (st.activeDisOrDat.optionBoth || 'LES DEUX') : st.activeDisOrDat.optionRight);
-                  feedbackHTML = `<div style="background:#FFD700;color:#1A1A1A;padding:10px;border-radius:14px;border:3px solid #1A1A1A;font-weight:900;text-align:center;margin-bottom:10px;">🔒 CHOIX VERROUILLÉ : ${chosenLbl}<br><span style="font-size:12px;">⏳ En attente des autres joueurs (${answeredCount}/${(st.players || []).length})...</span></div>`;
-                } else if (isReveal && correctSide) {
+                titleEl.innerText = `[Q${idx + 1}/${(st.activeDisOrDat.items || []).length}] ${item ? item.text : st.activeDisOrDat.funnyTitle}`;
+
+                if (isReveal && correctSide) {
                   const isRight = (mySide === correctSide);
                   const soundKey = `couci_${itemKey}`;
                   if (lastSoundKey !== soundKey) {
                     lastSoundKey = soundKey;
                     playVerdictSound(isRight);
                   }
-                  const correctLbl = (correctSide === 'left') ? st.activeDisOrDat.optionLeft : (correctSide === 'both' ? (st.activeDisOrDat.optionBoth || '🧀 LES DEUX !') : st.activeDisOrDat.optionRight);
                   const fbBg = isRight ? '#10B981' : '#E11D48';
-                  const fbText = isRight
-                    ? `🎉✅ BONNE RÉPONSE ! +${delta} PTS`
-                    : (mySide ? `💥❌ FAUX ! (${delta} PTS)<br><span style="font-size:14px;color:#FFD700;">👉 C'était : ${correctLbl}</span>` : `⏰ TROP TARD ! (0 PT)<br><span style="font-size:14px;color:#FFD700;">👉 C'était : ${correctLbl}</span>`);
-                  feedbackHTML = `<div style="background:${fbBg};color:#fff;padding:12px;border-radius:14px;border:3.5px solid #1A1A1A;font-weight:900;font-size:18px;text-align:center;margin-bottom:10px;">${fbText}</div>`;
+                  const headline = isRight
+                    ? `🎉✅ C'EST GAGNÉ ! +${Math.max(delta, st.activeDisOrDat.valuePerItem || 500)} PTS`
+                    : (mySide ? `💥❌ C'EST PERDU ! (${delta} PTS)` : `⏰ TROP TARD ! (0 PT)`);
+                  contentEl.innerHTML = `<div style="background:${fbBg};color:#fff;padding:18px;border-radius:18px;border:4px solid #1A1A1A;box-shadow:0 5px 0 #1A1A1A;text-align:center;">
+                    <div style="font-size:22px;font-weight:900;margin-bottom:10px;">${headline}</div>
+                    <div style="background:rgba(0,0,0,0.22);padding:8px 12px;border-radius:10px;font-size:15px;font-weight:800;margin-bottom:8px;">
+                      Ton choix : ${labelForSide(mySide)} ${isRight ? '✅' : '❌'}
+                    </div>
+                    <div style="background:#1A1A1A;color:#FFD700;padding:10px 14px;border-radius:12px;font-size:16px;font-weight:900;">
+                      👉 Bonne réponse : ${labelForSide(correctSide)}
+                    </div>
+                  </div>`;
+                  return;
+                }
+
+                let feedbackHTML = '';
+                if (mySide) {
+                  feedbackHTML = `<div style="background:#FFD700;color:#1A1A1A;padding:10px;border-radius:14px;border:3px solid #1A1A1A;font-weight:900;text-align:center;margin-bottom:10px;">🔒 CHOIX VERROUILLÉ : ${labelForSide(mySide)}<br><span style="font-size:12px;">⏳ En attente des autres joueurs (${answeredCount}/${(st.players || []).length})...</span></div>`;
                 }
 
                 const btnStyle = (side, defHex) => {
-                  if (isReveal && correctSide) {
-                    if (correctSide === side) return 'background:#10B981;color:#fff;';
-                    if (mySide === side) return 'background:#E11D48;color:#fff;';
-                    return `background:${defHex};color:#fff;opacity:0.35;`;
-                  }
                   if (mySide === side) return 'background:#FFD700;color:#1A1A1A;';
                   if (mySide) return `background:${defHex};color:#fff;opacity:0.35;`;
                   return `background:${defHex};color:#fff;`;
                 };
 
-                titleEl.innerText = `[Q${idx + 1}/${(st.activeDisOrDat.items || []).length}] ${item ? item.text : st.activeDisOrDat.funnyTitle}`;
                 const bothBtn = st.activeDisOrDat.optionBoth
-                  ? `<button class="btn-primary" style="margin-top:10px;${btnStyle('both', '#8E44AD')}" ${isReveal || mySide ? 'disabled' : ''} onclick="pickBinary('both','${itemKey}')">${isReveal && correctSide === 'both' ? '✅ ' : '🧀 '}${st.activeDisOrDat.optionBoth}</button>`
+                  ? `<button class="btn-primary" style="margin-top:10px;${btnStyle('both', '#8E44AD')}" ${mySide ? 'disabled' : ''} onclick="pickBinary('both','${itemKey}')">🧀 ${st.activeDisOrDat.optionBoth}</button>`
                   : '';
 
                 contentEl.innerHTML = `${feedbackHTML}<div class="binary-grid">
-                  <button class="btn-primary" style="${btnStyle('left', '#2563EB')}" ${isReveal || mySide ? 'disabled' : ''} onclick="pickBinary('left','${itemKey}')">${isReveal && correctSide === 'left' ? '✅ ' : '⬅️ '}${st.activeDisOrDat.optionLeft}</button>
-                  <button class="btn-primary" style="${btnStyle('right', '#FF4D94')}" ${isReveal || mySide ? 'disabled' : ''} onclick="pickBinary('right','${itemKey}')">${st.activeDisOrDat.optionRight}${isReveal && correctSide === 'right' ? ' ✅' : ' ➡️'}</button>
+                  <button class="btn-primary" style="${btnStyle('left', '#2563EB')}" ${mySide ? 'disabled' : ''} onclick="pickBinary('left','${itemKey}')">⬅️ ${st.activeDisOrDat.optionLeft}</button>
+                  <button class="btn-primary" style="${btnStyle('right', '#FF4D94')}" ${mySide ? 'disabled' : ''} onclick="pickBinary('right','${itemKey}')">${st.activeDisOrDat.optionRight} ➡️</button>
                 </div>${bothBtn}`;
                 return;
               }

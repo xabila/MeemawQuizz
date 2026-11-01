@@ -58,13 +58,31 @@ final class GameSessionController {
     var timeRemainingSec: Double = 0
     var totalTimerSec: Double = 12
 
+    private static let usedQuestionsKey = "meemawquizz.persistedUsedQuestionIDs"
+    private static let usedDisOrDatKey = "meemawquizz.persistedUsedDisOrDatIDs"
+
     private var registry = PlayerLobbyRegistry()
     private var connectionToPlayerID: [UUID: String] = [:]
-    private var usedQuestionIDs: Set<String> = []
-    private var usedDisOrDatIDs: Set<String> = []
+    private var usedQuestionIDs: Set<String> = {
+        let saved = UserDefaults.standard.stringArray(forKey: "meemawquizz.persistedUsedQuestionIDs") ?? []
+        return Set(saved)
+    }() {
+        didSet {
+            UserDefaults.standard.set(Array(usedQuestionIDs), forKey: Self.usedQuestionsKey)
+        }
+    }
+    private var usedDisOrDatIDs: Set<String> = {
+        let saved = UserDefaults.standard.stringArray(forKey: "meemawquizz.persistedUsedDisOrDatIDs") ?? []
+        return Set(saved)
+    }() {
+        didSet {
+            UserDefaults.standard.set(Array(usedDisOrDatIDs), forKey: Self.usedDisOrDatKey)
+        }
+    }
     private var activeDeck: ShowGameDeck = QuestionBank.buildShowDeck(for: .grandMix)
     private var phaseQueue: [ShowPhaseStep] = []
     private var currentStepIndex: Int = -1
+    private var cachedHostSnapshot: HostToClientStateSnapshot?
 
     var activeQuestion: QuizMCQQuestion?
     var revealedCorrectIndex: Int?
@@ -105,7 +123,23 @@ final class GameSessionController {
         if role == .bonjourClient, let snap = clientSnapshot {
             return snap
         }
+        if let cached = cachedHostSnapshot {
+            return cached
+        }
         return buildCurrentSnapshot()
+    }
+
+    func unseenQuestionsCount(for pack: QuizThemePack) -> (unseen: Int, total: Int) {
+        let all = QuestionBank.questions(for: pack)
+        let unseen = all.filter { !usedQuestionIDs.contains($0.id) }.count
+        return (unseen, all.count)
+    }
+
+    func resetSeenQuestionsHistory() {
+        usedQuestionIDs.removeAll()
+        usedDisOrDatIDs.removeAll()
+        audio.triggerControllerHaptic(style: .medium)
+        broadcastState()
     }
 
     var localPlayer: QuizPlayer? {
@@ -406,12 +440,14 @@ final class GameSessionController {
         stopTimers()
         registry.resetForNewShow()
 
-        let totalAvailableInPack = QuestionBank.questions(for: selectedPack).count
-        if usedQuestionIDs.count >= max(7, totalAvailableInPack - 6) {
-            usedQuestionIDs.removeAll()
+        let packQuestions = QuestionBank.questions(for: selectedPack)
+        let unseenInPack = packQuestions.filter { !usedQuestionIDs.contains($0.id) }
+        if unseenInPack.count < 7 {
+            usedQuestionIDs.subtract(packQuestions.map(\.id))
         }
-        if usedDisOrDatIDs.count >= QuestionBank.allDisOrDatRounds.count {
-            usedDisOrDatIDs.removeAll()
+        let packCouci = QuestionBank.disOrDatRounds(for: selectedPack)
+        if packCouci.filter({ !usedDisOrDatIDs.contains($0.id) }).isEmpty {
+            usedDisOrDatIDs.subtract(packCouci.map(\.id))
         }
 
         activeDeck = QuestionBank.buildShowDeck(
@@ -476,6 +512,14 @@ final class GameSessionController {
     func skipToNextStep() {
         guard role == .hostAndPlayer1 else { return }
         stopTimers()
+        if stage == .couciCoucaItem, let idx = activeDisOrDatItemIndex {
+            scoreAndAdvanceCouciItem(at: idx)
+            return
+        }
+        if stage == .couciCoucaReveal, let idx = activeDisOrDatItemIndex {
+            startCouciCoucaItem(at: idx + 1)
+            return
+        }
         advanceToNextPhaseStep()
     }
 
@@ -993,9 +1037,9 @@ final class GameSessionController {
         stage = .couciCoucaSummary
         revealedBinarySide = nil
         meemawPose = "meemaw_celebrate"
-        meemawSpeech = "Fin de la Raclette Quizz ! Regardez le classement avant la Rafale Finale !"
+        meemawSpeech = "Fin de la Raclette Quizz ! Place à la Rafale Finale Points ×2 !"
         broadcastState()
-        startCountdown(duration: 5.5) { [weak self] in
+        startCountdown(duration: 3.0) { [weak self] in
             self?.advanceToNextPhaseStep()
         }
     }
@@ -1198,19 +1242,28 @@ final class GameSessionController {
 
     private func broadcastState() {
         let snapshot = buildCurrentSnapshot()
+        cachedHostSnapshot = snapshot
         lanServer.broadcast(snapshot)
     }
 
-    // MARK: - QR Code Generator for TV Lobby
+    // MARK: - QR Code Generator for TV Lobby (Cached to avoid CIContext re-creation per frame)
+
+    private static let qrCIContext = CIContext()
+    private static var cachedQRImages: [String: UIImage] = [:]
 
     static func makeQRCodeImage(from string: String) -> UIImage? {
-        let context = CIContext()
+        guard !string.isEmpty else { return nil }
+        if let cached = cachedQRImages[string] {
+            return cached
+        }
         let filter = CIFilter.qrCodeGenerator()
         filter.message = Data(string.utf8)
         filter.correctionLevel = "M"
         guard let outputImage = filter.outputImage else { return nil }
         let scaled = outputImage.transformed(by: CGAffineTransform(scaleX: 10, y: 10))
-        guard let cgImage = context.createCGImage(scaled, from: scaled.extent) else { return nil }
-        return UIImage(cgImage: cgImage)
+        guard let cgImage = qrCIContext.createCGImage(scaled, from: scaled.extent) else { return nil }
+        let image = UIImage(cgImage: cgImage)
+        cachedQRImages[string] = image
+        return image
     }
 }

@@ -32,9 +32,12 @@ final class MeemawShowAudioEngine: NSObject {
 
     private var voicePlayer: AVAudioPlayer?
     private var jinglePlayer: AVAudioPlayer?
+    private var preloadedJingles: [String: AVAudioPlayer] = [:]
     private var bgMusicPlayer: AVAudioPlayer?
     private var activeBgTrackFilename: String?
     private let synthesizer = AVSpeechSynthesizer()
+    private var cachedFrenchVoice: AVSpeechSynthesisVoice?
+    private var didResolveVoice = false
     private var onVoiceCompletion: (() -> Void)?
     private var audioSessionReady = false
 
@@ -49,6 +52,26 @@ final class MeemawShowAudioEngine: NSObject {
         let session = AVAudioSession.sharedInstance()
         try? session.setCategory(.playback, mode: .default, options: [.allowAirPlay, .mixWithOthers])
         try? session.setActive(true)
+        preloadCommonJingles()
+    }
+
+    private func preloadCommonJingles() {
+        let common = [
+            "jingle_intro.wav",
+            "jingle_solo_siren.wav",
+            "jingle_couci.wav",
+            "jingle_victory.wav",
+            "sfx_buzz.wav",
+            "sfx_correct.wav",
+            "sfx_wrong.wav"
+        ]
+        for file in common where preloadedJingles[file] == nil {
+            if let url = resolveAudioURL(named: file),
+               let player = try? AVAudioPlayer(contentsOf: url) {
+                player.prepareToPlay()
+                preloadedJingles[file] = player
+            }
+        }
     }
 
     func resolveAudioURL(named filename: String) -> URL? {
@@ -110,11 +133,20 @@ final class MeemawShowAudioEngine: NSObject {
 
     func playJingle(_ filename: String, volume: Float = 0.85) {
         ensureAudioSession()
+        if let cached = preloadedJingles[filename] {
+            cached.stop()
+            cached.currentTime = 0
+            cached.volume = volume
+            cached.play()
+            jinglePlayer = cached
+            return
+        }
         guard let url = resolveAudioURL(named: filename),
               let player = try? AVAudioPlayer(contentsOf: url) else { return }
         player.volume = volume
         player.prepareToPlay()
         player.play()
+        preloadedJingles[filename] = player
         jinglePlayer = player
     }
 
@@ -180,24 +212,26 @@ final class MeemawShowAudioEngine: NSObject {
             .replacingOccurrences(of: "___", with: "…")
 
         let utterance = AVSpeechUtterance(string: spoken)
-        let preferred = [
-            "com.apple.voice.premium.fr-FR.Audrey",
-            "com.apple.voice.enhanced.fr-FR.Audrey",
-            "com.apple.ttsbundle.Audrey-premium"
-        ]
-        var voice: AVSpeechSynthesisVoice?
-        for id in preferred {
-            if let v = AVSpeechSynthesisVoice(identifier: id) {
-                voice = v
-                break
+        if !didResolveVoice {
+            didResolveVoice = true
+            let preferred = [
+                "com.apple.voice.premium.fr-FR.Audrey",
+                "com.apple.voice.enhanced.fr-FR.Audrey",
+                "com.apple.ttsbundle.Audrey-premium"
+            ]
+            for id in preferred {
+                if let v = AVSpeechSynthesisVoice(identifier: id) {
+                    cachedFrenchVoice = v
+                    break
+                }
+            }
+            if cachedFrenchVoice == nil {
+                cachedFrenchVoice = AVSpeechSynthesisVoice.speechVoices().first(where: {
+                    $0.language.hasPrefix("fr") && ($0.name.lowercased().contains("audrey") || $0.gender == .female)
+                }) ?? AVSpeechSynthesisVoice(language: "fr-FR")
             }
         }
-        if voice == nil {
-            voice = AVSpeechSynthesisVoice.speechVoices().first(where: {
-                $0.language.hasPrefix("fr") && ($0.name.lowercased().contains("audrey") || $0.gender == .female)
-            }) ?? AVSpeechSynthesisVoice(language: "fr-FR")
-        }
-        utterance.voice = voice
+        utterance.voice = cachedFrenchVoice
         utterance.rate = 0.52
         isMeemawSpeaking = true
         synthesizer.speak(utterance)
