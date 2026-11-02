@@ -80,6 +80,7 @@ public struct QuizPlayer: Codable, Equatable, Identifiable, Sendable {
     public var lockedSide: String?
     public var lockedBetStars: Int?
     public var lockedDrawGuess: String?
+    public var drawHintsUsedCount: Int
     public var hasSubmittedEsquisseStep: Bool
     public var reactionTimeMs: Int?
     public var lastDeltaScore: Int?
@@ -105,6 +106,7 @@ public struct QuizPlayer: Codable, Equatable, Identifiable, Sendable {
         lockedSide: String? = nil,
         lockedBetStars: Int? = nil,
         lockedDrawGuess: String? = nil,
+        drawHintsUsedCount: Int = 0,
         hasSubmittedEsquisseStep: Bool = false,
         reactionTimeMs: Int? = nil,
         lastDeltaScore: Int? = nil,
@@ -129,6 +131,7 @@ public struct QuizPlayer: Codable, Equatable, Identifiable, Sendable {
         self.lockedSide = lockedSide
         self.lockedBetStars = lockedBetStars
         self.lockedDrawGuess = lockedDrawGuess
+        self.drawHintsUsedCount = drawHintsUsedCount
         self.hasSubmittedEsquisseStep = hasSubmittedEsquisseStep
         self.reactionTimeMs = reactionTimeMs
         self.lastDeltaScore = lastDeltaScore
@@ -218,6 +221,7 @@ public struct PlayerLobbyRegistry: Sendable {
             players[idx].lockedSide = nil
             players[idx].lockedBetStars = nil
             players[idx].lockedDrawGuess = nil
+            players[idx].drawHintsUsedCount = 0
             players[idx].hasSubmittedEsquisseStep = false
             players[idx].reactionTimeMs = nil
             players[idx].lastDeltaScore = nil
@@ -238,6 +242,7 @@ public struct PlayerLobbyRegistry: Sendable {
             players[idx].lockedSide = nil
             players[idx].lockedBetStars = nil
             players[idx].lockedDrawGuess = nil
+            players[idx].drawHintsUsedCount = 0
             players[idx].hasSubmittedEsquisseStep = false
             players[idx].reactionTimeMs = nil
             players[idx].lastDeltaScore = nil
@@ -526,6 +531,11 @@ public struct DrawingStroke: Codable, Equatable, Sendable {
 }
 
 public struct DrawingCanvasData: Codable, Equatable, Sendable {
+    /// Largeur de référence utilisée pour mettre à l'échelle l'épaisseur des traits de façon 100 % identique sur iPhone, iPad, Web et Apple TV.
+    public static let referenceWidth: Double = 300.0
+    /// Ratio Portrait 3:4 partagé entre le téléphone et l'Apple TV pour un rendu strictement identique sans déformation.
+    public static let portraitAspectRatio: Double = 3.0 / 4.0
+
     public var strokes: [DrawingStroke]
 
     public init(strokes: [DrawingStroke] = []) {
@@ -711,6 +721,7 @@ public struct ClientToHostMessage: Codable, Equatable, Sendable {
         case selectDrawWord = "select_draw_word"
         case updateDrawingCanvas = "update_drawing_canvas"
         case submitDrawGuessWord = "submit_draw_guess"
+        case requestDrawHint = "request_draw_hint"
         case submitEsquisseText = "submit_esquisse_text"
         case submitEsquisseDrawing = "submit_esquisse_drawing"
         case voteEsquisseAlbum = "vote_esquisse_album"

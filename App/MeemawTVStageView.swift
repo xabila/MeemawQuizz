@@ -657,17 +657,26 @@ struct MeemawTVStageView: View {
 
     private func tvDrawSomethingStage(drawRound: DrawRoundState, scale: CGFloat) -> some View {
         HStack(spacing: 18 * scale) {
-            // Giant Live Vector Canvas
+            // Giant Live Portrait (3:4) Vector Canvas — Identical aspect ratio & proportional stroke width to iPhone!
             PopArtCard(
                 cornerRadius: 26 * scale,
                 borderWidth: 4.5,
-                backgroundColor: PopArt.white,
+                backgroundColor: PopArt.cream,
                 shadowOffset: 7 * scale
             ) {
                 ZStack {
-                    Color.white
-                    VectorCanvasPreviewView(canvas: drawRound.canvas)
-                        .padding(12 * scale)
+                    ZStack {
+                        Color.white
+                        VectorCanvasPreviewView(canvas: drawRound.canvas)
+                    }
+                    .aspectRatio(CGFloat(DrawingCanvasData.portraitAspectRatio), contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: 18 * scale))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18 * scale)
+                            .strokeBorder(PopArt.ink, lineWidth: 3.5 * scale)
+                    )
+                    .padding(10 * scale)
+
                     if snap.stage == .drawWordChoice {
                         VStack(spacing: 12 * scale) {
                             Text("\(drawRound.drawerEmoji)")
@@ -678,13 +687,15 @@ struct MeemawTVStageView: View {
                                 .multilineTextAlignment(.center)
                         }
                         .padding(24 * scale)
+                        .background(PopArt.white.opacity(0.95), in: RoundedRectangle(cornerRadius: 20 * scale))
+                        .overlay(RoundedRectangle(cornerRadius: 20 * scale).strokeBorder(PopArt.ink, lineWidth: 3))
                     }
                 }
-                .clipShape(RoundedRectangle(cornerRadius: 22 * scale))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            // Word Slots, Category Hint & Found Players Column
+            // Word Slots & Found Players Column (Zero free hints!)
             PopArtCard(
                 cornerRadius: 24 * scale,
                 borderWidth: 4,
@@ -698,7 +709,7 @@ struct MeemawTVStageView: View {
                         .multilineTextAlignment(.center)
 
                     if let chosen = drawRound.chosenWord {
-                        Text("INDICE : \(chosen.categoryHint.uppercased()) (\(chosen.points) PTS)")
+                        Text("MOT MYSTÈRE : \(chosen.word.count) LETTRES (+\(chosen.points) PTS)")
                             .font(.system(size: 16 * scale, weight: .black, design: .rounded))
                             .foregroundStyle(.white)
                             .padding(.horizontal, 14 * scale)
@@ -714,8 +725,8 @@ struct MeemawTVStageView: View {
                             .overlay(RoundedRectangle(cornerRadius: 16 * scale).strokeBorder(PopArt.ink, lineWidth: 3))
                     }
 
-                    Text("📱 Touchez les 12 lettres façon Draw Something sur votre téléphone !")
-                        .font(.system(size: 15 * scale, weight: .bold, design: .rounded))
+                    Text("📱 Composez le mot sur votre téléphone !\n(Bouton 💡 Indice disponible contre -300 pts)")
+                        .font(.system(size: 14 * scale, weight: .bold, design: .rounded))
                         .foregroundStyle(PopArt.ink.opacity(0.75))
                         .multilineTextAlignment(.center)
 
@@ -742,7 +753,7 @@ struct MeemawTVStageView: View {
                 .padding(18 * scale)
                 .frame(maxHeight: .infinity)
             }
-            .frame(width: 400 * scale)
+            .frame(width: 420 * scale)
         }
     }
 
@@ -793,10 +804,14 @@ struct MeemawTVStageView: View {
                                             .background(PopArt.yellow.opacity(0.45), in: RoundedRectangle(cornerRadius: 16 * scale))
                                             .overlay(RoundedRectangle(cornerRadius: 16 * scale).strokeBorder(PopArt.ink, lineWidth: 3))
                                         } else if let drawing = entry.drawing {
-                                            VectorCanvasPreviewView(canvas: drawing)
-                                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                                .background(Color.white, in: RoundedRectangle(cornerRadius: 16 * scale))
-                                                .overlay(RoundedRectangle(cornerRadius: 16 * scale).strokeBorder(PopArt.ink, lineWidth: 3))
+                                            ZStack {
+                                                Color.white
+                                                VectorCanvasPreviewView(canvas: drawing)
+                                            }
+                                            .aspectRatio(CGFloat(DrawingCanvasData.portraitAspectRatio), contentMode: .fit)
+                                            .clipShape(RoundedRectangle(cornerRadius: 16 * scale))
+                                            .overlay(RoundedRectangle(cornerRadius: 16 * scale).strokeBorder(PopArt.ink, lineWidth: 3))
+                                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                                         }
                                     }
                                     .frame(maxWidth: .infinity, maxHeight: .infinity)

@@ -395,6 +395,14 @@ final class GameSessionController {
         ))
     }
 
+    func requestDrawHint() {
+        audio.triggerControllerHaptic(style: .medium)
+        dispatchAction(ClientToHostMessage(
+            playerID: localPlayerID,
+            action: .requestDrawHint
+        ))
+    }
+
     func submitEsquisseText(_ text: String) {
         audio.triggerControllerHaptic(style: .heavy)
         dispatchAction(ClientToHostMessage(
@@ -492,6 +500,9 @@ final class GameSessionController {
         case .submitDrawGuessWord:
             guard let guess = msg.textPayload else { return }
             handleSubmitDrawGuessWord(playerID: msg.playerID, guess: guess)
+
+        case .requestDrawHint:
+            handleRequestDrawHint(playerID: msg.playerID)
 
         case .submitEsquisseText:
             guard let text = msg.textPayload else { return }
@@ -1527,13 +1538,13 @@ final class GameSessionController {
         meemawPose = "meemaw_dictation_talk"
 
         if drawState.isMagicMeemawBrush {
-            meemawSpeech = "🎨 Le Pinceau Magique de Meemaw dessine un mot de \(chosen.word.count) lettres (\(chosen.categoryHint)) ! Touchez les tuiles dans l'ordre !"
+            meemawSpeech = "🎨 Le Pinceau Magique de Meemaw dessine un mot mystère de \(chosen.word.count) lettres ! Touchez les tuiles dans l'ordre !"
             audio.playMeemawStudioOrFallback(
                 studioFilename: "mq_draw_magic_brush.m4a",
                 fallbackText: meemawSpeech
             )
         } else {
-            meemawSpeech = "🎨 \(drawState.drawerPlayerName) dessine un mot de \(chosen.word.count) lettres (\(chosen.categoryHint) • \(chosen.points) pts) ! Touchez les lettres façon Draw Something !"
+            meemawSpeech = "🎨 \(drawState.drawerPlayerName) dessine un mot mystère de \(chosen.word.count) lettres (\(chosen.points) pts) ! Touchez les lettres façon Draw Something !"
             audio.playMeemawStudioOrFallback(
                 studioFilename: "mq_draw_live.m4a",
                 fallbackText: meemawSpeech
@@ -1583,6 +1594,26 @@ final class GameSessionController {
         }
     }
 
+    private func handleRequestDrawHint(playerID: String) {
+        guard stage == .drawLiveGuessing,
+              let drawState = activeDrawRound,
+              let chosen = drawState.chosenWord else { return }
+        guard playerID != drawState.drawerPlayerID else { return }
+        guard !drawState.foundPlayerIDs.contains(playerID) else { return }
+
+        let maxHints = max(1, chosen.word.count - 1)
+        guard let currentPlayer = registry.players.first(where: { $0.id == playerID }),
+              currentPlayer.drawHintsUsedCount < maxHints else { return }
+
+        let penalty = QuizScoringEngine.drawHintPenaltyPoints
+        registry.updatePlayer(id: playerID) { p in
+            p.drawHintsUsedCount += 1
+            p.score -= penalty
+            p.lastDeltaScore = -(p.drawHintsUsedCount * penalty)
+        }
+        broadcastState()
+    }
+
     private func handleSubmitDrawGuessWord(playerID: String, guess: String) {
         guard stage == .drawLiveGuessing,
               var drawState = activeDrawRound,
@@ -1599,21 +1630,23 @@ final class GameSessionController {
 
         let elapsedMs = max(300, Int(Date().timeIntervalSince(questionOpenedAt) * 1000))
         let rankIdx = drawState.foundPlayerIDs.count
-        let delta = QuizScoringEngine.scoreDrawGuesser(
+        let grossReward = QuizScoringEngine.scoreDrawGuesser(
             wordPoints: chosen.points,
             rankIndex: rankIdx,
             reactionTimeMs: elapsedMs,
-            totalTimeMs: 45000
+            totalTimeMs: 45000,
+            hintsUsed: 0
         )
 
         drawState.foundPlayerIDs.append(playerID)
         activeDrawRound = drawState
 
         registry.updatePlayer(id: playerID) { p in
+            let netDelta = grossReward - (p.drawHintsUsedCount * QuizScoringEngine.drawHintPenaltyPoints)
             p.lockedDrawGuess = chosen.word
             p.reactionTimeMs = elapsedMs
-            p.score += delta
-            p.lastDeltaScore = delta
+            p.score += grossReward
+            p.lastDeltaScore = netDelta
             p.streak += 1
             p.correctAnswersCount += 1
         }
@@ -1648,7 +1681,7 @@ final class GameSessionController {
 
         for p in registry.players where p.id != drawState.drawerPlayerID && !drawState.foundPlayerIDs.contains(p.id) {
             registry.updatePlayer(id: p.id) { player in
-                player.lastDeltaScore = 0
+                player.lastDeltaScore = -(player.drawHintsUsedCount * QuizScoringEngine.drawHintPenaltyPoints)
                 player.streak = 0
             }
         }
@@ -2115,20 +2148,6 @@ final class GameSessionController {
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 self.timeRemainingSec = max(0, self.timeRemainingSec - 0.5)
-                if self.stage == .drawLiveGuessing,
-                   var drawState = self.activeDrawRound,
-                   let chosen = drawState.chosenWord {
-                    let ratio = self.timeRemainingSec / max(1.0, self.totalTimerSec)
-                    var revealed = Set<Int>()
-                    if ratio <= 0.55 {
-                        revealed.insert(0)
-                    }
-                    if ratio <= 0.25 && chosen.word.count >= 4 {
-                        revealed.insert(chosen.word.count - 1)
-                    }
-                    drawState.maskedWordPattern = DrawingBank.maskedPattern(for: chosen.word, revealedIndices: revealed)
-                    self.activeDrawRound = drawState
-                }
                 self.broadcastState()
                 if self.timeRemainingSec <= 0.001 {
                     self.countdownTimer?.invalidate()

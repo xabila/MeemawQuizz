@@ -524,7 +524,7 @@ public enum WebControllerHTML {
                   if (isDrawer) {
                     titleEl.innerText = `🎨 DESSINE : « ${dr.chosenWord ? dr.chosenWord.word : ''} »`;
                     contentEl.innerHTML = `
-                      <canvas id="drawerPadCanvas" width="340" height="240" style="width:100%;height:230px;background:#fff;border:3px solid #1A1A1A;border-radius:14px;touch-action:none;"></canvas>
+                      <canvas id="drawerPadCanvas" width="300" height="400" style="width:100%;max-width:300px;aspect-ratio:3/4;margin:0 auto;display:block;background:#fff;border:3px solid #1A1A1A;border-radius:14px;touch-action:none;"></canvas>
                       <div style="display:flex;gap:6px;justify-content:space-between;align-items:center;margin-top:8px;flex-wrap:wrap;">
                         ${['#111827','#E11D48','#FF8C42','#F59E0B','#10B981','#2563EB','#8E44AD'].map(c =>
                           `<button onclick="setPadColor('${c}')" style="width:30px;height:30px;border-radius:50%;background:${c};border:2.5px solid #1A1A1A;"></button>`
@@ -536,18 +536,22 @@ public enum WebControllerHTML {
                     initInteractivePad('drawerPadCanvas', true);
                   } else {
                     const alreadyFound = (dr.foundPlayerIDs || []).includes(playerID);
-                    titleEl.innerText = `${dr.drawerEmoji || '🎨'} ${dr.drawerPlayerName} dessine (${dr.chosenWord ? dr.chosenWord.categoryHint : ''})`;
+                    titleEl.innerText = `${dr.drawerEmoji || '🎨'} ${dr.drawerPlayerName} dessine (${dr.wordLength || 6} lettres)`;
                     if (alreadyFound) {
                       contentEl.innerHTML = `
-                        <canvas id="guesserPreviewCanvas" width="340" height="210" style="width:100%;height:190px;background:#fff;border:3px solid #1A1A1A;border-radius:14px;"></canvas>
+                        <canvas id="guesserPreviewCanvas" width="300" height="400" style="width:100%;max-width:220px;aspect-ratio:3/4;margin:0 auto;display:block;background:#fff;border:3px solid #1A1A1A;border-radius:14px;"></canvas>
                         <div style="background:#10B981;color:#fff;padding:16px;border-radius:16px;border:3.5px solid #1A1A1A;font-weight:900;text-align:center;margin-top:10px;">
                           🎉 BRAVO ! TU AS TROUVÉ « ${dr.chosenWord ? dr.chosenWord.word : ''} » !
                         </div>`;
                       drawVectorPreview('guesserPreviewCanvas', dr.canvas);
                     } else {
                       contentEl.innerHTML = `
-                        <canvas id="guesserPreviewCanvas" width="340" height="200" style="width:100%;height:185px;background:#fff;border:3px solid #1A1A1A;border-radius:14px;"></canvas>
-                        <div id="drawMaskText" style="font-family:monospace;font-size:22px;font-weight:900;text-align:center;margin:6px 0;">${dr.maskedWordPattern || ''}</div>
+                        <canvas id="guesserPreviewCanvas" width="300" height="400" style="width:100%;max-width:210px;aspect-ratio:3/4;margin:0 auto;display:block;background:#fff;border:3px solid #1A1A1A;border-radius:14px;"></canvas>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin:8px 0;">
+                          <div id="drawMaskText" style="font-family:monospace;font-size:18px;font-weight:900;">${dr.maskedWordPattern || ''}</div>
+                          <button class="badge" style="background:#8E44AD;color:#fff;cursor:pointer;" onclick="buyDrawHint('${dr.chosenWord ? dr.chosenWord.categoryHint : ''}')">💡 Indice (-300 pts)</button>
+                        </div>
+                        <div id="drawHintBanner" style="display:none;background:#F3E8FF;color:#8E44AD;border:2px solid #8E44AD;border-radius:10px;padding:5px 10px;font-size:12px;font-weight:900;text-align:center;margin-bottom:8px;"></div>
                         <div id="drawSlotsRow" style="display:flex;gap:5px;justify-content:center;margin-bottom:8px;"></div>
                         <div id="drawTilesGrid" style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;"></div>
                       `;
@@ -560,7 +564,7 @@ public enum WebControllerHTML {
 
                 if (st.stage === 'draw_reveal') {
                   titleEl.innerText = `🎨 LE MOT ÉTAIT : « ${dr.chosenWord ? dr.chosenWord.word : ''} »`;
-                  contentEl.innerHTML = `<canvas id="guesserPreviewCanvas" width="340" height="200" style="width:100%;height:190px;background:#fff;border:3px solid #1A1A1A;border-radius:14px;"></canvas>`;
+                  contentEl.innerHTML = `<canvas id="guesserPreviewCanvas" width="300" height="400" style="width:100%;max-width:230px;aspect-ratio:3/4;margin:0 auto;display:block;background:#fff;border:3px solid #1A1A1A;border-radius:14px;"></canvas>`;
                   drawVectorPreview('guesserPreviewCanvas', dr.canvas);
                   return;
                 }
@@ -602,7 +606,7 @@ public enum WebControllerHTML {
                 if (st.stage === 'esquisse_drawing') {
                   titleEl.innerText = `🎨 DESSINE : « ${lastEntry && lastEntry.promptText ? lastEntry.promptText : 'Un chat sur un vélo'} »`;
                   contentEl.innerHTML = `
-                    <canvas id="esqPadCanvas" width="340" height="230" style="width:100%;height:220px;background:#fff;border:3px solid #1A1A1A;border-radius:14px;touch-action:none;"></canvas>
+                    <canvas id="esqPadCanvas" width="300" height="400" style="width:100%;max-width:300px;aspect-ratio:3/4;margin:0 auto;display:block;background:#fff;border:3px solid #1A1A1A;border-radius:14px;touch-action:none;"></canvas>
                     <div style="display:flex;gap:6px;justify-content:space-between;align-items:center;margin:8px 0;flex-wrap:wrap;">
                       ${['#111827','#E11D48','#FF8C42','#F59E0B','#10B981','#2563EB','#8E44AD'].map(c =>
                         `<button onclick="setPadColor('${c}')" style="width:28px;height:28px;border-radius:50%;background:${c};border:2.5px solid #1A1A1A;"></button>`
@@ -619,7 +623,7 @@ public enum WebControllerHTML {
                 if (st.stage === 'esquisse_guessing') {
                   titleEl.innerText = '🕵️ ÉTAPE 3/4 : QU\\'EST-CE QUE C\\'EST QUE CE DESSIN ?';
                   contentEl.innerHTML = `
-                    <canvas id="esqGuessPreview" width="340" height="200" style="width:100%;height:190px;background:#fff;border:3px solid #1A1A1A;border-radius:14px;"></canvas>
+                    <canvas id="esqGuessPreview" width="300" height="400" style="width:100%;max-width:230px;aspect-ratio:3/4;margin:0 auto;display:block;background:#fff;border:3px solid #1A1A1A;border-radius:14px;"></canvas>
                     <input type="text" id="esqTextInput" maxlength="85" placeholder="Tape au clavier ce que tu vois..." />
                     <button class="btn-primary" style="background:#10B981;color:#fff;" onclick="submitEsqText()">✅ Valider mon interprétation</button>
                   `;
@@ -762,11 +766,12 @@ public enum WebControllerHTML {
               ctx.clearRect(0, 0, c.width, c.height);
               ctx.lineCap = 'round';
               ctx.lineJoin = 'round';
+              const scale = Math.max(0.1, c.width / 300.0);
               for (const s of (canvasData.strokes || [])) {
                 const pts = s.points || [];
                 if (!pts.length) continue;
                 ctx.strokeStyle = s.colorHex || '#111827';
-                ctx.lineWidth = s.lineWidth || 6;
+                ctx.lineWidth = (s.lineWidth || 7) * scale;
                 ctx.beginPath();
                 ctx.moveTo(pts[0].x * c.width, pts[0].y * c.height);
                 for (let i = 1; i < pts.length; i++) {
@@ -779,11 +784,32 @@ public enum WebControllerHTML {
             let rackTargetLen = 0;
             let rackTargetWord = '';
             let rackTiles = [];
+            let rackHintsUsed = 0;
             function initDrawSomethingRack(len, word, tiles) {
               rackSelectedIndices = [];
               rackTargetLen = len;
               rackTargetWord = (word || '').toUpperCase();
               rackTiles = tiles || [];
+              rackHintsUsed = 0;
+              renderDrawSomethingRack();
+            }
+            function buyDrawHint(categoryHint) {
+              if (rackHintsUsed >= Math.max(1, rackTargetLen - 1)) return;
+              rackHintsUsed += 1;
+              beep(520, 70);
+              sendMsg({ action: 'request_draw_hint' });
+              const banner = document.getElementById('drawHintBanner');
+              if (banner) {
+                banner.style.display = 'block';
+                banner.innerText = `💡 Catégorie : ${categoryHint} • ${rackHintsUsed} lettre(s) révélée(s) (-${rackHintsUsed * 300} pts)`;
+              }
+              const chosen = [];
+              for (let pos = 0; pos < rackHintsUsed; pos++) {
+                const ch = rackTargetWord[pos];
+                const idx = rackTiles.findIndex((t, i) => !chosen.includes(i) && t.toUpperCase() === ch);
+                if (idx >= 0) chosen.push(idx);
+              }
+              rackSelectedIndices = chosen;
               renderDrawSomethingRack();
             }
             function renderDrawSomethingRack() {
@@ -792,8 +818,11 @@ public enum WebControllerHTML {
               if (!slotsEl || !gridEl) return;
               let slotsHTML = '';
               for (let i = 0; i < rackTargetLen; i++) {
+                const locked = i < rackHintsUsed;
                 const letter = i < rackSelectedIndices.length ? rackTiles[rackSelectedIndices[i]] : '';
-                slotsHTML += `<button onclick="removeRackSlot(${i})" style="width:36px;height:42px;border-radius:10px;border:2.5px solid #1A1A1A;background:${letter ? '#FFD700' : '#FFF8F0'};font-size:19px;font-weight:900;">${letter}</button>`;
+                const bg = locked ? '#8E44AD' : (letter ? '#FFD700' : '#FFF8F0');
+                const col = locked ? '#FFFFFF' : '#1A1A1A';
+                slotsHTML += `<button ${locked ? 'disabled' : ''} onclick="removeRackSlot(${i})" style="width:36px;height:42px;border-radius:10px;border:2.5px solid #1A1A1A;background:${bg};color:${col};font-size:19px;font-weight:900;">${letter}</button>`;
               }
               slotsEl.innerHTML = slotsHTML;
               gridEl.innerHTML = rackTiles.map((ch, idx) => {
@@ -802,7 +831,7 @@ public enum WebControllerHTML {
               }).join('');
             }
             function removeRackSlot(pos) {
-              if (pos < rackSelectedIndices.length) {
+              if (pos >= rackHintsUsed && pos < rackSelectedIndices.length) {
                 rackSelectedIndices.splice(pos, 1);
                 renderDrawSomethingRack();
               }

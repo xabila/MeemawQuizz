@@ -29,7 +29,9 @@ struct PlayerControllerView: View {
                                 .strokeBorder(PopArt.ink, lineWidth: 3.5)
                         )
                         .shadow(color: PopArt.ink.opacity(0.35), radius: 6, x: 0, y: 4)
-                } else if !displayManager.isExternalTVSceneConnected {
+                } else if !displayManager.isExternalTVSceneConnected
+                            && snap.stage != .drawLiveGuessing
+                            && snap.stage != .esquisseDrawing {
                     compactPhoneMeemawBanner
                 }
 
@@ -1536,11 +1538,11 @@ struct PlayerControllerView: View {
                         }
                     } else {
                         let alreadyFound = drawRound.foundPlayerIDs.contains(session.localPlayerID)
-                        VStack(spacing: 12) {
+                        VStack(spacing: 10) {
                             PopArtCard(cornerRadius: 20, borderWidth: 3.5, backgroundColor: PopArt.white) {
                                 VStack(spacing: 8) {
                                     HStack {
-                                        Text("\(drawRound.drawerEmoji) \(drawRound.drawerPlayerName) dessine (\(drawRound.chosenWord?.categoryHint ?? "Mystère"))")
+                                        Text("\(drawRound.drawerEmoji) \(drawRound.drawerPlayerName) dessine (\(drawRound.wordLength) lettres)")
                                             .font(.system(size: 13, weight: .black, design: .rounded))
                                             .foregroundStyle(PopArt.orange)
                                         Spacer()
@@ -1548,17 +1550,16 @@ struct PlayerControllerView: View {
                                             .font(.system(size: 14, weight: .black, design: .monospaced))
                                     }
 
-                                    VectorCanvasPreviewView(canvas: drawRound.canvas)
-                                        .frame(height: 210)
-                                        .background(Color.white, in: RoundedRectangle(cornerRadius: 14))
-                                        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(PopArt.ink, lineWidth: 2.5))
-
-                                    Text(drawRound.maskedWordPattern)
-                                        .font(.system(size: 22, weight: .black, design: .monospaced))
-                                        .foregroundStyle(PopArt.ink)
-                                        .padding(.top, 2)
+                                    ZStack {
+                                        Color.white
+                                        VectorCanvasPreviewView(canvas: drawRound.canvas)
+                                    }
+                                    .aspectRatio(CGFloat(DrawingCanvasData.portraitAspectRatio), contentMode: .fit)
+                                    .frame(maxHeight: 265)
+                                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                                    .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(PopArt.ink, lineWidth: 2.5))
                                 }
-                                .padding(12)
+                                .padding(10)
                             }
 
                             if alreadyFound {
@@ -1577,7 +1578,12 @@ struct PlayerControllerView: View {
                                 DrawSomethingTileRackView(
                                     targetLength: max(1, drawRound.wordLength),
                                     targetWord: drawRound.chosenWord?.word ?? "",
+                                    categoryHint: drawRound.chosenWord?.categoryHint ?? "Mystère",
                                     scrambledTiles: drawRound.scrambledTiles,
+                                    hintsUsedCount: me?.drawHintsUsedCount ?? 0,
+                                    onRequestHint: {
+                                        session.requestDrawHint()
+                                    },
                                     onGuessSubmitted: { guess in
                                         session.submitDrawGuessWord(guess)
                                     }
@@ -1598,15 +1604,23 @@ struct PlayerControllerView: View {
                                 .font(.system(size: 22, weight: .black, design: .rounded))
                                 .foregroundStyle(delta > 0 ? .white : PopArt.ink)
 
-                            VectorCanvasPreviewView(canvas: drawRound.canvas)
-                                .frame(height: 190)
-                                .background(Color.white, in: RoundedRectangle(cornerRadius: 14))
-                                .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(PopArt.ink, lineWidth: 2.5))
+                            ZStack {
+                                Color.white
+                                VectorCanvasPreviewView(canvas: drawRound.canvas)
+                            }
+                            .aspectRatio(CGFloat(DrawingCanvasData.portraitAspectRatio), contentMode: .fit)
+                            .frame(maxHeight: 280)
+                            .clipShape(RoundedRectangle(cornerRadius: 14))
+                            .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(PopArt.ink, lineWidth: 2.5))
 
                             if delta > 0 {
                                 Text("🎉 +\(delta) PTS GAGNÉS SUR CE DESSIN !")
                                     .font(.system(size: 18, weight: .black, design: .monospaced))
                                     .foregroundStyle(PopArt.yellow)
+                            } else if delta < 0 {
+                                Text("💡 \(delta) PTS (indices utilisés)")
+                                    .font(.system(size: 15, weight: .black, design: .monospaced))
+                                    .foregroundStyle(PopArt.redError)
                             } else {
                                 Text("0 pt sur ce dessin — prépare-toi pour la suite !")
                                     .font(.system(size: 14, weight: .bold))
@@ -1658,10 +1672,15 @@ struct PlayerControllerView: View {
                                                 .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(PopArt.ink, lineWidth: 2))
                                         }
                                         if let drawing = entry.drawing {
-                                            VectorCanvasPreviewView(canvas: drawing)
-                                                .frame(height: 165)
-                                                .background(Color.white, in: RoundedRectangle(cornerRadius: 12))
-                                                .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(PopArt.ink, lineWidth: 2))
+                                            ZStack {
+                                                Color.white
+                                                VectorCanvasPreviewView(canvas: drawing)
+                                            }
+                                            .aspectRatio(CGFloat(DrawingCanvasData.portraitAspectRatio), contentMode: .fit)
+                                            .frame(maxHeight: 240)
+                                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                                            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(PopArt.ink, lineWidth: 2))
+                                            .frame(maxWidth: .infinity)
                                         }
                                     }
                                 }
@@ -1802,16 +1821,19 @@ struct VectorCanvasPreviewView: View {
 
     var body: some View {
         Canvas { context, size in
+            // Proportional stroke scaling so phone, tablet, and Apple TV 16:9 have the EXACT same line thickness!
+            let strokeScale = max(0.1, size.width / CGFloat(DrawingCanvasData.referenceWidth))
             for stroke in canvas.strokes {
                 guard let first = stroke.points.first else { continue }
+                let scaledLineWidth = CGFloat(stroke.lineWidth) * strokeScale
                 var path = Path()
                 path.move(to: CGPoint(x: first.x * size.width, y: first.y * size.height))
                 if stroke.points.count == 1 {
                     path.addEllipse(in: CGRect(
-                        x: first.x * size.width - stroke.lineWidth / 2,
-                        y: first.y * size.height - stroke.lineWidth / 2,
-                        width: stroke.lineWidth,
-                        height: stroke.lineWidth
+                        x: first.x * size.width - scaledLineWidth / 2,
+                        y: first.y * size.height - scaledLineWidth / 2,
+                        width: scaledLineWidth,
+                        height: scaledLineWidth
                     ))
                     context.fill(path, with: .color(Color(hex: stroke.colorHex)))
                 } else {
@@ -1821,7 +1843,7 @@ struct VectorCanvasPreviewView: View {
                     context.stroke(
                         path,
                         with: .color(Color(hex: stroke.colorHex)),
-                        style: StrokeStyle(lineWidth: stroke.lineWidth, lineCap: .round, lineJoin: .round)
+                        style: StrokeStyle(lineWidth: scaledLineWidth, lineCap: .round, lineJoin: .round)
                     )
                 }
             }
@@ -1843,8 +1865,15 @@ struct InteractiveDrawingPadView: View {
         "#111827", "#E11D48", "#FF8C42", "#F59E0B", "#10B981", "#2563EB", "#8E44AD", "#FFFFFF"
     ]
 
+    private let brushSizes: [(label: String, width: Double, dotSize: CGFloat)] = [
+        ("Fin", 4.0, 8),
+        ("Moyen", 7.5, 13),
+        ("Épais", 13.0, 18)
+    ]
+
     var body: some View {
         VStack(spacing: 10) {
+            // Portrait 3:4 Drawing Canvas — Matches Apple TV aspect ratio 1:1
             GeometryReader { geo in
                 ZStack {
                     Color.white
@@ -1868,10 +1897,10 @@ struct InteractiveDrawingPadView: View {
                             let pt = NormalizedPoint(x: nx, y: ny)
                             if let last = activePoints.last {
                                 let dist = hypot(pt.x - last.x, pt.y - last.y)
-                                if dist < 0.008 { return }
+                                if dist < 0.006 { return }
                             }
                             activePoints.append(pt)
-                            if Date().timeIntervalSince(lastSentAt) > 0.14 {
+                            if Date().timeIntervalSince(lastSentAt) > 0.12 {
                                 lastSentAt = Date()
                                 let preview = DrawingCanvasData(
                                     strokes: strokes + [DrawingStroke(colorHex: selectedColorHex, lineWidth: selectedLineWidth, points: activePoints)]
@@ -1887,29 +1916,57 @@ struct InteractiveDrawingPadView: View {
                         }
                 )
             }
-            .frame(height: 245)
+            .aspectRatio(CGFloat(DrawingCanvasData.portraitAspectRatio), contentMode: .fit)
+            .frame(maxWidth: .infinity)
 
-            // Palette & Brush Controls
+            // Palette Row
             HStack(spacing: 8) {
                 ForEach(palette, id: \.self) { hex in
                     let isEraser = (hex == "#FFFFFF")
                     let isSelected = (selectedColorHex == hex)
                     Button {
                         selectedColorHex = hex
-                        if isEraser { selectedLineWidth = 16.0 }
-                        else if selectedLineWidth > 12.0 { selectedLineWidth = 7.0 }
+                        if isEraser { selectedLineWidth = 18.0 }
+                        else if selectedLineWidth > 14.0 { selectedLineWidth = 7.5 }
                     } label: {
                         ZStack {
                             Circle()
                                 .fill(Color(hex: hex))
-                                .frame(width: 30, height: 30)
+                                .frame(width: 32, height: 32)
                                 .overlay(Circle().strokeBorder(PopArt.ink, lineWidth: isSelected ? 3.5 : 2))
                             if isEraser {
                                 Text("🧽")
-                                    .font(.system(size: 13))
+                                    .font(.system(size: 14))
                             }
                         }
                         .scaleEffect(isSelected ? 1.15 : 1.0)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            // Brush Thickness + Undo / Clear Row
+            HStack(spacing: 8) {
+                ForEach(brushSizes, id: \.label) { sizeOpt in
+                    let isCurrentSize = abs(selectedLineWidth - sizeOpt.width) < 1.5 && selectedColorHex != "#FFFFFF"
+                    Button {
+                        if selectedColorHex == "#FFFFFF" {
+                            selectedColorHex = "#111827"
+                        }
+                        selectedLineWidth = sizeOpt.width
+                    } label: {
+                        HStack(spacing: 5) {
+                            Circle()
+                                .fill(PopArt.ink)
+                                .frame(width: sizeOpt.dotSize, height: sizeOpt.dotSize)
+                            Text(sizeOpt.label)
+                                .font(.system(size: 12, weight: .black, design: .rounded))
+                                .foregroundStyle(PopArt.ink)
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(isCurrentSize ? PopArt.yellow : PopArt.cream, in: Capsule())
+                        .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
                     }
                     .buttonStyle(.plain)
                 }
@@ -1924,7 +1981,7 @@ struct InteractiveDrawingPadView: View {
                 } label: {
                     Text("↩️")
                         .font(.system(size: 15, weight: .black))
-                        .frame(width: 34, height: 34)
+                        .frame(width: 36, height: 36)
                         .background(PopArt.cream, in: Circle())
                         .overlay(Circle().strokeBorder(PopArt.ink, lineWidth: 2))
                 }
@@ -1936,7 +1993,7 @@ struct InteractiveDrawingPadView: View {
                 } label: {
                     Text("🗑️")
                         .font(.system(size: 15, weight: .black))
-                        .frame(width: 34, height: 34)
+                        .frame(width: 36, height: 36)
                         .background(PopArt.cream, in: Circle())
                         .overlay(Circle().strokeBorder(PopArt.ink, lineWidth: 2))
                 }
@@ -1948,11 +2005,18 @@ struct InteractiveDrawingPadView: View {
 struct DrawSomethingTileRackView: View {
     let targetLength: Int
     let targetWord: String
+    let categoryHint: String
     let scrambledTiles: [String]
+    let hintsUsedCount: Int
+    var onRequestHint: () -> Void
     var onGuessSubmitted: (String) -> Void
 
     @State private var selectedTileIndices: [Int] = []
     @State private var wrongAttemptFlash: Bool = false
+
+    private var maxHintsAllowed: Int {
+        max(1, targetLength - 1)
+    }
 
     private var currentWord: String {
         selectedTileIndices.compactMap { idx in
@@ -1960,20 +2024,56 @@ struct DrawSomethingTileRackView: View {
         }.joined()
     }
 
+    private func applyLockedHintLetters(count: Int) {
+        let normalizedTargetChars = Array(DrawingBank.normalizeWord(targetWord))
+        let clampedCount = min(count, normalizedTargetChars.count)
+        guard clampedCount > 0 else { return }
+
+        var chosenIndices: [Int] = []
+        for pos in 0..<clampedCount {
+            let targetChar = String(normalizedTargetChars[pos])
+            if let tileIdx = scrambledTiles.enumerated().first(where: { idx, tile in
+                !chosenIndices.contains(idx) && DrawingBank.normalizeWord(tile) == targetChar
+            })?.offset {
+                chosenIndices.append(tileIdx)
+            }
+        }
+        selectedTileIndices = chosenIndices
+    }
+
     var body: some View {
         PopArtCard(cornerRadius: 20, borderWidth: 3.5, backgroundColor: wrongAttemptFlash ? Color(hex: "#FEE2E2") : PopArt.white) {
-            VStack(spacing: 12) {
-                HStack {
-                    Text("🔤 COMPOSE LE MOT (\(targetLength) LETTRES)")
+            VStack(spacing: 10) {
+                HStack(spacing: 8) {
+                    Text("🔤 \(targetLength) LETTRES")
                         .font(.system(size: 13, weight: .black, design: .rounded))
                         .foregroundStyle(PopArt.orange)
+
                     Spacer()
-                    if !selectedTileIndices.isEmpty {
+
+                    if hintsUsedCount < maxHintsAllowed {
+                        Button {
+                            let nextCount = hintsUsedCount + 1
+                            onRequestHint()
+                            applyLockedHintLetters(count: nextCount)
+                        } label: {
+                            Text("💡 Indice (-300 pts)")
+                                .font(.system(size: 12, weight: .black, design: .rounded))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .background(PopArt.purple, in: Capsule())
+                                .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
+                        }
+                        .buttonStyle(.plain)
+                    }
+
+                    if selectedTileIndices.count > hintsUsedCount {
                         Button {
                             _ = selectedTileIndices.popLast()
                         } label: {
-                            Text("⌫ Effacer")
-                                .font(.system(size: 12, weight: .black))
+                            Text("⌫")
+                                .font(.system(size: 13, weight: .black))
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 5)
                                 .background(PopArt.cream, in: Capsule())
@@ -1983,26 +2083,44 @@ struct DrawSomethingTileRackView: View {
                     }
                 }
 
+                if hintsUsedCount > 0 {
+                    HStack(spacing: 6) {
+                        Text("💡 Catégorie : \(categoryHint) • \(hintsUsedCount) lettre(s) révélée(s) (-\(hintsUsedCount * 300) pts)")
+                            .font(.system(size: 12, weight: .black, design: .rounded))
+                            .foregroundStyle(PopArt.purple)
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .frame(maxWidth: .infinity)
+                    .background( Color(hex: "#F3E8FF"), in: RoundedRectangle(cornerRadius: 10))
+                    .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(PopArt.purple, lineWidth: 1.5))
+                }
+
                 // Word Answer Slots
                 HStack(spacing: 6) {
                     ForEach(0..<targetLength, id: \.self) { pos in
+                        let isHintLocked = pos < hintsUsedCount
                         let letter: String = pos < selectedTileIndices.count
                             ? scrambledTiles[selectedTileIndices[pos]]
                             : ""
                         Button {
-                            if pos < selectedTileIndices.count {
+                            if pos >= hintsUsedCount && pos < selectedTileIndices.count {
                                 selectedTileIndices.remove(at: pos)
                             }
                         } label: {
                             Text(letter)
                                 .font(.system(size: 20, weight: .black, design: .rounded))
-                                .foregroundStyle(PopArt.ink)
+                                .foregroundStyle(isHintLocked ? .white : PopArt.ink)
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 44)
-                                .background(letter.isEmpty ? PopArt.cream : PopArt.yellow, in: RoundedRectangle(cornerRadius: 10))
+                                .background(
+                                    isHintLocked ? PopArt.purple : (letter.isEmpty ? PopArt.cream : PopArt.yellow),
+                                    in: RoundedRectangle(cornerRadius: 10)
+                                )
                                 .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(PopArt.ink, lineWidth: 2.5))
                         }
                         .buttonStyle(.plain)
+                        .disabled(isHintLocked)
                     }
                 }
 
@@ -2022,7 +2140,10 @@ struct DrawSomethingTileRackView: View {
                                     Task { @MainActor in
                                         try? await Task.sleep(for: .milliseconds(450))
                                         wrongAttemptFlash = false
-                                        selectedTileIndices.removeAll()
+                                        applyLockedHintLetters(count: hintsUsedCount)
+                                        if hintsUsedCount == 0 {
+                                            selectedTileIndices.removeAll()
+                                        }
                                     }
                                 }
                             }
@@ -2044,6 +2165,11 @@ struct DrawSomethingTileRackView: View {
         }
         .onChange(of: targetWord) { _, _ in
             selectedTileIndices.removeAll()
+        }
+        .onChange(of: hintsUsedCount) { _, newCount in
+            if newCount > 0 && selectedTileIndices.count < newCount {
+                applyLockedHintLetters(count: newCount)
+            }
         }
     }
 }
@@ -2133,10 +2259,15 @@ struct EsquisseInteractiveStepCard: View {
                         .foregroundStyle(PopArt.pink)
 
                     if let drawing = previousEntry?.drawing {
-                        VectorCanvasPreviewView(canvas: drawing)
-                            .frame(height: 200)
-                            .background(Color.white, in: RoundedRectangle(cornerRadius: 14))
-                            .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(PopArt.ink, lineWidth: 2.5))
+                        ZStack {
+                            Color.white
+                            VectorCanvasPreviewView(canvas: drawing)
+                        }
+                        .aspectRatio(CGFloat(DrawingCanvasData.portraitAspectRatio), contentMode: .fit)
+                        .frame(maxHeight: 280)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(PopArt.ink, lineWidth: 2.5))
+                        .frame(maxWidth: .infinity)
                     }
 
                     Text("Tape librement au clavier ce que tu crois voir (le joueur suivant devra le redessiner !) :")

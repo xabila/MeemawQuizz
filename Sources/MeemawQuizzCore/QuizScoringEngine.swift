@@ -98,15 +98,20 @@ public enum QuizScoringEngine {
         return valuePerItem + streakBonus
     }
 
+    /// Coût en points d'un indice (1 lettre révélée + thème) demandé par un joueur dans « Draw Something ».
+    public static let drawHintPenaltyPoints: Int = 300
+
     /// Calcule les points d'un joueur qui devine le mot dans « Draw Something » :
     /// - 1er à trouver : 100 % des points du mot + bonus vitesse (jusqu'à +600 pts)
     /// - 2e à trouver : 80 % des points + bonus vitesse
     /// - Suivants : 65 % des points + bonus vitesse
+    /// - Chaque indice demandé retire `drawHintPenaltyPoints` (300 pts).
     public static func scoreDrawGuesser(
         wordPoints: Int,
         rankIndex: Int,
         reactionTimeMs: Int,
-        totalTimeMs: Int = 45000
+        totalTimeMs: Int = 45000,
+        hintsUsed: Int = 0
     ) -> Int {
         let factor: Double
         switch rankIndex {
@@ -118,7 +123,8 @@ public enum QuizScoringEngine {
         let speedRatio = max(0.0, 1.0 - (Double(clamped) / Double(max(1, totalTimeMs))))
         let speedBonus = Int((speedRatio * 600.0 / 50.0).rounded()) * 50
         let base = Int((Double(wordPoints) * factor / 50.0).rounded()) * 50
-        return base + speedBonus
+        let penalty = max(0, hintsUsed) * drawHintPenaltyPoints
+        return base + speedBonus - penalty
     }
 
     /// Calcule le bonus du dessinateur dans « Draw Something » :

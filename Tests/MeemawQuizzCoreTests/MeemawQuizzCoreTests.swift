@@ -99,10 +99,13 @@ final class MeemawQuizzCoreTests: XCTestCase {
     func testDrawSomethingScoringRewardsGuesserAndArtist() {
         let g1 = QuizScoringEngine.scoreDrawGuesser(wordPoints: 2000, rankIndex: 0, reactionTimeMs: 5000, totalTimeMs: 45000)
         let g2 = QuizScoringEngine.scoreDrawGuesser(wordPoints: 2000, rankIndex: 1, reactionTimeMs: 12000, totalTimeMs: 45000)
+        let gWith2Hints = QuizScoringEngine.scoreDrawGuesser(wordPoints: 2000, rankIndex: 0, reactionTimeMs: 5000, totalTimeMs: 45000, hintsUsed: 2)
         XCTAssertGreaterThan(g1, 2300)
         XCTAssertGreaterThan(g1, g2)
+        XCTAssertEqual(gWith2Hints, g1 - (2 * QuizScoringEngine.drawHintPenaltyPoints))
 
         let artistScore = QuizScoringEngine.scoreDrawArtist(wordPoints: 2000, foundCount: 2)
         XCTAssertEqual(artistScore, 2000)
+        XCTAssertEqual(DrawingCanvasData.portraitAspectRatio, 0.75, accuracy: 0.001)
     }
 }
