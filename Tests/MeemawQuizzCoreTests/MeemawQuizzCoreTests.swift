@@ -107,5 +107,15 @@ final class MeemawQuizzCoreTests: XCTestCase {
         let artistScore = QuizScoringEngine.scoreDrawArtist(wordPoints: 2000, foundCount: 2)
         XCTAssertEqual(artistScore, 2000)
         XCTAssertEqual(DrawingCanvasData.portraitAspectRatio, 0.75, accuracy: 0.001)
+
+        let stickmanStrokes = DrawingBank.makeShapeStrokes(
+            tool: .stickman,
+            start: NormalizedPoint(x: 0.2, y: 0.2),
+            end: NormalizedPoint(x: 0.6, y: 0.8),
+            colorHex: "#111827",
+            lineWidth: 7.5
+        )
+        XCTAssertEqual(stickmanStrokes.count, 4)
+        XCTAssertEqual(DrawingBank.pickThreeEsquissePrompts().count, 3)
     }
 }

@@ -1780,11 +1780,11 @@ final class GameSessionController {
             // Step 1 or 3: Draw the previous text prompt!
             stage = .esquisseDrawing
             meemawPose = "meemaw_dictation_talk"
-            meemawSpeech = "🎨 ESQUISSÉ (Étape \(stepIndex + 1)/4) : Les carnets ont tourné ! Dessinez la phrase affichée sur votre téléphone en 45 secondes !"
+            meemawSpeech = "🎨 ESQUISSÉ (Étape \(stepIndex + 1)/4) : Les carnets ont tourné ! Utilisez les formes rapides (Rond, Triangle, Bonhomme) pour dessiner la phrase !"
             audio.setMusicMood(.fastAction)
             audio.playMeemawStudioOrFallback(studioFilename: "mq_esquisse_draw.m4a", fallbackText: meemawSpeech)
             broadcastState()
-            startCountdown(duration: 45.0) { [weak self] in
+            startCountdown(duration: 55.0) { [weak self] in
                 self?.finalizeCurrentEsquisseStepAndAdvance()
             }
 

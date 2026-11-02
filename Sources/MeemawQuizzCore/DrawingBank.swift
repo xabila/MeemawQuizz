@@ -144,62 +144,246 @@ public enum DrawingBank {
         }.joined(separator: " ")
     }
 
-    // MARK: - 30 Hilarious Starter Prompts for « Esquissé ! » (Téléphone Arabe Dessiné)
+    // MARK: - 30 Simple, Finger-Friendly Visual Prompts for « Esquissé ! » (Easy to draw on a phone with basic shapes & stickmen!)
 
     public static let esquisseStarterPrompts: [String] = [
-        "Un tyrannosaure qui passe l'aspirateur",
-        "Dark Vador qui mange une raclette",
-        "Un chat qui conduit un tracteur",
-        "Meemaw qui fait du surf sur un requin",
-        "Un pingouin qui bronze sous un palmier",
-        "Un extraterrestre aux toilettes",
-        "Un chien qui joue de la guitare électrique",
-        "Un pirate qui a peur d'une petite souris",
-        "Une licorne qui fait de la musculation",
-        "Un fantôme coincé dans une machine à laver",
-        "Un robot qui fait des crêpes en les lançant au plafond",
-        "Une tortue avec un réacteur de fusée sur le dos",
-        "Un kangourou sur un match de boxe",
-        "Une vache qui saute en parachute",
-        "Un vampire chez le dentiste",
-        "Un bonhomme de neige au sauna",
-        "Un poulpe qui joue de la batterie",
-        "Un escargot poursuivi par la police",
-        "Une poule qui pond un diamant géant",
-        "Napoléon sur une trottinette électrique"
+        "Un bonhomme de neige sous le soleil",
+        "Un serpent avec des lunettes",
+        "Un requin sous un petit bateau",
+        "Une glace qui fond au soleil",
+        "Une pomme avec un petit ver",
+        "Un bonhomme sous la pluie sans parapluie",
+        "Un ballon qui touche un cactus",
+        "Un poisson dans un bocal",
+        "Une maison avec de la fumée en forme de cœur",
+        "Un œuf au plat dans une poêle",
+        "Un bonhomme qui glisse sur une banane",
+        "Une araignée au bout de son fil",
+        "Un fantôme qui a peur d'une souris",
+        "Une fusée qui vole vers la lune",
+        "Un chat caché dans un carton",
+        "Une fleur géante à côté d'une petite maison",
+        "Un escargot avec un drapeau sur le dos",
+        "Un bonhomme qui soulève des haltères",
+        "Une île déserte avec un seul palmier",
+        "Un soleil avec des lunettes noires",
+        "Une tasse de café brûlante qui fume",
+        "Un bonhomme au sommet d'une montagne",
+        "Une bombe avec la mèche allumée",
+        "Un cadeau avec un gros ruban",
+        "Une part de pizza toute chaude",
+        "Un parapluie retourné par le vent",
+        "Un bonhomme dans une montgolfière",
+        "Un poisson au bout d'une canne à pêche",
+        "Une étoile filante au-dessus d'un sapin",
+        "Un bonhomme qui fait du ski sur une bosse"
     ]
 
     public static func randomEsquissePrompt(excluding used: Set<String> = []) -> String {
         let avail = esquisseStarterPrompts.filter { !used.contains($0) }
-        return (avail.isEmpty ? esquisseStarterPrompts : avail).randomElement() ?? "Un chat qui fait du vélo"
+        return (avail.isEmpty ? esquisseStarterPrompts : avail).randomElement() ?? "Un bonhomme de neige sous le soleil"
+    }
+
+    public static func pickThreeEsquissePrompts(excluding used: Set<String> = []) -> [String] {
+        let avail = esquisseStarterPrompts.filter { !used.contains($0) }.shuffled()
+        if avail.count >= 3 {
+            return Array(avail.prefix(3))
+        }
+        return Array(esquisseStarterPrompts.shuffled().prefix(3))
+    }
+
+    /// Generates 3 quick-tap guess suggestions (1 close/funny + 2 neighbor prompts) so players aren't stuck deciphering a finger drawing on phone.
+    public static func quickGuessSuggestions(from previousPrompt: String) -> [String] {
+        let clean = previousPrompt.trimmingCharacters(in: .whitespacesAndNewlines)
+        let funny = botFunnyMisinterpretation(from: clean)
+        var options: [String] = []
+        if !clean.isEmpty {
+            options.append(clean)
+        }
+        if !options.contains(funny) {
+            options.append(funny)
+        }
+        for candidate in esquisseStarterPrompts.shuffled() where options.count < 3 {
+            if !options.contains(candidate) {
+                options.append(candidate)
+            }
+        }
+        return options.shuffled()
     }
 
     /// Funny bot misinterpretation when a bot plays Step 2 (Guessing from a drawing) in Esquissé!
     public static func botFunnyMisinterpretation(from previousPrompt: String) -> String {
         let lower = previousPrompt.lowercased()
-        if lower.contains("tyrannosaure") || lower.contains("dino") {
-            return "Un gros lézard vert qui promène son chien"
-        } else if lower.contains("vador") || lower.contains("raclette") {
-            return "Un pompier avec un casque noir qui fait fondre du fromage"
-        } else if lower.contains("requin") || lower.contains("surf") {
-            return "Mamie debout sur une grosse sardine dans les vagues"
-        } else if lower.contains("tracteur") || lower.contains("chat") {
-            return "Un lapin à moustaches dans une grosse tondeuse"
-        } else if lower.contains("licorne") {
-            return "Un cheval avec un cornet de glace planté sur le front"
-        } else if lower.contains("fusée") || lower.contains("tortue") {
-            return "Un escargot qui a mis le feu à sa coquille"
-        } else if lower.contains("parachute") || lower.contains("vache") {
-            return "Un chien à taches accroché sous un grand parapluie"
+        if lower.contains("neige") || lower.contains("glace") {
+            return "Une boule de glace qui fond sur le trottoir"
+        } else if lower.contains("serpent") || lower.contains("ver") {
+            return "Un spaghetti géant avec des phares de voiture"
+        } else if lower.contains("requin") || lower.contains("bateau") || lower.contains("poisson") {
+            return "Un sous-marin poursuivi par une sardine"
+        } else if lower.contains("pluie") || lower.contains("parapluie") {
+            return "Un bonhomme qui prend sa douche tout habillé"
+        } else if lower.contains("ballon") || lower.contains("cactus") {
+            return "Une sucette plantée dans un cornichon"
+        } else if lower.contains("maison") || lower.contains("fumée") {
+            return "Une cheminée qui envoie des bisous"
+        } else if lower.contains("fusée") || lower.contains("lune") {
+            return "Une carotte géante lancée dans l'espace"
+        } else if lower.contains("montagne") || lower.contains("ski") {
+            return "Un bonhomme qui dévale un toboggan géant"
+        } else {
+            let fallbacks = [
+                "Un bonhomme bâton perdu dans le désert",
+                "Un soleil qui bronzait à la plage",
+                "Une soucoupe volante au-dessus du jardin",
+                "Un chat déguisé en fantôme",
+                "Un œuf sur le plat qui fait un sourire"
+            ]
+            return fallbacks.randomElement()!
         }
-        let fallbacks = [
-            "Une patate avec des lunettes qui danse la macarena",
-            "Un canard géant qui attaque une boulangerie",
-            "Tonton Gérard qui essaie de monter un meuble suédois",
-            "Un poulpe en rollers qui jongle avec des pizzas",
-            "Un pigeon musclé qui soulève des haltères"
-        ]
-        return fallbacks.randomElement()!
+    }
+
+    // MARK: - Phone Drawing Assistant: Geometric Shapes, Stickman Stamp & Curve Smoothing
+
+    public enum DrawingToolMode: String, CaseIterable, Identifiable, Sendable {
+        case freehand = "freehand"
+        case line = "line"
+        case circle = "circle"
+        case rectangle = "rectangle"
+        case triangle = "triangle"
+        case stickman = "stickman"
+        case arrow = "arrow"
+
+        public var id: String { rawValue }
+
+        public var label: String {
+            switch self {
+            case .freehand: "✏️ Libre"
+            case .line: "📏 Ligne"
+            case .circle: "⭕ Rond"
+            case .rectangle: "🔲 Boîte"
+            case .triangle: "🔺 Triangle"
+            case .stickman: "🧍 Bonhomme"
+            case .arrow: "➡️ Flèche"
+            }
+        }
+    }
+
+    /// Smooths shaky finger points on a phone screen using 1 pass of Chaikin corner-cutting.
+    public static func smoothPoints(_ points: [NormalizedPoint]) -> [NormalizedPoint] {
+        guard points.count >= 3 else { return points }
+        var result: [NormalizedPoint] = [points[0]]
+        for i in 0..<(points.count - 1) {
+            let p0 = points[i]
+            let p1 = points[i + 1]
+            let q = NormalizedPoint(x: 0.75 * p0.x + 0.25 * p1.x, y: 0.75 * p0.y + 0.25 * p1.y)
+            let r = NormalizedPoint(x: 0.25 * p0.x + 0.75 * p1.x, y: 0.25 * p0.y + 0.75 * p1.y)
+            result.append(q)
+            result.append(r)
+        }
+        result.append(points[points.count - 1])
+        return result
+    }
+
+    /// Generates clean vector strokes when dragging from `start` to `end` on a phone screen.
+    public static func makeShapeStrokes(
+        tool: DrawingToolMode,
+        start: NormalizedPoint,
+        end: NormalizedPoint,
+        colorHex: String,
+        lineWidth: Double
+    ) -> [DrawingStroke] {
+        let minX = min(start.x, end.x)
+        let maxX = max(start.x, end.x)
+        let minY = min(start.y, end.y)
+        let maxY = max(start.y, end.y)
+        let width = max(0.04, maxX - minX)
+        let height = max(0.04, maxY - minY)
+        let cx = (minX + maxX) / 2.0
+        let cy = (minY + maxY) / 2.0
+
+        switch tool {
+        case .freehand:
+            return [DrawingStroke(colorHex: colorHex, lineWidth: lineWidth, points: [start, end])]
+
+        case .line:
+            return [DrawingStroke(colorHex: colorHex, lineWidth: lineWidth, points: [start, end])]
+
+        case .circle:
+            let rx = width / 2.0
+            let ry = height / 2.0
+            let steps = 28
+            let pts = (0...steps).map { idx -> NormalizedPoint in
+                let angle = Double(idx) / Double(steps) * (.pi * 2.0)
+                return NormalizedPoint(
+                    x: min(1.0, max(0.0, cx + cos(angle) * rx)),
+                    y: min(1.0, max(0.0, cy + sin(angle) * ry))
+                )
+            }
+            return [DrawingStroke(colorHex: colorHex, lineWidth: lineWidth, points: pts)]
+
+        case .rectangle:
+            let pts = [
+                NormalizedPoint(x: minX, y: minY),
+                NormalizedPoint(x: maxX, y: minY),
+                NormalizedPoint(x: maxX, y: maxY),
+                NormalizedPoint(x: minX, y: maxY),
+                NormalizedPoint(x: minX, y: minY)
+            ]
+            return [DrawingStroke(colorHex: colorHex, lineWidth: lineWidth, points: pts)]
+
+        case .triangle:
+            let pts = [
+                NormalizedPoint(x: cx, y: minY),
+                NormalizedPoint(x: maxX, y: maxY),
+                NormalizedPoint(x: minX, y: maxY),
+                NormalizedPoint(x: cx, y: minY)
+            ]
+            return [DrawingStroke(colorHex: colorHex, lineWidth: lineWidth, points: pts)]
+
+        case .stickman:
+            let headR = min(width, height) * 0.18
+            let headCY = minY + headR
+            let neckY = headCY + headR
+            let hipY = minY + height * 0.66
+            let footY = maxY
+            let armY = neckY + (hipY - neckY) * 0.32
+            let armSpan = max(width * 0.45, headR * 1.8)
+            let legSpan = max(width * 0.38, headR * 1.5)
+
+            let headStroke = circleStroke(cx: cx, cy: headCY, r: headR, color: colorHex, width: lineWidth)
+            let spineStroke = DrawingStroke(colorHex: colorHex, lineWidth: lineWidth, points: [
+                NormalizedPoint(x: cx, y: neckY),
+                NormalizedPoint(x: cx, y: hipY)
+            ])
+            let armsStroke = DrawingStroke(colorHex: colorHex, lineWidth: lineWidth, points: [
+                NormalizedPoint(x: max(0.0, cx - armSpan), y: armY),
+                NormalizedPoint(x: min(1.0, cx + armSpan), y: armY)
+            ])
+            let legsStroke = DrawingStroke(colorHex: colorHex, lineWidth: lineWidth, points: [
+                NormalizedPoint(x: max(0.0, cx - legSpan), y: footY),
+                NormalizedPoint(x: cx, y: hipY),
+                NormalizedPoint(x: min(1.0, cx + legSpan), y: footY)
+            ])
+            return [headStroke, spineStroke, armsStroke, legsStroke]
+
+        case .arrow:
+            let dx = end.x - start.x
+            let dy = end.y - start.y
+            let angle = atan2(dy, dx)
+            let headLen = max(0.05, hypot(dx, dy) * 0.25)
+            let p1 = NormalizedPoint(
+                x: min(1.0, max(0.0, end.x - headLen * cos(angle - .pi / 6))),
+                y: min(1.0, max(0.0, end.y - headLen * sin(angle - .pi / 6)))
+            )
+            let p2 = NormalizedPoint(
+                x: min(1.0, max(0.0, end.x - headLen * cos(angle + .pi / 6))),
+                y: min(1.0, max(0.0, end.y - headLen * sin(angle + .pi / 6)))
+            )
+            return [
+                DrawingStroke(colorHex: colorHex, lineWidth: lineWidth, points: [start, end]),
+                DrawingStroke(colorHex: colorHex, lineWidth: lineWidth, points: [p1, end, p2])
+            ]
+        }
     }
 
     // MARK: - Pre-Recorded Vector Sketches for Solo ("Pinceau Magique de Meemaw") & Demo Bots

@@ -1723,10 +1723,12 @@ struct PlayerControllerView: View {
                 } else {
                     let assignedID = esq.activeAssignmentByPlayerID[session.localPlayerID]
                     let assignedNotebook = esq.notebooks.first(where: { $0.id == assignedID }) ?? esq.notebooks.first
+                    let originalPrompt = assignedNotebook?.entries.first?.promptText ?? ""
                     EsquisseInteractiveStepCard(
                         stage: snap.stage,
                         stepIndex: esq.stepIndex,
                         previousEntry: assignedNotebook?.entries.last,
+                        notebookFirstPrompt: originalPrompt,
                         onSubmitText: { text in
                             session.submitEsquisseText(text)
                         },
@@ -1857,8 +1859,11 @@ struct InteractiveDrawingPadView: View {
 
     @State private var strokes: [DrawingStroke] = []
     @State private var activePoints: [NormalizedPoint] = []
+    @State private var dragStartPoint: NormalizedPoint? = nil
+    @State private var dragCurrentPoint: NormalizedPoint? = nil
+    @State private var selectedTool: DrawingBank.DrawingToolMode = .freehand
     @State private var selectedColorHex: String = "#111827"
-    @State private var selectedLineWidth: Double = 7.0
+    @State private var selectedLineWidth: Double = 7.5
     @State private var lastSentAt: Date = .distantPast
 
     private let palette: [String] = [
@@ -1871,18 +1876,61 @@ struct InteractiveDrawingPadView: View {
         ("Épais", 13.0, 18)
     ]
 
+    private var previewStrokes: [DrawingStroke] {
+        if selectedTool == .freehand {
+            guard !activePoints.isEmpty else { return strokes }
+            return strokes + [DrawingStroke(colorHex: selectedColorHex, lineWidth: selectedLineWidth, points: activePoints)]
+        } else {
+            guard let start = dragStartPoint, let current = dragCurrentPoint else { return strokes }
+            let shapeStrokes = DrawingBank.makeShapeStrokes(
+                tool: selectedTool,
+                start: start,
+                end: current,
+                colorHex: selectedColorHex,
+                lineWidth: selectedLineWidth
+            )
+            return strokes + shapeStrokes
+        }
+    }
+
     var body: some View {
-        VStack(spacing: 10) {
-            // Portrait 3:4 Drawing Canvas — Matches Apple TV aspect ratio 1:1
+        VStack(spacing: 8) {
+            // 1. Barre d'Outils d'Aide au Dessin sur Téléphone (Formes automatiques & Bonhomme bâton !)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 6) {
+                    ForEach(DrawingBank.DrawingToolMode.allCases) { tool in
+                        let isSelected = (selectedTool == tool)
+                        Button {
+                            selectedTool = tool
+                            if selectedColorHex == "#FFFFFF" && tool != .freehand {
+                                selectedColorHex = "#111827"
+                            }
+                        } label: {
+                            Text(tool.label)
+                                .font(.system(size: 12, weight: .black, design: .rounded))
+                                .foregroundStyle(isSelected ? .white : PopArt.ink)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .background(isSelected ? PopArt.blue : PopArt.cream, in: Capsule())
+                                .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+
+            if selectedTool != .freehand {
+                Text("👆 Glisse ton doigt sur la toile pour placer : \(selectedTool.label)")
+                    .font(.system(size: 11, weight: .black, design: .rounded))
+                    .foregroundStyle(PopArt.blue)
+            }
+
+            // 2. Portrait 3:4 Drawing Canvas — Matches Apple TV aspect ratio 1:1
             GeometryReader { geo in
                 ZStack {
                     Color.white
                     VectorCanvasPreviewView(
-                        canvas: DrawingCanvasData(
-                            strokes: strokes + (activePoints.isEmpty ? [] : [
-                                DrawingStroke(colorHex: selectedColorHex, lineWidth: selectedLineWidth, points: activePoints)
-                            ])
-                        )
+                        canvas: DrawingCanvasData(strokes: previewStrokes)
                     )
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 16))
@@ -1895,23 +1943,46 @@ struct InteractiveDrawingPadView: View {
                             let nx = min(1.0, max(0.0, value.location.x / w))
                             let ny = min(1.0, max(0.0, value.location.y / h))
                             let pt = NormalizedPoint(x: nx, y: ny)
-                            if let last = activePoints.last {
-                                let dist = hypot(pt.x - last.x, pt.y - last.y)
-                                if dist < 0.006 { return }
+
+                            if selectedTool == .freehand {
+                                if let last = activePoints.last {
+                                    let dist = hypot(pt.x - last.x, pt.y - last.y)
+                                    if dist < 0.006 { return }
+                                }
+                                activePoints.append(pt)
+                            } else {
+                                if dragStartPoint == nil {
+                                    dragStartPoint = NormalizedPoint(
+                                        x: min(1.0, max(0.0, value.startLocation.x / w)),
+                                        y: min(1.0, max(0.0, value.startLocation.y / h))
+                                    )
+                                }
+                                dragCurrentPoint = pt
                             }
-                            activePoints.append(pt)
+
                             if Date().timeIntervalSince(lastSentAt) > 0.12 {
                                 lastSentAt = Date()
-                                let preview = DrawingCanvasData(
-                                    strokes: strokes + [DrawingStroke(colorHex: selectedColorHex, lineWidth: selectedLineWidth, points: activePoints)]
-                                )
-                                onCanvasChanged(preview)
+                                onCanvasChanged(DrawingCanvasData(strokes: previewStrokes))
                             }
                         }
                         .onEnded { _ in
-                            guard !activePoints.isEmpty else { return }
-                            strokes.append(DrawingStroke(colorHex: selectedColorHex, lineWidth: selectedLineWidth, points: activePoints))
-                            activePoints.removeAll()
+                            if selectedTool == .freehand {
+                                guard !activePoints.isEmpty else { return }
+                                let smoothed = DrawingBank.smoothPoints(activePoints)
+                                strokes.append(DrawingStroke(colorHex: selectedColorHex, lineWidth: selectedLineWidth, points: smoothed))
+                                activePoints.removeAll()
+                            } else if let start = dragStartPoint, let end = dragCurrentPoint {
+                                let built = DrawingBank.makeShapeStrokes(
+                                    tool: selectedTool,
+                                    start: start,
+                                    end: end,
+                                    colorHex: selectedColorHex,
+                                    lineWidth: selectedLineWidth
+                                )
+                                strokes.append(contentsOf: built)
+                                dragStartPoint = nil
+                                dragCurrentPoint = nil
+                            }
                             onCanvasChanged(DrawingCanvasData(strokes: strokes))
                         }
                 )
@@ -1919,15 +1990,19 @@ struct InteractiveDrawingPadView: View {
             .aspectRatio(CGFloat(DrawingCanvasData.portraitAspectRatio), contentMode: .fit)
             .frame(maxWidth: .infinity)
 
-            // Palette Row
+            // 3. Palette Row
             HStack(spacing: 8) {
                 ForEach(palette, id: \.self) { hex in
                     let isEraser = (hex == "#FFFFFF")
                     let isSelected = (selectedColorHex == hex)
                     Button {
                         selectedColorHex = hex
-                        if isEraser { selectedLineWidth = 18.0 }
-                        else if selectedLineWidth > 14.0 { selectedLineWidth = 7.5 }
+                        if isEraser {
+                            selectedTool = .freehand
+                            selectedLineWidth = 18.0
+                        } else if selectedLineWidth > 14.0 {
+                            selectedLineWidth = 7.5
+                        }
                     } label: {
                         ZStack {
                             Circle()
@@ -1945,7 +2020,7 @@ struct InteractiveDrawingPadView: View {
                 }
             }
 
-            // Brush Thickness + Undo / Clear Row
+            // 4. Brush Thickness + Undo / Clear Row
             HStack(spacing: 8) {
                 ForEach(brushSizes, id: \.label) { sizeOpt in
                     let isCurrentSize = abs(selectedLineWidth - sizeOpt.width) < 1.5 && selectedColorHex != "#FFFFFF"
@@ -1989,6 +2064,8 @@ struct InteractiveDrawingPadView: View {
                 Button {
                     strokes.removeAll()
                     activePoints.removeAll()
+                    dragStartPoint = nil
+                    dragCurrentPoint = nil
                     onCanvasChanged(DrawingCanvasData(strokes: []))
                 } label: {
                     Text("🗑️")
@@ -2178,58 +2255,94 @@ struct EsquisseInteractiveStepCard: View {
     let stage: ShowStageState
     let stepIndex: Int
     let previousEntry: EsquisseEntry?
+    var notebookFirstPrompt: String = ""
     var onSubmitText: (String) -> Void
     var onSubmitDrawing: (DrawingCanvasData) -> Void
 
     @State private var typedText: String = ""
     @State private var currentCanvas = DrawingCanvasData()
+    @State private var starterIdeas: [String] = DrawingBank.pickThreeEsquissePrompts()
+    @State private var quickGuesses: [String] = []
 
     var body: some View {
         PopArtCard(cornerRadius: 22, borderWidth: 4, backgroundColor: PopArt.white) {
             VStack(alignment: .leading, spacing: 12) {
                 if stage == .esquissePromptEntry {
-                    Text("✍️ ÉTAPE 1/4 : INVENTE UNE SCÈNE FOLLE !")
-                        .font(.system(size: 18, weight: .black, design: .rounded))
-                        .foregroundStyle(PopArt.orange)
-
-                    Text("Ton voisin devra la dessiner sans aide :")
-                        .font(.system(size: 13, weight: .bold))
-                        .foregroundStyle(PopArt.ink.opacity(0.72))
-
-                    TextField("Ex: Un tyrannosaure qui passe l'aspirateur...", text: $typedText)
-                        .font(.system(size: 17, weight: .heavy, design: .rounded))
-                        .padding(12)
-                        .background(PopArt.cream, in: RoundedRectangle(cornerRadius: 14))
-                        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(PopArt.ink, lineWidth: 2.5))
-
-                    HStack(spacing: 10) {
+                    HStack {
+                        Text("✍️ ÉTAPE 1/4 : CHOISIS UNE IDÉE FACILE !")
+                            .font(.system(size: 16, weight: .black, design: .rounded))
+                            .foregroundStyle(PopArt.orange)
+                        Spacer()
                         Button {
-                            typedText = DrawingBank.randomEsquissePrompt()
+                            starterIdeas = DrawingBank.pickThreeEsquissePrompts(excluding: Set(starterIdeas))
                         } label: {
-                            Text("🎲 Idée de Meemaw")
-                                .font(.system(size: 14, weight: .black, design: .rounded))
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 12)
+                            Text("🔄 Autres idées")
+                                .font(.system(size: 12, weight: .black, design: .rounded))
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .background(PopArt.yellow, in: Capsule())
+                                .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
                         }
-                        .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.yellow, cornerRadius: 14))
+                        .buttonStyle(.plain)
+                    }
+
+                    Text("Touchez 1 idée facile à dessiner au doigt pour l'envoyer au voisin :")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(PopArt.ink.opacity(0.75))
+
+                    ForEach(starterIdeas, id: \.self) { idea in
+                        Button {
+                            onSubmitText(idea)
+                        } label: {
+                            HStack {
+                                Text("🎨 \(idea)")
+                                    .font(.system(size: 16, weight: .black, design: .rounded))
+                                    .foregroundStyle(PopArt.ink)
+                                    .multilineTextAlignment(.leading)
+                                Spacer()
+                                Text("Choisir ➡️")
+                                    .font(.system(size: 12, weight: .black))
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 5)
+                                    .background(PopArt.greenSuccess, in: Capsule())
+                                    .foregroundStyle(.white)
+                            }
+                            .padding(12)
+                            .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.cream, cornerRadius: 14))
+                    }
+
+                    Divider()
+
+                    Text("Ou écris ta propre idée simple :")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(PopArt.ink.opacity(0.65))
+
+                    HStack(spacing: 8) {
+                        TextField("Ex: Un soleil avec des lunettes...", text: $typedText)
+                            .font(.system(size: 15, weight: .heavy, design: .rounded))
+                            .padding(10)
+                            .background(PopArt.cream, in: RoundedRectangle(cornerRadius: 12))
+                            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(PopArt.ink, lineWidth: 2))
 
                         Button {
                             onSubmitText(typedText)
                         } label: {
-                            Text("✅ Envoyer")
-                                .font(.system(size: 15, weight: .black, design: .rounded))
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 12)
+                            Text("✅")
+                                .font(.system(size: 18, weight: .black))
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 10)
                         }
-                        .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.greenSuccess, foregroundColor: .white, cornerRadius: 14))
+                        .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.greenSuccess, foregroundColor: .white, cornerRadius: 12))
                     }
                 } else if stage == .esquisseDrawing {
                     Text("🎨 ÉTAPE \(stepIndex + 1)/4 : DESSINE CETTE PHRASE !")
                         .font(.system(size: 17, weight: .black, design: .rounded))
                         .foregroundStyle(PopArt.orange)
 
-                    Text("« \(previousEntry?.promptText ?? "Un chat sur un vélo") »")
-                        .font(.system(size: 19, weight: .black, design: .rounded))
+                    Text("« \(previousEntry?.promptText ?? "Un bonhomme de neige sous le soleil") »")
+                        .font(.system(size: 18, weight: .black, design: .rounded))
                         .foregroundStyle(PopArt.ink)
                         .padding(10)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -2253,7 +2366,7 @@ struct EsquisseInteractiveStepCard: View {
                     }
                     .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.greenSuccess, foregroundColor: .white, cornerRadius: 16))
                 } else {
-                    // .esquisseGuessing — 100% Free Text Keyboard (Gartic Phone style!)
+                    // .esquisseGuessing — Quick-tap suggestions + Free Text Keyboard!
                     Text("🕵️ ÉTAPE 3/4 : QU'EST-CE QUE C'EST QUE CE DESSIN ?")
                         .font(.system(size: 17, weight: .black, design: .rounded))
                         .foregroundStyle(PopArt.pink)
@@ -2264,43 +2377,67 @@ struct EsquisseInteractiveStepCard: View {
                             VectorCanvasPreviewView(canvas: drawing)
                         }
                         .aspectRatio(CGFloat(DrawingCanvasData.portraitAspectRatio), contentMode: .fit)
-                        .frame(maxHeight: 280)
+                        .frame(maxHeight: 260)
                         .clipShape(RoundedRectangle(cornerRadius: 14))
                         .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(PopArt.ink, lineWidth: 2.5))
                         .frame(maxWidth: .infinity)
                     }
 
-                    Text("Tape librement au clavier ce que tu crois voir (le joueur suivant devra le redessiner !) :")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(PopArt.ink.opacity(0.75))
+                    Text("💡 Coup de pouce (touche 1 idée ou écris la tienne en dessous) :")
+                        .font(.system(size: 12, weight: .black, design: .rounded))
+                        .foregroundStyle(PopArt.purple)
 
-                    TextField("Écris ce que tu vois sur ce dessin...", text: $typedText)
-                        .font(.system(size: 17, weight: .heavy, design: .rounded))
-                        .padding(12)
-                        .background(PopArt.cream, in: RoundedRectangle(cornerRadius: 14))
-                        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(PopArt.ink, lineWidth: 2.5))
-                        .onSubmit {
-                            if !typedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                                onSubmitText(typedText)
+                    ForEach(quickGuesses, id: \.self) { suggestion in
+                        Button {
+                            onSubmitText(suggestion)
+                        } label: {
+                            HStack {
+                                Text("👉 \(suggestion)")
+                                    .font(.system(size: 15, weight: .black, design: .rounded))
+                                    .foregroundStyle(PopArt.ink)
+                                    .multilineTextAlignment(.leading)
+                                Spacer()
                             }
-                        }
-
-                    Button {
-                        onSubmitText(typedText)
-                    } label: {
-                        Text("✅ VALIDER MON INTERPRÉTATION")
-                            .font(.system(size: 16, weight: .black, design: .rounded))
+                            .padding(10)
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
+                        }
+                        .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.cream, cornerRadius: 12))
                     }
-                    .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.greenSuccess, foregroundColor: .white, cornerRadius: 16))
+
+                    HStack(spacing: 8) {
+                        TextField("Ou tape ta propre interprétation...", text: $typedText)
+                            .font(.system(size: 15, weight: .heavy, design: .rounded))
+                            .padding(10)
+                            .background(PopArt.cream, in: RoundedRectangle(cornerRadius: 12))
+                            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(PopArt.ink, lineWidth: 2))
+                            .onSubmit {
+                                if !typedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                    onSubmitText(typedText)
+                                }
+                            }
+
+                        Button {
+                            onSubmitText(typedText)
+                        } label: {
+                            Text("✅")
+                                .font(.system(size: 18, weight: .black))
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 10)
+                        }
+                        .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.greenSuccess, foregroundColor: .white, cornerRadius: 12))
+                    }
                 }
             }
             .padding(16)
         }
+        .onAppear {
+            quickGuesses = DrawingBank.quickGuessSuggestions(from: notebookFirstPrompt)
+        }
         .onChange(of: stepIndex) { _, _ in
             typedText = ""
             currentCanvas = DrawingCanvasData()
+            starterIdeas = DrawingBank.pickThreeEsquissePrompts()
+            quickGuesses = DrawingBank.quickGuessSuggestions(from: notebookFirstPrompt)
         }
     }
 }
