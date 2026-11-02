@@ -312,6 +312,9 @@ public enum WebControllerHTML {
 
               const answeredCount = (st.players || []).filter(p => p.lockedChoiceIndex !== null && p.lockedChoiceIndex !== undefined || p.lockedSide).length;
               const betCount = (st.players || []).filter(p => p.lockedBetStars).length;
+              const drawStrokeCount = st.activeDrawRound && st.activeDrawRound.canvas && st.activeDrawRound.canvas.strokes ? st.activeDrawRound.canvas.strokes.length : 0;
+              const drawFoundKey = st.activeDrawRound && st.activeDrawRound.foundPlayerIDs ? st.activeDrawRound.foundPlayerIDs.join(',') : '';
+              const esqStep = st.activeEsquisseRound ? `${st.activeEsquisseRound.stepIndex}_${st.activeEsquisseRound.showcaseNotebookIndex}` : '';
               const renderKey = [
                 st.stage,
                 st.roundKind,
@@ -328,13 +331,23 @@ public enum WebControllerHTML {
                 betCount,
                 (st.players || []).length,
                 me ? me.hasUsedScrew : false,
-                me ? me.hasUsedBisouTrap : false
+                me ? me.hasUsedBisouTrap : false,
+                me ? me.hasSubmittedEsquisseStep : false,
+                drawFoundKey,
+                esqStep
               ].join('|');
 
               if (st.stage === 'lobby') {
                 renderColors(st.availableColors);
               }
               document.getElementById('profileCard').style.display = (st.stage === 'lobby') ? 'block' : 'none';
+
+              // If we are in draw_live_guessing as a guesser, update the live preview canvas without rebuilding the tile rack DOM!
+              if (st.stage === 'draw_live_guessing' && st.activeDrawRound && st.activeDrawRound.drawerPlayerID !== playerID) {
+                const maskEl = document.getElementById('drawMaskText');
+                if (maskEl) maskEl.innerText = st.activeDrawRound.maskedWordPattern || '';
+                drawVectorPreview('guesserPreviewCanvas', st.activeDrawRound.canvas);
+              }
 
               if (renderKey === lastRenderKey && st.stage !== 'lobby') {
                 return;
@@ -485,6 +498,138 @@ public enum WebControllerHTML {
                 return;
               }
 
+              // 🎨 DRAW SOMETHING STAGES
+              if ((st.stage === 'draw_word_choice' || st.stage === 'draw_live_guessing' || st.stage === 'draw_reveal') && st.activeDrawRound) {
+                const dr = st.activeDrawRound;
+                const isDrawer = (dr.drawerPlayerID === playerID);
+
+                if (st.stage === 'draw_word_choice') {
+                  if (isDrawer) {
+                    titleEl.innerText = '🎨 C\\'EST À TOI DE DESSINER ! Choisis ton mot :';
+                    contentEl.innerHTML = '<div class="choices-grid">' + (dr.wordOptions || []).map(opt => {
+                      const bg = opt.stars === 3 ? '#FF4D94' : (opt.stars === 2 ? '#FF8C42' : '#10B981');
+                      return `<button class="choice-btn" style="background:${bg};color:#fff;justify-content:space-between;" onclick="beep(700,60);sendMsg({action:'select_draw_word',textPayload:'${opt.word}'})">
+                        <span>${'⭐'.repeat(opt.stars)} ${opt.word} <small style="opacity:0.85;">(${opt.categoryHint})</small></span>
+                        <span class="badge" style="color:#1A1A1A;">+${opt.points} PTS</span>
+                      </button>`;
+                    }).join('') + '</div>';
+                  } else {
+                    titleEl.innerText = `${dr.drawerEmoji || '🎨'} ${dr.drawerPlayerName} choisit son mot...`;
+                    contentEl.innerHTML = `<div style="text-align:center;font-weight:800;">Prépare-toi à toucher les lettres façon Draw Something !</div>`;
+                  }
+                  return;
+                }
+
+                if (st.stage === 'draw_live_guessing') {
+                  if (isDrawer) {
+                    titleEl.innerText = `🎨 DESSINE : « ${dr.chosenWord ? dr.chosenWord.word : ''} »`;
+                    contentEl.innerHTML = `
+                      <canvas id="drawerPadCanvas" width="340" height="240" style="width:100%;height:230px;background:#fff;border:3px solid #1A1A1A;border-radius:14px;touch-action:none;"></canvas>
+                      <div style="display:flex;gap:6px;justify-content:space-between;align-items:center;margin-top:8px;flex-wrap:wrap;">
+                        ${['#111827','#E11D48','#FF8C42','#F59E0B','#10B981','#2563EB','#8E44AD'].map(c =>
+                          `<button onclick="setPadColor('${c}')" style="width:30px;height:30px;border-radius:50%;background:${c};border:2.5px solid #1A1A1A;"></button>`
+                        ).join('')}
+                        <button class="badge" onclick="undoPadStroke()">↩️</button>
+                        <button class="badge" onclick="clearPadCanvas()">🗑️</button>
+                      </div>
+                    `;
+                    initInteractivePad('drawerPadCanvas', true);
+                  } else {
+                    const alreadyFound = (dr.foundPlayerIDs || []).includes(playerID);
+                    titleEl.innerText = `${dr.drawerEmoji || '🎨'} ${dr.drawerPlayerName} dessine (${dr.chosenWord ? dr.chosenWord.categoryHint : ''})`;
+                    if (alreadyFound) {
+                      contentEl.innerHTML = `
+                        <canvas id="guesserPreviewCanvas" width="340" height="210" style="width:100%;height:190px;background:#fff;border:3px solid #1A1A1A;border-radius:14px;"></canvas>
+                        <div style="background:#10B981;color:#fff;padding:16px;border-radius:16px;border:3.5px solid #1A1A1A;font-weight:900;text-align:center;margin-top:10px;">
+                          🎉 BRAVO ! TU AS TROUVÉ « ${dr.chosenWord ? dr.chosenWord.word : ''} » !
+                        </div>`;
+                      drawVectorPreview('guesserPreviewCanvas', dr.canvas);
+                    } else {
+                      contentEl.innerHTML = `
+                        <canvas id="guesserPreviewCanvas" width="340" height="200" style="width:100%;height:185px;background:#fff;border:3px solid #1A1A1A;border-radius:14px;"></canvas>
+                        <div id="drawMaskText" style="font-family:monospace;font-size:22px;font-weight:900;text-align:center;margin:6px 0;">${dr.maskedWordPattern || ''}</div>
+                        <div id="drawSlotsRow" style="display:flex;gap:5px;justify-content:center;margin-bottom:8px;"></div>
+                        <div id="drawTilesGrid" style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;"></div>
+                      `;
+                      drawVectorPreview('guesserPreviewCanvas', dr.canvas);
+                      initDrawSomethingRack(dr.wordLength || 6, dr.chosenWord ? dr.chosenWord.word : '', dr.scrambledTiles || []);
+                    }
+                  }
+                  return;
+                }
+
+                if (st.stage === 'draw_reveal') {
+                  titleEl.innerText = `🎨 LE MOT ÉTAIT : « ${dr.chosenWord ? dr.chosenWord.word : ''} »`;
+                  contentEl.innerHTML = `<canvas id="guesserPreviewCanvas" width="340" height="200" style="width:100%;height:190px;background:#fff;border:3px solid #1A1A1A;border-radius:14px;"></canvas>`;
+                  drawVectorPreview('guesserPreviewCanvas', dr.canvas);
+                  return;
+                }
+              }
+
+              // 📞 ESQUISSÉ ! (GARTIC PHONE) STAGES
+              if ((st.stage === 'esquisse_prompt_entry' || st.stage === 'esquisse_drawing' || st.stage === 'esquisse_guessing' || st.stage === 'esquisse_showcase') && st.activeEsquisseRound) {
+                const esq = st.activeEsquisseRound;
+                if (st.stage === 'esquisse_showcase') {
+                  const nbIdx = Math.min(Math.max(0, esq.showcaseNotebookIndex || 0), Math.max(0, (esq.notebooks || []).length - 1));
+                  const nb = (esq.notebooks || [])[nbIdx];
+                  if (nb) {
+                    const voted = (nb.voteVoterIDs || []).includes(playerID);
+                    titleEl.innerText = `📒 CARNET DE ${nb.ownerEmoji || '🎨'} ${nb.ownerName} (${nbIdx + 1}/${esq.notebooks.length})`;
+                    contentEl.innerHTML = `<button class="btn-primary" style="background:${voted ? '#10B981' : '#FF4D94'};color:#fff;" ${voted ? 'disabled' : ''} onclick="beep(750,80);sendMsg({action:'vote_esquisse_album',textPayload:'${nb.id}'})">${voted ? '✅ COUP DE CŒUR ENVOYÉ !' : '😂 VOTER COUP DE CŒUR (+1 000 PTS)'}</button>`;
+                  }
+                  return;
+                }
+
+                if (me && me.hasSubmittedEsquisseStep) {
+                  titleEl.innerText = '✅ CARNET TRANSMIS AU VOISIN !';
+                  contentEl.innerHTML = `<div style="text-align:center;font-weight:800;color:#10B981;">Attends que les autres joueurs terminent leur étape...</div>`;
+                  return;
+                }
+
+                const assignedID = (esq.activeAssignmentByPlayerID || {})[playerID];
+                const nb = (esq.notebooks || []).find(n => n.id === assignedID) || (esq.notebooks || [])[0];
+                const lastEntry = nb && nb.entries && nb.entries.length ? nb.entries[nb.entries.length - 1] : null;
+
+                if (st.stage === 'esquisse_prompt_entry') {
+                  titleEl.innerText = '✍️ ÉTAPE 1/4 : INVENTE UNE SCÈNE FOLLE !';
+                  contentEl.innerHTML = `
+                    <input type="text" id="esqTextInput" maxlength="85" placeholder="Ex: Un tyrannosaure qui passe l'aspirateur..." />
+                    <button class="btn-primary" style="background:#10B981;color:#fff;" onclick="submitEsqText()">✅ Envoyer mon idée au voisin</button>
+                  `;
+                  return;
+                }
+
+                if (st.stage === 'esquisse_drawing') {
+                  titleEl.innerText = `🎨 DESSINE : « ${lastEntry && lastEntry.promptText ? lastEntry.promptText : 'Un chat sur un vélo'} »`;
+                  contentEl.innerHTML = `
+                    <canvas id="esqPadCanvas" width="340" height="230" style="width:100%;height:220px;background:#fff;border:3px solid #1A1A1A;border-radius:14px;touch-action:none;"></canvas>
+                    <div style="display:flex;gap:6px;justify-content:space-between;align-items:center;margin:8px 0;flex-wrap:wrap;">
+                      ${['#111827','#E11D48','#FF8C42','#F59E0B','#10B981','#2563EB','#8E44AD'].map(c =>
+                        `<button onclick="setPadColor('${c}')" style="width:28px;height:28px;border-radius:50%;background:${c};border:2.5px solid #1A1A1A;"></button>`
+                      ).join('')}
+                      <button class="badge" onclick="undoPadStroke()">↩️</button>
+                      <button class="badge" onclick="clearPadCanvas()">🗑️</button>
+                    </div>
+                    <button class="btn-primary" style="background:#10B981;color:#fff;" onclick="submitEsqDrawing()">✅ Envoyer mon dessin</button>
+                  `;
+                  initInteractivePad('esqPadCanvas', false);
+                  return;
+                }
+
+                if (st.stage === 'esquisse_guessing') {
+                  titleEl.innerText = '🕵️ ÉTAPE 3/4 : QU\\'EST-CE QUE C\\'EST QUE CE DESSIN ?';
+                  contentEl.innerHTML = `
+                    <canvas id="esqGuessPreview" width="340" height="200" style="width:100%;height:190px;background:#fff;border:3px solid #1A1A1A;border-radius:14px;"></canvas>
+                    <input type="text" id="esqTextInput" maxlength="85" placeholder="Tape au clavier ce que tu vois..." />
+                    <button class="btn-primary" style="background:#10B981;color:#fff;" onclick="submitEsqText()">✅ Valider mon interprétation</button>
+                  `;
+                  if (lastEntry && lastEntry.drawing) {
+                    drawVectorPreview('esqGuessPreview', lastEntry.drawing);
+                  }
+                  return;
+                }
+              }
+
               titleEl.innerText = st.meemawSpeech || 'Regarde la TV AirPlay !';
               contentEl.innerHTML = `<div style="text-align:center;font-weight:800;color:var(--orange);">⏭️ Suite automatique dans quelques secondes...</div>`;
             }
@@ -546,6 +691,147 @@ public enum WebControllerHTML {
               }
 
               document.getElementById('stageContent').innerHTML = html;
+            }
+
+            // Vector Canvas & Draw Something JS Helpers
+            let padStrokes = [];
+            let padActivePts = [];
+            let padColor = '#111827';
+            let padCanvasID = '';
+            let padLiveStream = false;
+            let padLastSent = 0;
+
+            function setPadColor(c) { padColor = c; beep(600, 30); }
+            function undoPadStroke() {
+              padStrokes.pop();
+              redrawLocalPad();
+              if (padLiveStream) sendMsg({ action: 'update_drawing_canvas', drawingCanvas: { strokes: padStrokes } });
+            }
+            function clearPadCanvas() {
+              padStrokes = [];
+              padActivePts = [];
+              redrawLocalPad();
+              if (padLiveStream) sendMsg({ action: 'update_drawing_canvas', drawingCanvas: { strokes: [] } });
+            }
+            function redrawLocalPad() {
+              const all = padActivePts.length ? [...padStrokes, { colorHex: padColor, lineWidth: 7, points: padActivePts }] : padStrokes;
+              drawVectorPreview(padCanvasID, { strokes: all });
+            }
+            function initInteractivePad(canvasID, liveStream) {
+              padCanvasID = canvasID;
+              padLiveStream = liveStream;
+              padStrokes = [];
+              padActivePts = [];
+              const c = document.getElementById(canvasID);
+              if (!c) return;
+              const getPt = (e) => {
+                const r = c.getBoundingClientRect();
+                const t = e.touches ? e.touches[0] : e;
+                return {
+                  x: Math.round(Math.max(0, Math.min(1, (t.clientX - r.left) / r.width)) * 1000) / 1000,
+                  y: Math.round(Math.max(0, Math.min(1, (t.clientY - r.top) / r.height)) * 1000) / 1000
+                };
+              };
+              const start = (e) => { e.preventDefault(); padActivePts = [getPt(e)]; redrawLocalPad(); };
+              const move = (e) => {
+                if (!padActivePts.length) return;
+                e.preventDefault();
+                padActivePts.push(getPt(e));
+                redrawLocalPad();
+                const now = Date.now();
+                if (padLiveStream && now - padLastSent > 150) {
+                  padLastSent = now;
+                  sendMsg({ action: 'update_drawing_canvas', drawingCanvas: { strokes: [...padStrokes, { colorHex: padColor, lineWidth: 7, points: padActivePts }] } });
+                }
+              };
+              const end = (e) => {
+                if (!padActivePts.length) return;
+                e.preventDefault();
+                padStrokes.push({ colorHex: padColor, lineWidth: 7, points: padActivePts });
+                padActivePts = [];
+                redrawLocalPad();
+                if (padLiveStream) sendMsg({ action: 'update_drawing_canvas', drawingCanvas: { strokes: padStrokes } });
+              };
+              c.onmousedown = start; c.onmousemove = move; window.onmouseup = end;
+              c.ontouchstart = start; c.ontouchmove = move; c.ontouchend = end;
+            }
+            function drawVectorPreview(canvasID, canvasData) {
+              const c = document.getElementById(canvasID);
+              if (!c || !canvasData) return;
+              const ctx = c.getContext('2d');
+              ctx.clearRect(0, 0, c.width, c.height);
+              ctx.lineCap = 'round';
+              ctx.lineJoin = 'round';
+              for (const s of (canvasData.strokes || [])) {
+                const pts = s.points || [];
+                if (!pts.length) continue;
+                ctx.strokeStyle = s.colorHex || '#111827';
+                ctx.lineWidth = s.lineWidth || 6;
+                ctx.beginPath();
+                ctx.moveTo(pts[0].x * c.width, pts[0].y * c.height);
+                for (let i = 1; i < pts.length; i++) {
+                  ctx.lineTo(pts[i].x * c.width, pts[i].y * c.height);
+                }
+                ctx.stroke();
+              }
+            }
+            let rackSelectedIndices = [];
+            let rackTargetLen = 0;
+            let rackTargetWord = '';
+            let rackTiles = [];
+            function initDrawSomethingRack(len, word, tiles) {
+              rackSelectedIndices = [];
+              rackTargetLen = len;
+              rackTargetWord = (word || '').toUpperCase();
+              rackTiles = tiles || [];
+              renderDrawSomethingRack();
+            }
+            function renderDrawSomethingRack() {
+              const slotsEl = document.getElementById('drawSlotsRow');
+              const gridEl = document.getElementById('drawTilesGrid');
+              if (!slotsEl || !gridEl) return;
+              let slotsHTML = '';
+              for (let i = 0; i < rackTargetLen; i++) {
+                const letter = i < rackSelectedIndices.length ? rackTiles[rackSelectedIndices[i]] : '';
+                slotsHTML += `<button onclick="removeRackSlot(${i})" style="width:36px;height:42px;border-radius:10px;border:2.5px solid #1A1A1A;background:${letter ? '#FFD700' : '#FFF8F0'};font-size:19px;font-weight:900;">${letter}</button>`;
+              }
+              slotsEl.innerHTML = slotsHTML;
+              gridEl.innerHTML = rackTiles.map((ch, idx) => {
+                const used = rackSelectedIndices.includes(idx);
+                return `<button ${used ? 'disabled' : ''} onclick="tapRackTile(${idx})" style="height:44px;border-radius:10px;border:2.5px solid #1A1A1A;background:${used ? '#eee' : '#2563EB'};color:${used ? '#aaa' : '#fff'};font-size:19px;font-weight:900;">${ch}</button>`;
+              }).join('');
+            }
+            function removeRackSlot(pos) {
+              if (pos < rackSelectedIndices.length) {
+                rackSelectedIndices.splice(pos, 1);
+                renderDrawSomethingRack();
+              }
+            }
+            function tapRackTile(idx) {
+              if (rackSelectedIndices.includes(idx) || rackSelectedIndices.length >= rackTargetLen) return;
+              beep(640, 40);
+              rackSelectedIndices.push(idx);
+              renderDrawSomethingRack();
+              if (rackSelectedIndices.length === rackTargetLen) {
+                const word = rackSelectedIndices.map(i => rackTiles[i]).join('');
+                if (word === rackTargetWord) {
+                  playVerdictSound(true);
+                  sendMsg({ action: 'submit_draw_guess', textPayload: word });
+                } else {
+                  playVerdictSound(false);
+                  setTimeout(() => { rackSelectedIndices = []; renderDrawSomethingRack(); }, 350);
+                }
+              }
+            }
+            function submitEsqText() {
+              const el = document.getElementById('esqTextInput');
+              const txt = el ? el.value.trim() : '';
+              beep(720, 60);
+              sendMsg({ action: 'submit_esquisse_text', textPayload: txt });
+            }
+            function submitEsqDrawing() {
+              beep(720, 60);
+              sendMsg({ action: 'submit_esquisse_drawing', drawingCanvas: { strokes: padStrokes } });
             }
 
             function connectWS() {

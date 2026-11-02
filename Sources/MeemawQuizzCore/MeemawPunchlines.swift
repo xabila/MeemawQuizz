@@ -105,6 +105,56 @@ public enum MeemawPunchlines {
             id: "solo_fail",
             text: "Aïe aïe aïe, la glissade en plein Solo ! Ça fait cher la fanfaronnade mon petit chou !",
             filename: "mq_solo_fail.m4a"
+        ),
+        MeemawStudioCue(
+            id: "round_draw",
+            text: "Manche Pinceau Draw Something ! Un artiste dessine en direct sur la télé, et les autres composent le mot avec les lettres mélangées sur leur téléphone !",
+            filename: "mq_round_draw.m4a"
+        ),
+        MeemawStudioCue(
+            id: "round_esquisse",
+            text: "Bienvenue dans Esquissé, le téléphone arabe dessiné de Meemaw ! Écrivez une idée folle, dessinez ce que vous lisez, et devinez au clavier ce que le voisin a gribouillé !",
+            filename: "mq_round_esquisse.m4a"
+        ),
+        MeemawStudioCue(
+            id: "draw_word_pick",
+            text: "C'est à ton tour de dessiner ! Choisis secrètement ton mot sur ton téléphone : une, deux ou trois étoiles !",
+            filename: "mq_draw_word_pick.m4a"
+        ),
+        MeemawStudioCue(
+            id: "draw_live",
+            text: "À vos pinceaux ! Regardez le dessin se tracer en direct et touchez les lettres dans l'ordre pour trouver le mot !",
+            filename: "mq_draw_live.m4a"
+        ),
+        MeemawStudioCue(
+            id: "draw_magic_brush",
+            text: "Attention les yeux : c'est le Pinceau Magique de Meemaw qui dessine en direct ! Trouvez vite le mot avec les lettres !",
+            filename: "mq_draw_magic_brush.m4a"
+        ),
+        MeemawStudioCue(
+            id: "draw_found",
+            text: "Bien vu l'artiste ! Le mot secret a été démasqué !",
+            filename: "mq_draw_found.m4a"
+        ),
+        MeemawStudioCue(
+            id: "esquisse_prompt",
+            text: "Première étape d'Esquissé : écrivez sur votre téléphone une scène complètement farfelue à faire dessiner à votre voisin !",
+            filename: "mq_esquisse_prompt.m4a"
+        ),
+        MeemawStudioCue(
+            id: "esquisse_draw",
+            text: "Les carnets ont tourné ! Vous avez quarante secondes pour dessiner du mieux possible la phrase affichée sur votre téléphone !",
+            filename: "mq_esquisse_draw.m4a"
+        ),
+        MeemawStudioCue(
+            id: "esquisse_guess",
+            text: "Interdiction de tricher ! Regardez uniquement le dessin de votre voisin et tapez au clavier ce que vous croyez voir !",
+            filename: "mq_esquisse_guess.m4a"
+        ),
+        MeemawStudioCue(
+            id: "esquisse_showcase",
+            text: "Posons les crayons ! Voici le grand défilé des carnets d'Esquissé sur la télé : votez pour le chef-d'œuvre le plus drôle !",
+            filename: "mq_esquisse_showcase.m4a"
         )
     ]
 

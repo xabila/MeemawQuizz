@@ -76,4 +76,33 @@ final class MeemawQuizzCoreTests: XCTestCase {
         let wrong = QuizScoringEngine.scoreDisOrDatAnswer(valuePerItem: 500, isCorrect: false, currentStreak: 0)
         XCTAssertEqual(wrong, -250)
     }
+
+    func testDrawingBankScrambledTilesContainsAllWordLetters() {
+        let options = DrawingBank.pickThreeWordOptions()
+        XCTAssertEqual(options.count, 3)
+        XCTAssertEqual(options.map(\.stars), [1, 2, 3])
+
+        for opt in options {
+            var remainingTiles = opt.scrambledTiles
+            for ch in opt.word {
+                let s = String(ch)
+                if let idx = remainingTiles.firstIndex(of: s) {
+                    remainingTiles.remove(at: idx)
+                } else {
+                    XCTFail("Missing letter \(s) in scrambledTiles for \(opt.word)")
+                }
+            }
+            XCTAssertGreaterThanOrEqual(opt.scrambledTiles.count, 12)
+        }
+    }
+
+    func testDrawSomethingScoringRewardsGuesserAndArtist() {
+        let g1 = QuizScoringEngine.scoreDrawGuesser(wordPoints: 2000, rankIndex: 0, reactionTimeMs: 5000, totalTimeMs: 45000)
+        let g2 = QuizScoringEngine.scoreDrawGuesser(wordPoints: 2000, rankIndex: 1, reactionTimeMs: 12000, totalTimeMs: 45000)
+        XCTAssertGreaterThan(g1, 2300)
+        XCTAssertGreaterThan(g1, g2)
+
+        let artistScore = QuizScoringEngine.scoreDrawArtist(wordPoints: 2000, foundCount: 2)
+        XCTAssertEqual(artistScore, 2000)
+    }
 }

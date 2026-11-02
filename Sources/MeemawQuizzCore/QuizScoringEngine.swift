@@ -98,6 +98,39 @@ public enum QuizScoringEngine {
         return valuePerItem + streakBonus
     }
 
+    /// Calcule les points d'un joueur qui devine le mot dans « Draw Something » :
+    /// - 1er à trouver : 100 % des points du mot + bonus vitesse (jusqu'à +600 pts)
+    /// - 2e à trouver : 80 % des points + bonus vitesse
+    /// - Suivants : 65 % des points + bonus vitesse
+    public static func scoreDrawGuesser(
+        wordPoints: Int,
+        rankIndex: Int,
+        reactionTimeMs: Int,
+        totalTimeMs: Int = 45000
+    ) -> Int {
+        let factor: Double
+        switch rankIndex {
+        case 0: factor = 1.00
+        case 1: factor = 0.80
+        default: factor = 0.65
+        }
+        let clamped = max(0, min(totalTimeMs, reactionTimeMs))
+        let speedRatio = max(0.0, 1.0 - (Double(clamped) / Double(max(1, totalTimeMs))))
+        let speedBonus = Int((speedRatio * 600.0 / 50.0).rounded()) * 50
+        let base = Int((Double(wordPoints) * factor / 50.0).rounded()) * 50
+        return base + speedBonus
+    }
+
+    /// Calcule le bonus du dessinateur dans « Draw Something » :
+    /// +1 000 pts dès le 1er joueur qui trouve + 500 pts par joueur supplémentaire !
+    public static func scoreDrawArtist(
+        wordPoints: Int,
+        foundCount: Int
+    ) -> Int {
+        guard foundCount > 0 else { return 0 }
+        return (wordPoints / 2) + (foundCount * 500)
+    }
+
     /// Génère le Podium Final avec des titres humoristiques décernés par Meemaw.
     public static func buildPodiumAwards(from players: [QuizPlayer]) -> [PodiumAward] {
         let sorted = players.sorted {

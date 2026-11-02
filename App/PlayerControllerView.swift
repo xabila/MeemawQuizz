@@ -50,6 +50,10 @@ struct PlayerControllerView: View {
                             cashMCQControllerSection
                         case .couciCoucaIntro, .couciCoucaItem, .couciCoucaReveal, .couciCoucaSummary:
                             couciCoucaControllerSection
+                        case .drawWordChoice, .drawLiveGuessing, .drawReveal:
+                            drawSomethingControllerSection
+                        case .esquissePromptEntry, .esquisseDrawing, .esquisseGuessing, .esquisseShowcase:
+                            esquisseControllerSection
                         case .finalPodium:
                             finalPodiumControllerSection
                         }
@@ -401,10 +405,62 @@ struct PlayerControllerView: View {
                 .padding(16)
             }
 
-            // Theme Picker (Host Only)
+            // Mode & Theme Picker (Host Only)
             if session.role == .hostAndPlayer1 {
                 PopArtCard(cornerRadius: 22, borderWidth: 3.5, backgroundColor: PopArt.white) {
                     VStack(alignment: .leading, spacing: 10) {
+                        Text("🎮 CHOISIS LE MODE DE SOIRÉE")
+                            .font(.system(size: 14, weight: .black, design: .rounded))
+                            .foregroundStyle(PopArt.orange)
+
+                        ForEach(ShowGameMode.allCases) { mode in
+                            let isModeSelected = (snap.selectedGameMode == mode)
+                            Button {
+                                session.selectGameMode(mode)
+                            } label: {
+                                HStack(spacing: 12) {
+                                    Circle()
+                                        .fill(Color(hex: mode.accentHex))
+                                        .frame(width: 16, height: 16)
+                                        .overlay(Circle().strokeBorder(PopArt.ink, lineWidth: 2))
+
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(mode.title)
+                                            .font(.system(size: 16, weight: .black, design: .rounded))
+                                            .foregroundStyle(PopArt.ink)
+                                        Text(mode.subtitle)
+                                            .font(.system(size: 11, weight: .bold))
+                                            .foregroundStyle(PopArt.ink.opacity(0.68))
+                                            .lineLimit(2)
+                                    }
+
+                                    Spacer()
+
+                                    if isModeSelected {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .font(.system(size: 22, weight: .black))
+                                            .foregroundStyle(Color(hex: mode.accentHex))
+                                    }
+                                }
+                                .padding(12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 14)
+                                        .fill(isModeSelected ? Color(hex: mode.accentHex).opacity(0.16) : PopArt.cream)
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 14)
+                                        .strokeBorder(isModeSelected ? Color(hex: mode.accentHex) : PopArt.ink.opacity(0.25), lineWidth: isModeSelected ? 3 : 2)
+                                )
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(16)
+                }
+
+                PopArtCard(cornerRadius: 22, borderWidth: 3.5, backgroundColor: PopArt.white) {
+                    VStack(alignment: .leading, spacing: 10) {
+                        if snap.selectedGameMode == .fullQuizShow {
                         HStack {
                             Text("📚 CHOISIS LE THÈME DU SHOW")
                                 .font(.system(size: 14, weight: .black, design: .rounded))
@@ -473,6 +529,7 @@ struct PlayerControllerView: View {
                             }
                             .buttonStyle(.plain)
                         }
+                        } // end if fullQuizShow
 
                         VStack(spacing: 10) {
                             HStack(spacing: 8) {
@@ -1380,6 +1437,289 @@ struct PlayerControllerView: View {
         }
     }
 
+    // MARK: - 7B. 🎨 Draw Something & 📞 Esquissé ! Controller Sections
+
+    private var drawSomethingControllerSection: some View {
+        VStack(spacing: 12) {
+            if let drawRound = snap.activeDrawRound {
+                let isDrawer = (drawRound.drawerPlayerID == session.localPlayerID)
+
+                if snap.stage == .drawWordChoice {
+                    if isDrawer {
+                        PopArtCard(cornerRadius: 22, borderWidth: 4, backgroundColor: Color(hex: "#ECFDF5")) {
+                            VStack(spacing: 12) {
+                                Text("🎨 C'EST À TOI DE DESSINER !")
+                                    .font(.system(size: 20, weight: .black, design: .rounded))
+                                    .foregroundStyle(PopArt.ink)
+
+                                Text("Choisis secrètement ton mot selon la difficulté :")
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundStyle(PopArt.ink.opacity(0.75))
+
+                                ForEach(drawRound.wordOptions) { opt in
+                                    Button {
+                                        session.selectDrawWord(opt.word)
+                                    } label: {
+                                        HStack {
+                                            VStack(alignment: .leading, spacing: 3) {
+                                                Text(String(repeating: "⭐", count: opt.stars) + "  " + opt.word)
+                                                    .font(.system(size: 20, weight: .black, design: .rounded))
+                                                Text("Indice : \(opt.categoryHint)")
+                                                    .font(.system(size: 12, weight: .bold))
+                                                    .opacity(0.85)
+                                            }
+                                            Spacer()
+                                            Text("+\(opt.points) PTS")
+                                                .font(.system(size: 16, weight: .black, design: .monospaced))
+                                                .padding(.horizontal, 12)
+                                                .padding(.vertical, 6)
+                                                .background(PopArt.yellow, in: Capsule())
+                                                .foregroundStyle(PopArt.ink)
+                                        }
+                                        .padding(14)
+                                        .frame(maxWidth: .infinity)
+                                    }
+                                    .buttonStyle(
+                                        PopArtActionButtonStyle(
+                                            backgroundColor: opt.stars == 3 ? PopArt.pink : (opt.stars == 2 ? PopArt.orange : PopArt.greenSuccess),
+                                            foregroundColor: .white,
+                                            cornerRadius: 16
+                                        )
+                                    )
+                                }
+                            }
+                            .padding(18)
+                        }
+                    } else {
+                        PopArtCard(cornerRadius: 22, borderWidth: 4, backgroundColor: PopArt.yellow) {
+                            VStack(spacing: 10) {
+                                Text("\(drawRound.drawerEmoji) \(drawRound.drawerPlayerName) choisit son mot...")
+                                    .font(.system(size: 20, weight: .black, design: .rounded))
+                                    .foregroundStyle(PopArt.ink)
+                                    .multilineTextAlignment(.center)
+                                Text("Prépare tes doigts pour composer le mot avec les tuiles façon Draw Something !")
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundStyle(PopArt.ink.opacity(0.8))
+                                    .multilineTextAlignment(.center)
+                            }
+                            .padding(24)
+                        }
+                    }
+                } else if snap.stage == .drawLiveGuessing {
+                    if isDrawer {
+                        PopArtCard(cornerRadius: 22, borderWidth: 4, backgroundColor: PopArt.white) {
+                            VStack(spacing: 10) {
+                                HStack {
+                                    Text("🎨 DESSINE : « \(drawRound.chosenWord?.word ?? "") »")
+                                        .font(.system(size: 18, weight: .black, design: .rounded))
+                                        .foregroundStyle(PopArt.orange)
+                                    Spacer()
+                                    Text("⏱️ \(Int(ceil(snap.timeRemainingSec)))s")
+                                        .font(.system(size: 15, weight: .black, design: .monospaced))
+                                        .foregroundStyle(PopArt.ink)
+                                }
+
+                                InteractiveDrawingPadView(
+                                    initialCanvas: drawRound.canvas,
+                                    onCanvasChanged: { updatedCanvas in
+                                        session.sendDrawingCanvasUpdate(updatedCanvas)
+                                    }
+                                )
+
+                                if !drawRound.foundPlayerIDs.isEmpty {
+                                    Text("🎉 \(drawRound.foundPlayerIDs.count) joueur(s) ont déjà trouvé ton dessin !")
+                                        .font(.system(size: 13, weight: .black, design: .rounded))
+                                        .foregroundStyle(PopArt.greenSuccess)
+                                }
+                            }
+                            .padding(14)
+                        }
+                    } else {
+                        let alreadyFound = drawRound.foundPlayerIDs.contains(session.localPlayerID)
+                        VStack(spacing: 12) {
+                            PopArtCard(cornerRadius: 20, borderWidth: 3.5, backgroundColor: PopArt.white) {
+                                VStack(spacing: 8) {
+                                    HStack {
+                                        Text("\(drawRound.drawerEmoji) \(drawRound.drawerPlayerName) dessine (\(drawRound.chosenWord?.categoryHint ?? "Mystère"))")
+                                            .font(.system(size: 13, weight: .black, design: .rounded))
+                                            .foregroundStyle(PopArt.orange)
+                                        Spacer()
+                                        Text("⏱️ \(Int(ceil(snap.timeRemainingSec)))s")
+                                            .font(.system(size: 14, weight: .black, design: .monospaced))
+                                    }
+
+                                    VectorCanvasPreviewView(canvas: drawRound.canvas)
+                                        .frame(height: 210)
+                                        .background(Color.white, in: RoundedRectangle(cornerRadius: 14))
+                                        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(PopArt.ink, lineWidth: 2.5))
+
+                                    Text(drawRound.maskedWordPattern)
+                                        .font(.system(size: 22, weight: .black, design: .monospaced))
+                                        .foregroundStyle(PopArt.ink)
+                                        .padding(.top, 2)
+                                }
+                                .padding(12)
+                            }
+
+                            if alreadyFound {
+                                PopArtCard(cornerRadius: 20, borderWidth: 4, backgroundColor: PopArt.greenSuccess) {
+                                    VStack(spacing: 6) {
+                                        Text("🎉 BRAVO ! TU AS TROUVÉ LE MOT !")
+                                            .font(.system(size: 20, weight: .black, design: .rounded))
+                                            .foregroundStyle(.white)
+                                        Text("« \(drawRound.chosenWord?.word ?? "") » (+\(me?.lastDeltaScore ?? 2000) PTS)")
+                                            .font(.system(size: 18, weight: .black, design: .monospaced))
+                                            .foregroundStyle(PopArt.yellow)
+                                    }
+                                    .padding(18)
+                                }
+                            } else {
+                                DrawSomethingTileRackView(
+                                    targetLength: max(1, drawRound.wordLength),
+                                    targetWord: drawRound.chosenWord?.word ?? "",
+                                    scrambledTiles: drawRound.scrambledTiles,
+                                    onGuessSubmitted: { guess in
+                                        session.submitDrawGuessWord(guess)
+                                    }
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    // .drawReveal
+                    let delta = me?.lastDeltaScore ?? 0
+                    PopArtCard(
+                        cornerRadius: 22,
+                        borderWidth: 4,
+                        backgroundColor: delta > 0 ? PopArt.greenSuccess : PopArt.white
+                    ) {
+                        VStack(spacing: 10) {
+                            Text("🎨 LE MOT ÉTAIT : « \(drawRound.chosenWord?.word ?? "") »")
+                                .font(.system(size: 22, weight: .black, design: .rounded))
+                                .foregroundStyle(delta > 0 ? .white : PopArt.ink)
+
+                            VectorCanvasPreviewView(canvas: drawRound.canvas)
+                                .frame(height: 190)
+                                .background(Color.white, in: RoundedRectangle(cornerRadius: 14))
+                                .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(PopArt.ink, lineWidth: 2.5))
+
+                            if delta > 0 {
+                                Text("🎉 +\(delta) PTS GAGNÉS SUR CE DESSIN !")
+                                    .font(.system(size: 18, weight: .black, design: .monospaced))
+                                    .foregroundStyle(PopArt.yellow)
+                            } else {
+                                Text("0 pt sur ce dessin — prépare-toi pour la suite !")
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundStyle(PopArt.ink.opacity(0.75))
+                            }
+                        }
+                        .padding(16)
+                    }
+                }
+            }
+        }
+    }
+
+    private var esquisseControllerSection: some View {
+        VStack(spacing: 12) {
+            if let esq = snap.activeEsquisseRound {
+                if snap.stage == .esquisseShowcase {
+                    let nbIndex = min(max(0, esq.showcaseNotebookIndex), max(0, esq.notebooks.count - 1))
+                    if esq.notebooks.indices.contains(nbIndex) {
+                        let notebook = esq.notebooks[nbIndex]
+                        let alreadyVoted = notebook.voteVoterIDs.contains(session.localPlayerID)
+                        PopArtCard(cornerRadius: 22, borderWidth: 4, backgroundColor: PopArt.white) {
+                            VStack(alignment: .leading, spacing: 12) {
+                                HStack {
+                                    Text("📒 CARNET DE \(notebook.ownerEmoji) \(notebook.ownerName.uppercased())")
+                                        .font(.system(size: 16, weight: .black, design: .rounded))
+                                        .foregroundStyle(PopArt.orange)
+                                    Spacer()
+                                    Text("\(nbIndex + 1)/\(esq.notebooks.count)")
+                                        .font(.system(size: 13, weight: .black, design: .monospaced))
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 4)
+                                        .background(PopArt.yellow, in: Capsule())
+                                }
+
+                                ForEach(notebook.entries) { entry in
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        Text("\(entry.authorEmoji) \(entry.authorName) — \(entry.promptText != nil ? "✍️ Phrase" : "🎨 Dessin")")
+                                            .font(.system(size: 12, weight: .black, design: .rounded))
+                                            .foregroundStyle(PopArt.ink.opacity(0.7))
+
+                                        if let text = entry.promptText {
+                                            Text("« \(text) »")
+                                                .font(.system(size: 17, weight: .black, design: .rounded))
+                                                .foregroundStyle(PopArt.ink)
+                                                .padding(10)
+                                                .frame(maxWidth: .infinity, alignment: .leading)
+                                                .background(PopArt.cream, in: RoundedRectangle(cornerRadius: 12))
+                                                .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(PopArt.ink, lineWidth: 2))
+                                        }
+                                        if let drawing = entry.drawing {
+                                            VectorCanvasPreviewView(canvas: drawing)
+                                                .frame(height: 165)
+                                                .background(Color.white, in: RoundedRectangle(cornerRadius: 12))
+                                                .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(PopArt.ink, lineWidth: 2))
+                                        }
+                                    }
+                                }
+
+                                Button {
+                                    session.voteEsquisseAlbum(notebook.id)
+                                } label: {
+                                    HStack {
+                                        Text(alreadyVoted ? "✅ COUP DE CŒUR ENVOYÉ (\(notebook.voteVoterIDs.count) 😂)" : "😂 VOTER COUP DE CŒUR (+1 000 PTS)")
+                                            .font(.system(size: 15, weight: .black, design: .rounded))
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 14)
+                                }
+                                .buttonStyle(
+                                    PopArtActionButtonStyle(
+                                        backgroundColor: alreadyVoted ? PopArt.greenSuccess : PopArt.pink,
+                                        foregroundColor: .white,
+                                        cornerRadius: 16
+                                    )
+                                )
+                                .disabled(alreadyVoted)
+                            }
+                            .padding(16)
+                        }
+                    }
+                } else if me?.hasSubmittedEsquisseStep == true {
+                    PopArtCard(cornerRadius: 22, borderWidth: 4, backgroundColor: PopArt.greenSuccess) {
+                        VStack(spacing: 10) {
+                            Text("✅ CARNET TRANSMIS AU VOISIN !")
+                                .font(.system(size: 20, weight: .black, design: .rounded))
+                                .foregroundStyle(.white)
+                            Text("Attends quelques secondes que les autres artistes terminent leur étape...")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundStyle(.white.opacity(0.9))
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding(22)
+                    }
+                } else {
+                    let assignedID = esq.activeAssignmentByPlayerID[session.localPlayerID]
+                    let assignedNotebook = esq.notebooks.first(where: { $0.id == assignedID }) ?? esq.notebooks.first
+                    EsquisseInteractiveStepCard(
+                        stage: snap.stage,
+                        stepIndex: esq.stepIndex,
+                        previousEntry: assignedNotebook?.entries.last,
+                        onSubmitText: { text in
+                            session.submitEsquisseText(text)
+                        },
+                        onSubmitDrawing: { canvas in
+                            session.submitEsquisseDrawing(canvas)
+                        }
+                    )
+                }
+            }
+        }
+    }
+
     private var inGameQuitAndStopFooter: some View {
         HStack(spacing: 10) {
             if session.role == .hostAndPlayer1 {
@@ -1451,6 +1791,385 @@ struct PlayerControllerView: View {
         }
         .onTapGesture {
             session.wipeLocalBisouScreen()
+        }
+    }
+}
+
+// MARK: - Reusable Vector Canvas & Draw Something / Esquissé Subviews
+
+struct VectorCanvasPreviewView: View {
+    let canvas: DrawingCanvasData
+
+    var body: some View {
+        Canvas { context, size in
+            for stroke in canvas.strokes {
+                guard let first = stroke.points.first else { continue }
+                var path = Path()
+                path.move(to: CGPoint(x: first.x * size.width, y: first.y * size.height))
+                if stroke.points.count == 1 {
+                    path.addEllipse(in: CGRect(
+                        x: first.x * size.width - stroke.lineWidth / 2,
+                        y: first.y * size.height - stroke.lineWidth / 2,
+                        width: stroke.lineWidth,
+                        height: stroke.lineWidth
+                    ))
+                    context.fill(path, with: .color(Color(hex: stroke.colorHex)))
+                } else {
+                    for pt in stroke.points.dropFirst() {
+                        path.addLine(to: CGPoint(x: pt.x * size.width, y: pt.y * size.height))
+                    }
+                    context.stroke(
+                        path,
+                        with: .color(Color(hex: stroke.colorHex)),
+                        style: StrokeStyle(lineWidth: stroke.lineWidth, lineCap: .round, lineJoin: .round)
+                    )
+                }
+            }
+        }
+    }
+}
+
+struct InteractiveDrawingPadView: View {
+    let initialCanvas: DrawingCanvasData
+    var onCanvasChanged: (DrawingCanvasData) -> Void
+
+    @State private var strokes: [DrawingStroke] = []
+    @State private var activePoints: [NormalizedPoint] = []
+    @State private var selectedColorHex: String = "#111827"
+    @State private var selectedLineWidth: Double = 7.0
+    @State private var lastSentAt: Date = .distantPast
+
+    private let palette: [String] = [
+        "#111827", "#E11D48", "#FF8C42", "#F59E0B", "#10B981", "#2563EB", "#8E44AD", "#FFFFFF"
+    ]
+
+    var body: some View {
+        VStack(spacing: 10) {
+            GeometryReader { geo in
+                ZStack {
+                    Color.white
+                    VectorCanvasPreviewView(
+                        canvas: DrawingCanvasData(
+                            strokes: strokes + (activePoints.isEmpty ? [] : [
+                                DrawingStroke(colorHex: selectedColorHex, lineWidth: selectedLineWidth, points: activePoints)
+                            ])
+                        )
+                    )
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(PopArt.ink, lineWidth: 3))
+                .gesture(
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { value in
+                            let w = max(1, geo.size.width)
+                            let h = max(1, geo.size.height)
+                            let nx = min(1.0, max(0.0, value.location.x / w))
+                            let ny = min(1.0, max(0.0, value.location.y / h))
+                            let pt = NormalizedPoint(x: nx, y: ny)
+                            if let last = activePoints.last {
+                                let dist = hypot(pt.x - last.x, pt.y - last.y)
+                                if dist < 0.008 { return }
+                            }
+                            activePoints.append(pt)
+                            if Date().timeIntervalSince(lastSentAt) > 0.14 {
+                                lastSentAt = Date()
+                                let preview = DrawingCanvasData(
+                                    strokes: strokes + [DrawingStroke(colorHex: selectedColorHex, lineWidth: selectedLineWidth, points: activePoints)]
+                                )
+                                onCanvasChanged(preview)
+                            }
+                        }
+                        .onEnded { _ in
+                            guard !activePoints.isEmpty else { return }
+                            strokes.append(DrawingStroke(colorHex: selectedColorHex, lineWidth: selectedLineWidth, points: activePoints))
+                            activePoints.removeAll()
+                            onCanvasChanged(DrawingCanvasData(strokes: strokes))
+                        }
+                )
+            }
+            .frame(height: 245)
+
+            // Palette & Brush Controls
+            HStack(spacing: 8) {
+                ForEach(palette, id: \.self) { hex in
+                    let isEraser = (hex == "#FFFFFF")
+                    let isSelected = (selectedColorHex == hex)
+                    Button {
+                        selectedColorHex = hex
+                        if isEraser { selectedLineWidth = 16.0 }
+                        else if selectedLineWidth > 12.0 { selectedLineWidth = 7.0 }
+                    } label: {
+                        ZStack {
+                            Circle()
+                                .fill(Color(hex: hex))
+                                .frame(width: 30, height: 30)
+                                .overlay(Circle().strokeBorder(PopArt.ink, lineWidth: isSelected ? 3.5 : 2))
+                            if isEraser {
+                                Text("🧽")
+                                    .font(.system(size: 13))
+                            }
+                        }
+                        .scaleEffect(isSelected ? 1.15 : 1.0)
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                Spacer()
+
+                Button {
+                    if !strokes.isEmpty {
+                        _ = strokes.removeLast()
+                        onCanvasChanged(DrawingCanvasData(strokes: strokes))
+                    }
+                } label: {
+                    Text("↩️")
+                        .font(.system(size: 15, weight: .black))
+                        .frame(width: 34, height: 34)
+                        .background(PopArt.cream, in: Circle())
+                        .overlay(Circle().strokeBorder(PopArt.ink, lineWidth: 2))
+                }
+
+                Button {
+                    strokes.removeAll()
+                    activePoints.removeAll()
+                    onCanvasChanged(DrawingCanvasData(strokes: []))
+                } label: {
+                    Text("🗑️")
+                        .font(.system(size: 15, weight: .black))
+                        .frame(width: 34, height: 34)
+                        .background(PopArt.cream, in: Circle())
+                        .overlay(Circle().strokeBorder(PopArt.ink, lineWidth: 2))
+                }
+            }
+        }
+    }
+}
+
+struct DrawSomethingTileRackView: View {
+    let targetLength: Int
+    let targetWord: String
+    let scrambledTiles: [String]
+    var onGuessSubmitted: (String) -> Void
+
+    @State private var selectedTileIndices: [Int] = []
+    @State private var wrongAttemptFlash: Bool = false
+
+    private var currentWord: String {
+        selectedTileIndices.compactMap { idx in
+            scrambledTiles.indices.contains(idx) ? scrambledTiles[idx] : nil
+        }.joined()
+    }
+
+    var body: some View {
+        PopArtCard(cornerRadius: 20, borderWidth: 3.5, backgroundColor: wrongAttemptFlash ? Color(hex: "#FEE2E2") : PopArt.white) {
+            VStack(spacing: 12) {
+                HStack {
+                    Text("🔤 COMPOSE LE MOT (\(targetLength) LETTRES)")
+                        .font(.system(size: 13, weight: .black, design: .rounded))
+                        .foregroundStyle(PopArt.orange)
+                    Spacer()
+                    if !selectedTileIndices.isEmpty {
+                        Button {
+                            _ = selectedTileIndices.popLast()
+                        } label: {
+                            Text("⌫ Effacer")
+                                .font(.system(size: 12, weight: .black))
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 5)
+                                .background(PopArt.cream, in: Capsule())
+                                .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+
+                // Word Answer Slots
+                HStack(spacing: 6) {
+                    ForEach(0..<targetLength, id: \.self) { pos in
+                        let letter: String = pos < selectedTileIndices.count
+                            ? scrambledTiles[selectedTileIndices[pos]]
+                            : ""
+                        Button {
+                            if pos < selectedTileIndices.count {
+                                selectedTileIndices.remove(at: pos)
+                            }
+                        } label: {
+                            Text(letter)
+                                .font(.system(size: 20, weight: .black, design: .rounded))
+                                .foregroundStyle(PopArt.ink)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 44)
+                                .background(letter.isEmpty ? PopArt.cream : PopArt.yellow, in: RoundedRectangle(cornerRadius: 10))
+                                .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(PopArt.ink, lineWidth: 2.5))
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+
+                // 12 Scrambled Letter Tiles (Draw Something style)
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 6), spacing: 8) {
+                    ForEach(Array(scrambledTiles.enumerated()), id: \.offset) { idx, letter in
+                        let isUsed = selectedTileIndices.contains(idx)
+                        Button {
+                            guard !isUsed, selectedTileIndices.count < targetLength else { return }
+                            selectedTileIndices.append(idx)
+                            if selectedTileIndices.count == targetLength {
+                                let attempt = currentWord
+                                if DrawingBank.normalizeWord(attempt) == DrawingBank.normalizeWord(targetWord) {
+                                    onGuessSubmitted(attempt)
+                                } else {
+                                    wrongAttemptFlash = true
+                                    Task { @MainActor in
+                                        try? await Task.sleep(for: .milliseconds(450))
+                                        wrongAttemptFlash = false
+                                        selectedTileIndices.removeAll()
+                                    }
+                                }
+                            }
+                        } label: {
+                            Text(letter)
+                                .font(.system(size: 20, weight: .black, design: .rounded))
+                                .foregroundStyle(isUsed ? PopArt.ink.opacity(0.25) : .white)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 46)
+                                .background(isUsed ? PopArt.cream : PopArt.blue, in: RoundedRectangle(cornerRadius: 12))
+                                .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(PopArt.ink, lineWidth: 2.5))
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(isUsed)
+                    }
+                }
+            }
+            .padding(14)
+        }
+        .onChange(of: targetWord) { _, _ in
+            selectedTileIndices.removeAll()
+        }
+    }
+}
+
+struct EsquisseInteractiveStepCard: View {
+    let stage: ShowStageState
+    let stepIndex: Int
+    let previousEntry: EsquisseEntry?
+    var onSubmitText: (String) -> Void
+    var onSubmitDrawing: (DrawingCanvasData) -> Void
+
+    @State private var typedText: String = ""
+    @State private var currentCanvas = DrawingCanvasData()
+
+    var body: some View {
+        PopArtCard(cornerRadius: 22, borderWidth: 4, backgroundColor: PopArt.white) {
+            VStack(alignment: .leading, spacing: 12) {
+                if stage == .esquissePromptEntry {
+                    Text("✍️ ÉTAPE 1/4 : INVENTE UNE SCÈNE FOLLE !")
+                        .font(.system(size: 18, weight: .black, design: .rounded))
+                        .foregroundStyle(PopArt.orange)
+
+                    Text("Ton voisin devra la dessiner sans aide :")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(PopArt.ink.opacity(0.72))
+
+                    TextField("Ex: Un tyrannosaure qui passe l'aspirateur...", text: $typedText)
+                        .font(.system(size: 17, weight: .heavy, design: .rounded))
+                        .padding(12)
+                        .background(PopArt.cream, in: RoundedRectangle(cornerRadius: 14))
+                        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(PopArt.ink, lineWidth: 2.5))
+
+                    HStack(spacing: 10) {
+                        Button {
+                            typedText = DrawingBank.randomEsquissePrompt()
+                        } label: {
+                            Text("🎲 Idée de Meemaw")
+                                .font(.system(size: 14, weight: .black, design: .rounded))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                        }
+                        .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.yellow, cornerRadius: 14))
+
+                        Button {
+                            onSubmitText(typedText)
+                        } label: {
+                            Text("✅ Envoyer")
+                                .font(.system(size: 15, weight: .black, design: .rounded))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                        }
+                        .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.greenSuccess, foregroundColor: .white, cornerRadius: 14))
+                    }
+                } else if stage == .esquisseDrawing {
+                    Text("🎨 ÉTAPE \(stepIndex + 1)/4 : DESSINE CETTE PHRASE !")
+                        .font(.system(size: 17, weight: .black, design: .rounded))
+                        .foregroundStyle(PopArt.orange)
+
+                    Text("« \(previousEntry?.promptText ?? "Un chat sur un vélo") »")
+                        .font(.system(size: 19, weight: .black, design: .rounded))
+                        .foregroundStyle(PopArt.ink)
+                        .padding(10)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(PopArt.yellow.opacity(0.45), in: RoundedRectangle(cornerRadius: 12))
+                        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(PopArt.ink, lineWidth: 2))
+
+                    InteractiveDrawingPadView(
+                        initialCanvas: currentCanvas,
+                        onCanvasChanged: { updated in
+                            currentCanvas = updated
+                        }
+                    )
+
+                    Button {
+                        onSubmitDrawing(currentCanvas)
+                    } label: {
+                        Text("✅ ENVOYER MON DESSIN AU VOISIN")
+                            .font(.system(size: 16, weight: .black, design: .rounded))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                    }
+                    .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.greenSuccess, foregroundColor: .white, cornerRadius: 16))
+                } else {
+                    // .esquisseGuessing — 100% Free Text Keyboard (Gartic Phone style!)
+                    Text("🕵️ ÉTAPE 3/4 : QU'EST-CE QUE C'EST QUE CE DESSIN ?")
+                        .font(.system(size: 17, weight: .black, design: .rounded))
+                        .foregroundStyle(PopArt.pink)
+
+                    if let drawing = previousEntry?.drawing {
+                        VectorCanvasPreviewView(canvas: drawing)
+                            .frame(height: 200)
+                            .background(Color.white, in: RoundedRectangle(cornerRadius: 14))
+                            .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(PopArt.ink, lineWidth: 2.5))
+                    }
+
+                    Text("Tape librement au clavier ce que tu crois voir (le joueur suivant devra le redessiner !) :")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(PopArt.ink.opacity(0.75))
+
+                    TextField("Écris ce que tu vois sur ce dessin...", text: $typedText)
+                        .font(.system(size: 17, weight: .heavy, design: .rounded))
+                        .padding(12)
+                        .background(PopArt.cream, in: RoundedRectangle(cornerRadius: 14))
+                        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(PopArt.ink, lineWidth: 2.5))
+                        .onSubmit {
+                            if !typedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                onSubmitText(typedText)
+                            }
+                        }
+
+                    Button {
+                        onSubmitText(typedText)
+                    } label: {
+                        Text("✅ VALIDER MON INTERPRÉTATION")
+                            .font(.system(size: 16, weight: .black, design: .rounded))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                    }
+                    .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.greenSuccess, foregroundColor: .white, cornerRadius: 16))
+                }
+            }
+            .padding(16)
+        }
+        .onChange(of: stepIndex) { _, _ in
+            typedText = ""
+            currentCanvas = DrawingCanvasData()
         }
     }
 }
