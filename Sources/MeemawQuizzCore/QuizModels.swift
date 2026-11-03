@@ -328,7 +328,7 @@ public enum ShowGameMode: String, CaseIterable, Codable, Identifiable, Sendable 
         switch self {
         case .fullQuizShow: "📺 Grand Show Quizz (+ Dessin)"
         case .drawSomethingOnly: "🎨 100% Draw Something"
-        case .esquisseParty: "📞 Esquissé ! (Gartic Phone)"
+        case .esquisseParty: "📞 Esquissé ! (1 Mot Facile)"
         }
     }
 
@@ -344,7 +344,7 @@ public enum ShowGameMode: String, CaseIterable, Codable, Identifiable, Sendable 
         switch self {
         case .fullQuizShow: "Quizz Rapide, Tu Te Mets Combien, Jukebox, Pinceau Draw Something, Solo & Raclette !"
         case .drawSomethingOnly: "Chacun dessine à tour de rôle en direct sur la TV, les autres trouvent le mot avec les lettres mélangées !"
-        case .esquisseParty: "Le Téléphone Arabe Dessiné : Phrase libre -> Dessin -> Interprétation au clavier -> Dessin & Grand Défilé TV !"
+        case .esquisseParty: "1 seul mot facile à dessiner (Soleil, Pizza, Poisson...) ➔ Le voisin devine 1 mot ➔ Dessin final & Grand Défilé BD !"
         }
     }
 
@@ -393,7 +393,7 @@ public enum QuizRoundKind: String, Codable, Sendable {
         case .leSolo: "Pas besoin de buzzer : le 1er qui tape sa réponse coupe l'herbe sous le pied des autres (Double ou Gamelle) !"
         case .couciCouca: "Façon Burger Quiz version Savoie : tape Option A, Option B, ou 🧀 LES DEUX !"
         case .quoizziQuoissa: "6 jeux de mots et calembours tordus de Meemaw : réponds dès que ça s'affiche !"
-        case .esquisseTeleArabe: "Écris une phrase -> Le voisin la dessine -> Le suivant tape ce qu'il croit voir -> Grand Défilé final sur la TV !"
+        case .esquisseTeleArabe: "1 seul mot ultra-simple à dessiner au doigt -> Le voisin devine 1 mot -> Dessin suivant & Grand Défilé BD sur la TV !"
         case .finaleDouble: "Dernière ligne droite : tous les points et pénalités sont DOUBLÉS !"
         }
     }

@@ -117,5 +117,15 @@ final class MeemawQuizzCoreTests: XCTestCase {
         )
         XCTAssertEqual(stickmanStrokes.count, 4)
         XCTAssertEqual(DrawingBank.pickThreeEsquissePrompts().count, 3)
+
+        // Ensure every Esquissé prompt and QCM confusion suggestion is strictly 1 single word (no spaces!)
+        for word in DrawingBank.esquisseStarterPrompts {
+            XCTAssertFalse(word.contains(" "), "Esquissé prompt must be a single word: \(word)")
+            let choices = DrawingBank.quickGuessSuggestions(from: word)
+            XCTAssertEqual(choices.count, 4)
+            for choice in choices {
+                XCTAssertFalse(choice.contains(" "), "Esquissé choice must be a single word: \(choice)")
+            }
+        }
     }
 }

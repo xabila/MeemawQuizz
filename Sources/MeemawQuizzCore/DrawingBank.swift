@@ -144,44 +144,44 @@ public enum DrawingBank {
         }.joined(separator: " ")
     }
 
-    // MARK: - 30 Expressions Ultra-Courtes (2-3 mots) pour « Esquissé ! » (Dessinables en 10s sur téléphone avec les Stickers & Formes !)
+    // MARK: - 30 Mots Uniques Ultra-Simples pour « Esquissé ! » (1 seul mot facile à dessiner au doigt sur iPhone !)
 
     public static let esquisseStarterPrompts: [String] = [
-        "Un chat au soleil",
-        "Un poisson roi",
-        "Une pizza volante",
-        "Un serpent à lunettes",
-        "Une maison en feu",
-        "Un bonhomme sous la pluie",
-        "Une pomme amoureuse",
-        "Un requin souriant",
-        "Un sapin étoilé",
-        "Un fantôme rigolo",
-        "Une fusée vers la lune",
-        "Un soleil à lunettes",
-        "Un cadeau magique",
-        "Un bateau sous l'orage",
-        "Un bonhomme couronné",
-        "Une tasse qui fume",
-        "Un nuage en colère",
-        "Un ballon et un cactus",
-        "Un escargot rapide",
-        "Une glace qui fond",
-        "Un poisson amoureux",
-        "Un chat avec une couronne",
-        "Une maison sous le soleil",
-        "Un bonhomme au soleil",
-        "Une étoile filante",
-        "Un cœur en flammes",
-        "Un sapin sous la neige",
-        "Un poisson à lunettes",
-        "Un bonhomme amoureux",
-        "Une fusée en feu"
+        "SOLEIL",
+        "POMME",
+        "PIZZA",
+        "POISSON",
+        "MAISON",
+        "SAPIN",
+        "BALLON",
+        "LUNETTES",
+        "FUSÉE",
+        "BATEAU",
+        "CŒUR",
+        "ÉTOILE",
+        "NUAGE",
+        "BANANE",
+        "GÂTEAU",
+        "GLACE",
+        "CADEAU",
+        "COURONNE",
+        "SERPENT",
+        "BONHOMME",
+        "FLEUR",
+        "CHAT",
+        "TORTUE",
+        "ESCARGOT",
+        "PARAPLUIE",
+        "TASSE",
+        "VOITURE",
+        "FROMAGE",
+        "FANTÔME",
+        "DIAMANT"
     ]
 
     public static func randomEsquissePrompt(excluding used: Set<String> = []) -> String {
         let avail = esquisseStarterPrompts.filter { !used.contains($0) }
-        return (avail.isEmpty ? esquisseStarterPrompts : avail).randomElement() ?? "Un chat au soleil"
+        return (avail.isEmpty ? esquisseStarterPrompts : avail).randomElement() ?? "SOLEIL"
     }
 
     public static func pickThreeEsquissePrompts(excluding used: Set<String> = []) -> [String] {
@@ -192,15 +192,54 @@ public enum DrawingBank {
         return Array(esquisseStarterPrompts.shuffled().prefix(3))
     }
 
-    /// Generates 4 quick-tap Pop-Art guess buttons (1 original + 3 funny short misinterpretations) so players can guess in 1 tap on their phone!
+    /// Table des confusions visuelles (1 seul mot !) quand on dessine au doigt sur un téléphone
+    private static let visualWordConfusions: [String: [String]] = [
+        "SOLEIL": ["FLEUR", "ARAIGNÉE", "ORANGE"],
+        "POMME": ["TOMATE", "BALLON", "CERISE"],
+        "PIZZA": ["FROMAGE", "PARASOL", "GÂTEAU"],
+        "POISSON": ["REQUIN", "BATEAU", "BANANE"],
+        "MAISON": ["CHÂTEAU", "FLÈCHE", "CADEAU"],
+        "SAPIN": ["CACTUS", "MONTAGNE", "FUSÉE"],
+        "BALLON": ["POMME", "SOLEIL", "BULLE"],
+        "LUNETTES": ["VÉLO", "CISEAUX", "HIBOU"],
+        "FUSÉE": ["CAROTTE", "CRAYON", "SAPIN"],
+        "BATEAU": ["CHAPEAU", "BANANE", "TASSE"],
+        "CŒUR": ["FRAISE", "POMME", "PAPILLON"],
+        "ÉTOILE": ["SOLEIL", "FLOCON", "FLEUR"],
+        "NUAGE": ["MOUTON", "POPCORN", "CAILLOU"],
+        "BANANE": ["LUNE", "SOURIRE", "BATEAU"],
+        "GÂTEAU": ["CHAPEAU", "MAISON", "CADEAU"],
+        "GLACE": ["MICRO", "CAROTTE", "AMPOULE"],
+        "CADEAU": ["VALISE", "TÉLÉ", "GÂTEAU"],
+        "COURONNE": ["PEIGNE", "MONTAGNE", "CHÂTEAU"],
+        "SERPENT": ["VER", "CORDE", "ÉCLAIR"],
+        "BONHOMME": ["ROBOT", "ÉPOUVANTAIL", "FANTÔME"],
+        "FLEUR": ["SOLEIL", "MOULIN", "ARBRE"],
+        "CHAT": ["LAPIN", "HIBOU", "RENARD"],
+        "TORTUE": ["CASQUE", "ESCARGOT", "CHAMPIGNON"],
+        "ESCARGOT": ["SUCETTE", "TORTUE", "COQUILLAGE"],
+        "PARAPLUIE": ["CHAMPIGNON", "PALMIER", "MÉDUSE"],
+        "TASSE": ["SEAU", "CHAPEAU", "TAMBOUR"],
+        "VOITURE": ["CHAUSSURE", "TORTUE", "CAMION"],
+        "FROMAGE": ["PIZZA", "GÂTEAU", "PYRAMIDE"],
+        "FANTÔME": ["MÉDUSE", "NUAGE", "CHAMPIGNON"],
+        "DIAMANT": ["CERF-VOLANT", "ÉTOILE", "TOUPIE"]
+    ]
+
+    /// Generates 4 quick-tap Pop-Art 1-word buttons (1 original word + 3 visually similar single words) so players can guess in 1 tap on their phone!
     public static func quickGuessSuggestions(from previousPrompt: String) -> [String] {
-        let clean = previousPrompt.trimmingCharacters(in: .whitespacesAndNewlines)
-        let funny = botFunnyMisinterpretation(from: clean)
+        let clean = previousPrompt.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
         var options: [String] = []
         if !clean.isEmpty {
             options.append(clean)
         }
-        if !options.contains(funny) {
+        if let cousins = visualWordConfusions[clean] {
+            for c in cousins where options.count < 4 && !options.contains(c) {
+                options.append(c)
+            }
+        }
+        let funny = botFunnyMisinterpretation(from: clean)
+        if options.count < 4 && !options.contains(funny) {
             options.append(funny)
         }
         for candidate in esquisseStarterPrompts.shuffled() where options.count < 4 {
@@ -211,39 +250,24 @@ public enum DrawingBank {
         return options.shuffled()
     }
 
-    /// Short, visual funny misinterpretation (3-4 words max) so the next drawer in Step 3 also has an ultra-simple prompt to draw!
+    /// 1 seul mot visuellement proche quand un bot devine ou déforme le dessin précédent dans Esquissé !
     public static func botFunnyMisinterpretation(from previousPrompt: String) -> String {
-        let lower = previousPrompt.lowercased()
-        if lower.contains("chat") {
-            return "Un tigre sous une lampe"
-        } else if lower.contains("poisson") || lower.contains("requin") {
-            return "Une sardine couronnée"
-        } else if lower.contains("pizza") {
-            return "Une soucoupe au fromage"
-        } else if lower.contains("serpent") {
-            return "Un spaghetti à lunettes"
-        } else if lower.contains("maison") {
-            return "Un barbecue géant"
-        } else if lower.contains("pluie") || lower.contains("orage") {
-            return "Un bonhomme sous la douche"
-        } else if lower.contains("pomme") || lower.contains("cœur") || lower.contains("amoureux") {
-            return "Une tomate amoureuse"
-        } else if lower.contains("sapin") {
-            return "Un cactus de Noël"
-        } else if lower.contains("fusée") || lower.contains("lune") {
-            return "Une carotte dans l'espace"
-        } else if lower.contains("soleil") {
-            return "Une crêpe qui brille"
-        } else {
-            let fallbacks = [
-                "Un bonhomme qui danse",
-                "Un soleil en vacances",
-                "Un poisson qui chante",
-                "Un chat déguisé en roi",
-                "Une étoile magique"
-            ]
-            return fallbacks.randomElement()!
+        let clean = previousPrompt.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        if let cousins = visualWordConfusions[clean], let first = cousins.first {
+            return first
         }
+        let lower = clean.lowercased()
+        if lower.contains("chat") { return "LAPIN" }
+        if lower.contains("poisson") || lower.contains("requin") { return "BATEAU" }
+        if lower.contains("pizza") || lower.contains("fromage") { return "GÂTEAU" }
+        if lower.contains("serpent") { return "ÉCLAIR" }
+        if lower.contains("maison") { return "CHÂTEAU" }
+        if lower.contains("pluie") || lower.contains("parapluie") { return "CHAMPIGNON" }
+        if lower.contains("pomme") || lower.contains("cœur") { return "TOMATE" }
+        if lower.contains("sapin") { return "CACTUS" }
+        if lower.contains("fusée") { return "CAROTTE" }
+        if lower.contains("soleil") { return "FLEUR" }
+        return ["BALLON", "BONHOMME", "SOLEIL", "POISSON", "ÉTOILE"].randomElement()!
     }
 
     // MARK: - 1-Tap Vector Stickers / Pochoirs (Pose un dessin propre en 1 clic sur la toile !)
@@ -609,16 +633,47 @@ public enum DrawingBank {
 
     public static func botSketch(for word: String) -> DrawingCanvasData {
         let clean = normalizeWord(word)
+        let center = NormalizedPoint(x: 0.50, y: 0.50)
         switch clean {
         case "SOLEIL":
+            return DrawingCanvasData(strokes: makeStickerStrokes(sticker: .sun, center: center, scale: 1.5))
+
+        case "CHAT":
+            return DrawingCanvasData(strokes: makeStickerStrokes(sticker: .cat, center: center, scale: 1.55))
+
+        case "PIZZA", "FROMAGE":
+            return DrawingCanvasData(strokes: [
+                DrawingStroke(colorHex: "#F59E0B", lineWidth: 8, points: [
+                    NormalizedPoint(x: 0.50, y: 0.84),
+                    NormalizedPoint(x: 0.24, y: 0.24),
+                    NormalizedPoint(x: 0.76, y: 0.24),
+                    NormalizedPoint(x: 0.50, y: 0.84)
+                ]),
+                circleStroke(cx: 0.44, cy: 0.42, r: 0.04, color: "#E11D48", width: 6),
+                circleStroke(cx: 0.58, cy: 0.48, r: 0.04, color: "#E11D48", width: 6),
+                circleStroke(cx: 0.48, cy: 0.62, r: 0.04, color: "#E11D48", width: 6)
+            ])
+
+        case "COEUR", "CŒUR":
+            return DrawingCanvasData(strokes: makeStickerStrokes(sticker: .heart, center: center, scale: 1.55))
+
+        case "ETOILE":
+            return DrawingCanvasData(strokes: makeStickerStrokes(sticker: .star, center: center, scale: 1.55))
+
+        case "POMME", "BALLON":
             var strokes: [DrawingStroke] = [
-                circleStroke(cx: 0.5, cy: 0.5, r: 0.20, color: "#F59E0B", width: 8)
+                circleStroke(cx: 0.50, cy: 0.54, r: 0.24, color: "#E11D48", width: 8),
+                DrawingStroke(colorHex: "#10B981", lineWidth: 7, points: [
+                    NormalizedPoint(x: 0.50, y: 0.30),
+                    NormalizedPoint(x: 0.56, y: 0.16),
+                    NormalizedPoint(x: 0.66, y: 0.22)
+                ])
             ]
-            for i in 0..<8 {
-                let angle = Double(i) * (.pi / 4.0)
-                let p1 = NormalizedPoint(x: 0.5 + cos(angle) * 0.25, y: 0.5 + sin(angle) * 0.25)
-                let p2 = NormalizedPoint(x: 0.5 + cos(angle) * 0.38, y: 0.5 + sin(angle) * 0.38)
-                strokes.append(DrawingStroke(colorHex: "#FF8C42", lineWidth: 6, points: [p1, p2]))
+            if clean == "BALLON" {
+                strokes.append(DrawingStroke(colorHex: "#111827", lineWidth: 5, points: [
+                    NormalizedPoint(x: 0.50, y: 0.78),
+                    NormalizedPoint(x: 0.46, y: 0.92)
+                ]))
             }
             return DrawingCanvasData(strokes: strokes)
 

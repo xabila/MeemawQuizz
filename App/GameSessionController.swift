@@ -824,7 +824,7 @@ final class GameSessionController {
         case .esquisseTeleArabe:
             audio.setMusicMood(.chillLobby)
             studioFile = "mq_round_esquisse.m4a"
-            text = "📞 Bienvenue dans ESQUISSÉ ! Écrivez une idée folle, dessinez ce que vous lisez, et devinez librement au clavier ce que le voisin a gribouillé !"
+            text = "📞 Bienvenue dans ESQUISSÉ ! 1 seul mot ultra-facile à dessiner au doigt, 1 dessin, et votre voisin devine quel est ce mot !"
             meemawPose = "meemaw_fun"
             audio.playJingle("jingle_couci.wav")
         case .finaleDouble:
@@ -1821,10 +1821,10 @@ final class GameSessionController {
 
         switch stepIndex {
         case 0:
-            // Step 0: Write starting funny prompt!
+            // Step 0: Pick 1 simple word!
             stage = .esquissePromptEntry
             meemawPose = "meemaw_fun"
-            meemawSpeech = "📞 ESQUISSÉ : Choisissez une idée courte à faire dessiner à votre voisin !"
+            meemawSpeech = "📞 ESQUISSÉ : Choisissez 1 mot facile à faire dessiner à votre voisin !"
             audio.setMusicMood(.chillLobby)
             audio.playMeemawStudioOrFallback(studioFilename: "mq_esquisse_prompt.m4a", fallbackText: meemawSpeech)
             broadcastState()
@@ -1833,11 +1833,11 @@ final class GameSessionController {
             }
 
         case 1, 3:
-            // Step 1 or 3: Draw the short expression with 1-tap stickers, shapes or finger!
+            // Step 1 or 3: Draw the 1 simple word with 1-tap stickers, shapes or finger!
             stage = .esquisseDrawing
             meemawPose = "meemaw_dictation_talk"
             let displayStep = (stepIndex == 1) ? "1/3" : "3/3"
-            meemawSpeech = "🎨 ESQUISSÉ (Manche \(displayStep)) : Posez des Stickers en 1 clic (Soleil, Chat, Couronne...) ou dessinez au doigt ! Bouton 🔄 si vous voulez changer de mot !"
+            meemawSpeech = "🎨 ESQUISSÉ (Manche \(displayStep)) : Dessinez ce MOT SIMPLE au doigt ou avec les Stickers 1-Clic ! Touchez 🔄 si vous voulez un autre mot !"
             audio.setMusicMood(.fastAction)
             audio.playMeemawStudioOrFallback(studioFilename: "mq_esquisse_draw.m4a", fallbackText: meemawSpeech)
             broadcastState()
@@ -1846,10 +1846,10 @@ final class GameSessionController {
             }
 
         default:
-            // Step 2: Guess in 1 tap from 4 funny choices or type freely!
+            // Step 2: Guess the 1 word in 1 tap from 4 choices or type a single word!
             stage = .esquisseGuessing
             meemawPose = "meemaw_duel_challenge"
-            meemawSpeech = "🕵️ ESQUISSÉ (Manche 2/3) : Qu'a dessiné votre voisin ? Touchez 1 des 4 propositions en un clic ou écrivez votre gag !"
+            meemawSpeech = "🕵️ ESQUISSÉ (Manche 2/3) : Quel MOT votre voisin a-t-il dessiné ? Touchez 1 des 4 mots en un clic ou tapez un mot !"
             audio.setMusicMood(.chillLobby)
             audio.playMeemawStudioOrFallback(studioFilename: "mq_esquisse_guess.m4a", fallbackText: meemawSpeech)
             broadcastState()
@@ -1952,22 +1952,12 @@ final class GameSessionController {
                     ))
                 } else if step == 1 || step == 3 {
                     let prevPrompt = esq.notebooks[nbIdx].entries.last?.promptText ?? "SOLEIL"
-                    let sketchKey: String
-                    let lower = prevPrompt.lowercased()
-                    if lower.contains("requin") || lower.contains("poisson") { sketchKey = "REQUIN" }
-                    else if lower.contains("fusée") || lower.contains("espace") { sketchKey = "FUSEE" }
-                    else if lower.contains("maison") { sketchKey = "MAISON" }
-                    else if lower.contains("sapin") || lower.contains("palmier") { sketchKey = "SAPIN" }
-                    else if lower.contains("couronne") || lower.contains("napoléon") { sketchKey = "COURONNE" }
-                    else if lower.contains("lunettes") { sketchKey = "LUNETTES" }
-                    else { sketchKey = "SOLEIL" }
-
                     esq.notebooks[nbIdx].entries.append(EsquisseEntry(
                         stepIndex: step,
                         authorPlayerID: assigneeID,
                         authorName: assigneeName,
                         authorEmoji: assigneeEmoji,
-                        drawing: DrawingBank.botSketch(for: sketchKey)
+                        drawing: DrawingBank.botSketch(for: prevPrompt)
                     ))
                 } else {
                     let firstPrompt = esq.notebooks[nbIdx].entries.first?.promptText ?? ""

@@ -982,7 +982,7 @@ struct MeemawTVStageView: View {
                             // 4-Column Comic Strip (Bande Dessinée) Side-by-Side
                             HStack(spacing: 10 * scale) {
                                 ForEach(Array(notebook.entries.enumerated()), id: \.element.id) { idx, entry in
-                                    let stepTitle = idx == 0 ? "1. IDÉE INITIALE" : (idx == 1 ? "2. 1er DESSIN" : (idx == 2 ? "3. DEVIENT..." : "4. CHUTE FINALE !"))
+                                    let stepTitle = idx == 0 ? "1. MOT SECRET" : (idx == 1 ? "2. 1er DESSIN" : (idx == 2 ? "3. DEVIENT..." : "4. CHUTE FINALE !"))
                                     let headerBg = idx == 0 ? PopArt.yellow : (idx == 1 ? Color(hex: "#F3E8FF") : (idx == 2 ? Color(hex: "#FFE4E8") : Color(hex: "#D1FAE5")))
 
                                     VStack(spacing: 0) {
@@ -1066,11 +1066,11 @@ struct MeemawTVStageView: View {
                         let stepBanner: String = {
                             if snap.stage == .esquisseDrawing {
                                 let label = (esq.stepIndex <= 1) ? "MANCHE 1/3" : "MANCHE 3/3"
-                                return "🎨 \(label) : DESSINEZ L'EXPRESSION SECRÈTE SUR VOS TÉLÉPHONES !"
+                                return "🎨 \(label) : DESSINEZ LE MOT FACILE SUR VOS TÉLÉPHONES !"
                             } else if snap.stage == .esquisseGuessing {
-                                return "🕵️ MANCHE 2/3 : DEVINEZ EN 1 CLIC CE QUE LE VOISIN A DESSINÉ !"
+                                return "🕵️ MANCHE 2/3 : DEVINEZ EN 1 CLIC QUEL MOT LE VOISIN A DESSINÉ !"
                             } else {
-                                return "✍️ CHOISISSEZ UNE IDÉE COURTE SUR VOS TÉLÉPHONES !"
+                                return "✍️ CHOISISSEZ 1 MOT FACILE SUR VOS TÉLÉPHONES !"
                             }
                         }()
 

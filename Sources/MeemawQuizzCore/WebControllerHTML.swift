@@ -602,22 +602,22 @@ public enum WebControllerHTML {
                 const lastEntry = nb && nb.entries && nb.entries.length ? nb.entries[nb.entries.length - 1] : null;
 
                 if (st.stage === 'esquisse_prompt_entry') {
-                  titleEl.innerText = '✍️ ÉTAPE 1/4 : INVENTE UNE SCÈNE FOLLE !';
+                  titleEl.innerText = '✍️ CHOISIS 1 SEUL MOT FACILE !';
                   contentEl.innerHTML = `
-                    <input type="text" id="esqTextInput" maxlength="85" placeholder="Ex: Un tyrannosaure qui passe l'aspirateur..." />
-                    <button class="btn-primary" style="background:#10B981;color:#fff;" onclick="submitEsqText()">✅ Envoyer mon idée au voisin</button>
+                    <input type="text" id="esqTextInput" maxlength="40" placeholder="Ex: SOLEIL, PIZZA, POISSON..." />
+                    <button class="btn-primary" style="background:#10B981;color:#fff;" onclick="submitEsqText()">✅ Envoyer mon mot au voisin</button>
                   `;
                   return;
                 }
 
                 if (st.stage === 'esquisse_drawing') {
-                  const secretText = lastEntry && lastEntry.promptText ? lastEntry.promptText : 'Un chat au soleil';
-                  titleEl.innerText = `🎨 ESQUISSÉ : DESSINE L'IDÉE SECRÈTE !`;
+                  const secretText = lastEntry && lastEntry.promptText ? lastEntry.promptText : 'SOLEIL';
+                  titleEl.innerText = `🎨 ESQUISSÉ : DESSINE CE MOT FACILE !`;
                   contentEl.innerHTML = `
                     <div style="background:#FFD700;border:3px solid #1A1A1A;border-radius:14px;padding:8px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
                       <div>
-                        <div style="font-size:10px;font-weight:900;">MOT SECRET À FAIRE DEVINER :</div>
-                        <div style="font-size:17px;font-weight:900;">« ${secretText} »</div>
+                        <div style="font-size:10px;font-weight:900;">1 SEUL MOT FACILE À DESSINER :</div>
+                        <div style="font-size:18px;font-weight:900;">« ${secretText} »</div>
                       </div>
                       <button class="badge" style="background:#fff;cursor:pointer;" onclick="beep(650,60);sendMsg({action:'swap_secret_prompt'})">🔄 CHANGER</button>
                     </div>
@@ -636,11 +636,11 @@ public enum WebControllerHTML {
                 }
 
                 if (st.stage === 'esquisse_guessing') {
-                  titleEl.innerText = '🕵️ ÉTAPE 3/4 : QU\\'EST-CE QUE C\\'EST QUE CE DESSIN ?';
+                  titleEl.innerText = '🕵️ MANCHE 2/3 : QUEL MOT LE VOISIN A-T-IL DESSINÉ ?';
                   contentEl.innerHTML = `
                     <canvas id="esqGuessPreview" width="300" height="400" style="width:100%;max-width:230px;aspect-ratio:3/4;margin:0 auto;display:block;background:#fff;border:3px solid #1A1A1A;border-radius:14px;"></canvas>
-                    <input type="text" id="esqTextInput" maxlength="85" placeholder="Tape au clavier ce que tu vois..." />
-                    <button class="btn-primary" style="background:#10B981;color:#fff;" onclick="submitEsqText()">✅ Valider mon interprétation</button>
+                    <input type="text" id="esqTextInput" maxlength="40" placeholder="Tape le mot (ex: SOLEIL, PIZZA...)" />
+                    <button class="btn-primary" style="background:#10B981;color:#fff;" onclick="submitEsqText()">✅ Valider ce mot</button>
                   `;
                   if (lastEntry && lastEntry.drawing) {
                     drawVectorPreview('esqGuessPreview', lastEntry.drawing);
