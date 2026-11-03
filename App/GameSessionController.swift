@@ -378,6 +378,14 @@ final class GameSessionController {
         ))
     }
 
+    func swapSecretPrompt() {
+        audio.triggerControllerHaptic(style: .medium)
+        dispatchAction(ClientToHostMessage(
+            playerID: localPlayerID,
+            action: .swapSecretPrompt
+        ))
+    }
+
     func sendDrawingCanvasUpdate(_ canvas: DrawingCanvasData) {
         dispatchAction(ClientToHostMessage(
             playerID: localPlayerID,
@@ -493,6 +501,9 @@ final class GameSessionController {
             guard let word = msg.textPayload else { return }
             handleSelectDrawWord(playerID: msg.playerID, word: word)
 
+        case .swapSecretPrompt:
+            handleSwapSecretPrompt(playerID: msg.playerID)
+
         case .updateDrawingCanvas:
             guard let canvas = msg.drawingCanvas else { return }
             handleUpdateDrawingCanvas(playerID: msg.playerID, canvas: canvas)
@@ -588,14 +599,13 @@ final class GameSessionController {
             setupEsquisseNotebooks()
             phaseQueue = [
                 .roundIntro(.esquisseTeleArabe),
-                .esquisseStep(0),
                 .esquisseStep(1),
                 .esquisseStep(2),
                 .esquisseStep(3),
                 .esquisseShowcase,
                 .podium
             ]
-            totalQuestions = 4
+            totalQuestions = 3
             questionNumber = 0
             currentStepIndex = -1
             audio.playJingle("jingle_intro.wav")
@@ -748,7 +758,7 @@ final class GameSessionController {
             questionNumber += 1
             enterCouciCoucaRound(round, kind: kind)
         case .esquisseStep(let stepIdx):
-            questionNumber = stepIdx + 1
+            questionNumber = max(1, stepIdx)
             enterEsquisseStep(stepIdx)
         case .esquisseShowcase:
             enterEsquisseShowcase()
@@ -1722,25 +1732,71 @@ final class GameSessionController {
             }
         }
 
+        // Auto-seed Step 0 with an ultra-simple 2-3 word expression so players jump straight into Drawing (Step 1) with a 1-tap 🔄 CHANGER button!
         let notebooks = participants.enumerated().map { idx, part in
-            EsquisseNotebook(
+            let initialPrompt = DrawingBank.randomEsquissePrompt(excluding: usedEsquissePrompts)
+            usedEsquissePrompts.insert(initialPrompt)
+            let seedEntry = EsquisseEntry(
+                stepIndex: 0,
+                authorPlayerID: part.id,
+                authorName: part.name,
+                authorEmoji: part.emoji,
+                promptText: initialPrompt,
+                drawing: nil
+            )
+            return EsquisseNotebook(
                 id: "nb_\(idx)_\(part.id)",
                 ownerPlayerID: part.id,
                 ownerName: part.name,
                 ownerEmoji: part.emoji,
-                entries: [],
+                entries: [seedEntry],
                 voteVoterIDs: []
             )
         }
 
         activeEsquisseRound = EsquisseRoundState(
-            stepIndex: 0,
-            totalSteps: 4,
+            stepIndex: 1,
+            totalSteps: 3,
             notebooks: notebooks,
             activeAssignmentByPlayerID: [:],
             showcaseNotebookIndex: 0,
             showcaseEntryCount: 1
         )
+    }
+
+    private func handleSwapSecretPrompt(playerID: String) {
+        if stage == .drawLiveGuessing,
+           var drawState = activeDrawRound,
+           drawState.drawerPlayerID == playerID,
+           drawState.foundPlayerIDs.isEmpty {
+            let candidates = DrawingBank.allWords.filter { $0.stars <= 2 && !usedDrawWords.contains($0.word) }
+            let pool = candidates.isEmpty ? DrawingBank.allWords.filter { $0.stars <= 2 } : candidates
+            if let entry = pool.randomElement() {
+                let newWord = DrawingBank.makeWordOption(from: entry)
+                usedDrawWords.insert(newWord.word)
+                drawState.chosenWord = newWord
+                drawState.maskedWordPattern = DrawingBank.maskedPattern(for: newWord.word)
+                drawState.wordLength = newWord.word.count
+                drawState.scrambledTiles = newWord.scrambledTiles
+                drawState.canvas = DrawingCanvasData()
+                activeDrawRound = drawState
+                broadcastState()
+            }
+            return
+        }
+
+        if stage == .esquisseDrawing,
+           var esq = activeEsquisseRound,
+           let nbID = esq.activeAssignmentByPlayerID[playerID],
+           let nbIdx = esq.notebooks.firstIndex(where: { $0.id == nbID }),
+           !esq.notebooks[nbIdx].entries.isEmpty {
+            let newPrompt = DrawingBank.randomEsquissePrompt(excluding: usedEsquissePrompts)
+            usedEsquissePrompts.insert(newPrompt)
+            let lastEntryIdx = esq.notebooks[nbIdx].entries.count - 1
+            esq.notebooks[nbIdx].entries[lastEntryIdx].promptText = newPrompt
+            activeEsquisseRound = esq
+            broadcastState()
+        }
     }
 
     private func enterEsquisseStep(_ stepIndex: Int) {
@@ -1768,35 +1824,36 @@ final class GameSessionController {
             // Step 0: Write starting funny prompt!
             stage = .esquissePromptEntry
             meemawPose = "meemaw_fun"
-            meemawSpeech = "📞 ESQUISSÉ (Étape 1/4) : Écrivez sur votre téléphone une scène délirante à faire dessiner à votre voisin !"
+            meemawSpeech = "📞 ESQUISSÉ : Choisissez une idée courte à faire dessiner à votre voisin !"
             audio.setMusicMood(.chillLobby)
             audio.playMeemawStudioOrFallback(studioFilename: "mq_esquisse_prompt.m4a", fallbackText: meemawSpeech)
             broadcastState()
-            startCountdown(duration: 38.0) { [weak self] in
+            startCountdown(duration: 30.0) { [weak self] in
                 self?.finalizeCurrentEsquisseStepAndAdvance()
             }
 
         case 1, 3:
-            // Step 1 or 3: Draw the previous text prompt!
+            // Step 1 or 3: Draw the short expression with 1-tap stickers, shapes or finger!
             stage = .esquisseDrawing
             meemawPose = "meemaw_dictation_talk"
-            meemawSpeech = "🎨 ESQUISSÉ (Étape \(stepIndex + 1)/4) : Les carnets ont tourné ! Utilisez les formes rapides (Rond, Triangle, Bonhomme) pour dessiner la phrase !"
+            let displayStep = (stepIndex == 1) ? "1/3" : "3/3"
+            meemawSpeech = "🎨 ESQUISSÉ (Manche \(displayStep)) : Posez des Stickers en 1 clic (Soleil, Chat, Couronne...) ou dessinez au doigt ! Bouton 🔄 si vous voulez changer de mot !"
             audio.setMusicMood(.fastAction)
             audio.playMeemawStudioOrFallback(studioFilename: "mq_esquisse_draw.m4a", fallbackText: meemawSpeech)
             broadcastState()
-            startCountdown(duration: 55.0) { [weak self] in
+            startCountdown(duration: 50.0) { [weak self] in
                 self?.finalizeCurrentEsquisseStepAndAdvance()
             }
 
         default:
-            // Step 2: Guess in 100% free text from the previous drawing!
+            // Step 2: Guess in 1 tap from 4 funny choices or type freely!
             stage = .esquisseGuessing
             meemawPose = "meemaw_duel_challenge"
-            meemawSpeech = "🕵️ ESQUISSÉ (Étape 3/4) : Regardez uniquement le dessin du voisin et tapez librement au clavier ce que vous croyez voir !"
+            meemawSpeech = "🕵️ ESQUISSÉ (Manche 2/3) : Qu'a dessiné votre voisin ? Touchez 1 des 4 propositions en un clic ou écrivez votre gag !"
             audio.setMusicMood(.chillLobby)
             audio.playMeemawStudioOrFallback(studioFilename: "mq_esquisse_guess.m4a", fallbackText: meemawSpeech)
             broadcastState()
-            startCountdown(duration: 38.0) { [weak self] in
+            startCountdown(duration: 32.0) { [weak self] in
                 self?.finalizeCurrentEsquisseStepAndAdvance()
             }
         }

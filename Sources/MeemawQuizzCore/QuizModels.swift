@@ -719,6 +719,7 @@ public struct ClientToHostMessage: Codable, Equatable, Sendable {
         case screwOpponent = "screw_opponent"
         case wipeBisouScreen = "wipe_bisou"
         case selectDrawWord = "select_draw_word"
+        case swapSecretPrompt = "swap_secret_prompt"
         case updateDrawingCanvas = "update_drawing_canvas"
         case submitDrawGuessWord = "submit_draw_guess"
         case requestDrawHint = "request_draw_hint"

@@ -1509,55 +1509,71 @@ struct PlayerControllerView: View {
                     }
                 } else if snap.stage == .drawLiveGuessing {
                     if isDrawer {
-                        PopArtCard(cornerRadius: 22, borderWidth: 4, backgroundColor: PopArt.white) {
-                            VStack(spacing: 10) {
-                                HStack {
-                                    Text("🎨 DESSINE : « \(drawRound.chosenWord?.word ?? "") »")
-                                        .font(.system(size: 18, weight: .black, design: .rounded))
-                                        .foregroundStyle(PopArt.orange)
-                                    Spacer()
-                                    Text("⏱️ \(Int(ceil(snap.timeRemainingSec)))s")
-                                        .font(.system(size: 15, weight: .black, design: .monospaced))
-                                        .foregroundStyle(PopArt.ink)
+                        VStack(spacing: 10) {
+                            // 1. Stitch Sun Yellow Secret Word Banner with 1-tap 🔄 CHANGER button
+                            StitchSecretPromptBanner(
+                                label: "MOT SECRET À FAIRE DEVINER :",
+                                promptText: drawRound.chosenWord?.word ?? "",
+                                canSwap: drawRound.foundPlayerIDs.isEmpty,
+                                onSwap: {
+                                    session.swapSecretPrompt()
                                 }
+                            )
 
-                                InteractiveDrawingPadView(
-                                    initialCanvas: drawRound.canvas,
-                                    onCanvasChanged: { updatedCanvas in
-                                        session.sendDrawingCanvasUpdate(updatedCanvas)
+                            // 2. Stitch Studio Easel + Stickers 1-Clic + Nuancier Pop
+                            InteractiveDrawingPadView(
+                                initialCanvas: drawRound.canvas,
+                                onCanvasChanged: { updatedCanvas in
+                                    session.sendDrawingCanvasUpdate(updatedCanvas)
+                                }
+                            )
+
+                            if !drawRound.foundPlayerIDs.isEmpty {
+                                PopArtCard(cornerRadius: 16, borderWidth: 3, backgroundColor: PopArt.greenSuccess) {
+                                    HStack {
+                                        Text("🎉 \(drawRound.foundPlayerIDs.count) joueur(s) ont déjà trouvé ton dessin !")
+                                            .font(.system(size: 13, weight: .black, design: .rounded))
+                                            .foregroundStyle(.white)
                                     }
-                                )
-
-                                if !drawRound.foundPlayerIDs.isEmpty {
-                                    Text("🎉 \(drawRound.foundPlayerIDs.count) joueur(s) ont déjà trouvé ton dessin !")
-                                        .font(.system(size: 13, weight: .black, design: .rounded))
-                                        .foregroundStyle(PopArt.greenSuccess)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 8)
                                 }
                             }
-                            .padding(14)
                         }
                     } else {
                         let alreadyFound = drawRound.foundPlayerIDs.contains(session.localPlayerID)
                         VStack(spacing: 10) {
-                            PopArtCard(cornerRadius: 20, borderWidth: 3.5, backgroundColor: PopArt.white) {
+                            // Stitch Studio Easel Preview for Guessers
+                            PopArtCard(cornerRadius: 22, borderWidth: 3.5, backgroundColor: PopArt.cream) {
                                 VStack(spacing: 8) {
                                     HStack {
-                                        Text("\(drawRound.drawerEmoji) \(drawRound.drawerPlayerName) dessine (\(drawRound.wordLength) lettres)")
-                                            .font(.system(size: 13, weight: .black, design: .rounded))
-                                            .foregroundStyle(PopArt.orange)
+                                        HStack(spacing: 6) {
+                                            Circle()
+                                                .fill(PopArt.redError)
+                                                .frame(width: 9, height: 9)
+                                            Text("\(drawRound.drawerEmoji) \(drawRound.drawerPlayerName.uppercased()) EN DIRECT")
+                                                .font(.system(size: 12, weight: .black, design: .rounded))
+                                                .foregroundStyle(PopArt.ink)
+                                        }
                                         Spacer()
-                                        Text("⏱️ \(Int(ceil(snap.timeRemainingSec)))s")
-                                            .font(.system(size: 14, weight: .black, design: .monospaced))
+                                        Text("+\(drawRound.chosenWord?.points ?? 2000) PTS")
+                                            .font(.system(size: 12, weight: .black, design: .monospaced))
+                                            .foregroundStyle(.white)
+                                            .padding(.horizontal, 10)
+                                            .padding(.vertical, 4)
+                                            .background(PopArt.pink, in: Capsule())
+                                            .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
                                     }
 
                                     ZStack {
                                         Color.white
+                                        CanvasDotGridView()
                                         VectorCanvasPreviewView(canvas: drawRound.canvas)
                                     }
                                     .aspectRatio(CGFloat(DrawingCanvasData.portraitAspectRatio), contentMode: .fit)
                                     .frame(maxHeight: 265)
-                                    .clipShape(RoundedRectangle(cornerRadius: 14))
-                                    .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(PopArt.ink, lineWidth: 2.5))
+                                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                                    .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(PopArt.ink, lineWidth: 3))
                                 }
                                 .padding(10)
                             }
@@ -1606,6 +1622,7 @@ struct PlayerControllerView: View {
 
                             ZStack {
                                 Color.white
+                                CanvasDotGridView()
                                 VectorCanvasPreviewView(canvas: drawRound.canvas)
                             }
                             .aspectRatio(CGFloat(DrawingCanvasData.portraitAspectRatio), contentMode: .fit)
@@ -1642,54 +1659,69 @@ struct PlayerControllerView: View {
                     if esq.notebooks.indices.contains(nbIndex) {
                         let notebook = esq.notebooks[nbIndex]
                         let alreadyVoted = notebook.voteVoterIDs.contains(session.localPlayerID)
-                        PopArtCard(cornerRadius: 22, borderWidth: 4, backgroundColor: PopArt.white) {
+                        PopArtCard(cornerRadius: 22, borderWidth: 4, backgroundColor: PopArt.cream) {
                             VStack(alignment: .leading, spacing: 12) {
                                 HStack {
-                                    Text("📒 CARNET DE \(notebook.ownerEmoji) \(notebook.ownerName.uppercased())")
-                                        .font(.system(size: 16, weight: .black, design: .rounded))
-                                        .foregroundStyle(PopArt.orange)
+                                    Text("📖 ALBUM BD DE \(notebook.ownerEmoji) \(notebook.ownerName.uppercased())")
+                                        .font(.system(size: 15, weight: .black, design: .rounded))
+                                        .foregroundStyle(PopArt.ink)
                                     Spacer()
-                                    Text("\(nbIndex + 1)/\(esq.notebooks.count)")
-                                        .font(.system(size: 13, weight: .black, design: .monospaced))
+                                    Text("CARNET \(nbIndex + 1)/\(esq.notebooks.count)")
+                                        .font(.system(size: 12, weight: .black, design: .monospaced))
                                         .padding(.horizontal, 10)
                                         .padding(.vertical, 4)
                                         .background(PopArt.yellow, in: Capsule())
+                                        .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
                                 }
 
-                                ForEach(notebook.entries) { entry in
-                                    VStack(alignment: .leading, spacing: 6) {
-                                        Text("\(entry.authorEmoji) \(entry.authorName) — \(entry.promptText != nil ? "✍️ Phrase" : "🎨 Dessin")")
-                                            .font(.system(size: 12, weight: .black, design: .rounded))
-                                            .foregroundStyle(PopArt.ink.opacity(0.7))
+                                ForEach(Array(notebook.entries.enumerated()), id: \.element.id) { idx, entry in
+                                    let stepBadge = idx == 0 ? "1. IDÉE INITIALE" : (idx == 1 ? "2. 1er DESSIN" : (idx == 2 ? "3. DEVIENT..." : "4. CHUTE FINALE !"))
+                                    let headerColor = idx == 0 ? PopArt.yellow : (idx == 1 ? Color(hex: "#F3E8FF") : (idx == 2 ? Color(hex: "#FFE4E8") : Color(hex: "#D1FAE5")))
+                                    VStack(alignment: .leading, spacing: 0) {
+                                        HStack {
+                                            Text(stepBadge)
+                                                .font(.system(size: 11, weight: .black, design: .rounded))
+                                                .foregroundStyle(PopArt.ink)
+                                            Spacer()
+                                            Text("Par \(entry.authorEmoji) \(entry.authorName)")
+                                                .font(.system(size: 11, weight: .bold, design: .rounded))
+                                                .foregroundStyle(PopArt.ink.opacity(0.75))
+                                        }
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(headerColor)
+
+                                        Divider().overlay(PopArt.ink)
 
                                         if let text = entry.promptText {
                                             Text("« \(text) »")
-                                                .font(.system(size: 17, weight: .black, design: .rounded))
+                                                .font(.system(size: 18, weight: .black, design: .rounded))
                                                 .foregroundStyle(PopArt.ink)
-                                                .padding(10)
-                                                .frame(maxWidth: .infinity, alignment: .leading)
-                                                .background(PopArt.cream, in: RoundedRectangle(cornerRadius: 12))
-                                                .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(PopArt.ink, lineWidth: 2))
+                                                .padding(12)
+                                                .frame(maxWidth: .infinity, alignment: .center)
+                                                .background(Color.white)
                                         }
                                         if let drawing = entry.drawing {
                                             ZStack {
                                                 Color.white
+                                                CanvasDotGridView()
                                                 VectorCanvasPreviewView(canvas: drawing)
                                             }
                                             .aspectRatio(CGFloat(DrawingCanvasData.portraitAspectRatio), contentMode: .fit)
-                                            .frame(maxHeight: 240)
-                                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                                            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(PopArt.ink, lineWidth: 2))
+                                            .frame(maxHeight: 220)
                                             .frame(maxWidth: .infinity)
+                                            .background(Color.white)
                                         }
                                     }
+                                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                                    .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(PopArt.ink, lineWidth: 2.5))
                                 }
 
                                 Button {
                                     session.voteEsquisseAlbum(notebook.id)
                                 } label: {
                                     HStack {
-                                        Text(alreadyVoted ? "✅ COUP DE CŒUR ENVOYÉ (\(notebook.voteVoterIDs.count) 😂)" : "😂 VOTER COUP DE CŒUR (+1 000 PTS)")
+                                        Text(alreadyVoted ? "❤️ COUP DE CŒUR ENVOYÉ (\(notebook.voteVoterIDs.count) ❤️)" : "❤️ VOTER COUP DE CŒUR (+1 000 PTS)")
                                             .font(.system(size: 15, weight: .black, design: .rounded))
                                     }
                                     .frame(maxWidth: .infinity)
@@ -1729,6 +1761,9 @@ struct PlayerControllerView: View {
                         stepIndex: esq.stepIndex,
                         previousEntry: assignedNotebook?.entries.last,
                         notebookFirstPrompt: originalPrompt,
+                        onSwapPrompt: {
+                            session.swapSecretPrompt()
+                        },
                         onSubmitText: { text in
                             session.submitEsquisseText(text)
                         },
@@ -1816,7 +1851,72 @@ struct PlayerControllerView: View {
     }
 }
 
-// MARK: - Reusable Vector Canvas & Draw Something / Esquissé Subviews
+// MARK: - Reusable Vector Canvas & Draw Something / Esquissé Subviews (Stitch Neo-Brutalist Studio UI)
+
+struct CanvasDotGridView: View {
+    var spacing: CGFloat = 18
+    var dotRadius: CGFloat = 1.25
+
+    var body: some View {
+        Canvas { context, size in
+            let dotColor = Color(hex: "#CBD5E1")
+            var y: CGFloat = spacing / 2
+            while y < size.height {
+                var x: CGFloat = spacing / 2
+                while x < size.width {
+                    let rect = CGRect(x: x - dotRadius, y: y - dotRadius, width: dotRadius * 2, height: dotRadius * 2)
+                    context.fill(Path(ellipseIn: rect), with: .color(dotColor))
+                    x += spacing
+                }
+                y += spacing
+            }
+        }
+        .allowsHitTesting(false)
+    }
+}
+
+struct StitchSecretPromptBanner: View {
+    let label: String
+    let promptText: String
+    var canSwap: Bool = true
+    var onSwap: () -> Void
+
+    var body: some View {
+        PopArtCard(cornerRadius: 20, borderWidth: 3.5, backgroundColor: PopArt.yellow, shadowOffset: 4) {
+            HStack(spacing: 10) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(label)
+                        .font(.system(size: 11, weight: .black, design: .rounded))
+                        .foregroundStyle(PopArt.ink.opacity(0.75))
+                        .tracking(0.6)
+                    Text("« \(promptText.uppercased()) »")
+                        .font(.system(size: 20, weight: .black, design: .rounded))
+                        .foregroundStyle(PopArt.ink)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 4)
+                if canSwap {
+                    Button {
+                        onSwap()
+                    } label: {
+                        VStack(spacing: 2) {
+                            Text("🔄")
+                                .font(.system(size: 18))
+                            Text("CHANGER")
+                                .font(.system(size: 10, weight: .black, design: .rounded))
+                                .foregroundStyle(PopArt.ink)
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 8)
+                    }
+                    .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.white, cornerRadius: 14))
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+        }
+    }
+}
 
 struct VectorCanvasPreviewView: View {
     let canvas: DrawingCanvasData
@@ -1858,22 +1958,25 @@ struct InteractiveDrawingPadView: View {
     var onCanvasChanged: (DrawingCanvasData) -> Void
 
     @State private var strokes: [DrawingStroke] = []
+    @State private var redoGroups: [[DrawingStroke]] = []
+    @State private var undoGroupSizes: [Int] = []
     @State private var activePoints: [NormalizedPoint] = []
     @State private var dragStartPoint: NormalizedPoint? = nil
     @State private var dragCurrentPoint: NormalizedPoint? = nil
     @State private var selectedTool: DrawingBank.DrawingToolMode = .freehand
     @State private var selectedColorHex: String = "#111827"
     @State private var selectedLineWidth: Double = 7.5
+    @State private var stickerStampCount: Int = 0
     @State private var lastSentAt: Date = .distantPast
 
     private let palette: [String] = [
-        "#111827", "#E11D48", "#FF8C42", "#F59E0B", "#10B981", "#2563EB", "#8E44AD", "#FFFFFF"
+        "#111827", "#E11D48", "#FF8C42", "#F59E0B", "#10B981", "#2563EB", "#8E44AD"
     ]
 
     private let brushSizes: [(label: String, width: Double, dotSize: CGFloat)] = [
-        ("Fin", 4.0, 8),
-        ("Moyen", 7.5, 13),
-        ("Épais", 13.0, 18)
+        ("Fin", 4.0, 6),
+        ("Moyen", 7.5, 11),
+        ("Épais", 13.0, 16)
     ]
 
     private var previewStrokes: [DrawingStroke] {
@@ -1893,187 +1996,356 @@ struct InteractiveDrawingPadView: View {
         }
     }
 
+    private func stampOneTapSticker(_ sticker: DrawingBank.DrawingSticker) {
+        let spots: [NormalizedPoint] = [
+            NormalizedPoint(x: 0.50, y: 0.48),
+            NormalizedPoint(x: 0.30, y: 0.28),
+            NormalizedPoint(x: 0.70, y: 0.28),
+            NormalizedPoint(x: 0.32, y: 0.70),
+            NormalizedPoint(x: 0.68, y: 0.70),
+            NormalizedPoint(x: 0.50, y: 0.24)
+        ]
+        let spot = spots[stickerStampCount % spots.count]
+        stickerStampCount += 1
+        let stamped = DrawingBank.makeStickerStrokes(
+            sticker: sticker,
+            center: spot,
+            scale: 1.05,
+            colorOverride: nil
+        )
+        strokes.append(contentsOf: stamped)
+        undoGroupSizes.append(stamped.count)
+        redoGroups.removeAll()
+        onCanvasChanged(DrawingCanvasData(strokes: strokes))
+    }
+
+    private func performUndo() {
+        guard !strokes.isEmpty else { return }
+        let countToPop = min(strokes.count, undoGroupSizes.popLast() ?? 1)
+        let popped = Array(strokes.suffix(countToPop))
+        strokes.removeLast(countToPop)
+        redoGroups.append(popped)
+        onCanvasChanged(DrawingCanvasData(strokes: strokes))
+    }
+
+    private func performRedo() {
+        guard let restored = redoGroups.popLast() else { return }
+        strokes.append(contentsOf: restored)
+        undoGroupSizes.append(restored.count)
+        onCanvasChanged(DrawingCanvasData(strokes: strokes))
+    }
+
     var body: some View {
-        VStack(spacing: 8) {
-            // 1. Barre d'Outils d'Aide au Dessin sur Téléphone (Formes automatiques & Bonhomme bâton !)
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 6) {
-                    ForEach(DrawingBank.DrawingToolMode.allCases) { tool in
-                        let isSelected = (selectedTool == tool)
+        VStack(spacing: 10) {
+            // 1. STITCH STUDIO EASEL CARD (Top Bar + Portrait 3:4 Dot-Grid Canvas + Bottom Brush Bar)
+            PopArtCard(cornerRadius: 22, borderWidth: 3.5, backgroundColor: PopArt.cream, shadowOffset: 5) {
+                VStack(spacing: 8) {
+                    // Easel Header Bar : Toile Active + Undo / Redo / Vider
+                    HStack(spacing: 6) {
+                        HStack(spacing: 6) {
+                            Circle()
+                                .fill(PopArt.redError)
+                                .frame(width: 9, height: 9)
+                            Text("TOILE ACTIVE • 3:4")
+                                .font(.system(size: 11, weight: .black, design: .rounded))
+                                .foregroundStyle(PopArt.ink)
+                        }
+
+                        Spacer()
+
                         Button {
-                            selectedTool = tool
-                            if selectedColorHex == "#FFFFFF" && tool != .freehand {
+                            performUndo()
+                        } label: {
+                            Text("↩️")
+                                .font(.system(size: 14, weight: .black))
+                                .frame(width: 34, height: 32)
+                                .background(PopArt.white, in: RoundedRectangle(cornerRadius: 10))
+                                .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(PopArt.ink, lineWidth: 2.2))
+                        }
+                        .buttonStyle(.plain)
+                        .opacity(strokes.isEmpty ? 0.45 : 1.0)
+
+                        Button {
+                            performRedo()
+                        } label: {
+                            Text("↪️")
+                                .font(.system(size: 14, weight: .black))
+                                .frame(width: 34, height: 32)
+                                .background(PopArt.white, in: RoundedRectangle(cornerRadius: 10))
+                                .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(PopArt.ink, lineWidth: 2.2))
+                        }
+                        .buttonStyle(.plain)
+                        .opacity(redoGroups.isEmpty ? 0.45 : 1.0)
+
+                        Button {
+                            strokes.removeAll()
+                            redoGroups.removeAll()
+                            undoGroupSizes.removeAll()
+                            activePoints.removeAll()
+                            dragStartPoint = nil
+                            dragCurrentPoint = nil
+                            stickerStampCount = 0
+                            onCanvasChanged(DrawingCanvasData(strokes: []))
+                        } label: {
+                            HStack(spacing: 3) {
+                                Text("🗑️")
+                                    .font(.system(size: 12))
+                                Text("VIDER")
+                                    .font(.system(size: 10, weight: .black, design: .rounded))
+                                    .foregroundStyle(.white)
+                            }
+                            .padding(.horizontal, 8)
+                            .frame(height: 32)
+                            .background(PopArt.pink, in: RoundedRectangle(cornerRadius: 10))
+                            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(PopArt.ink, lineWidth: 2.2))
+                        }
+                        .buttonStyle(.plain)
+                    }
+
+                    // Portrait 3:4 White Canvas with Dot-Grid — Matches Apple TV aspect ratio 1:1
+                    GeometryReader { geo in
+                        ZStack {
+                            Color.white
+                            CanvasDotGridView()
+                            VectorCanvasPreviewView(
+                                canvas: DrawingCanvasData(strokes: previewStrokes)
+                            )
+
+                            if previewStrokes.isEmpty {
+                                VStack {
+                                    Spacer()
+                                    Text("👆 Dessine au doigt ou touche un Sticker 1-clic ci-dessous")
+                                        .font(.system(size: 11, weight: .black, design: .rounded))
+                                        .foregroundStyle(PopArt.ink.opacity(0.6))
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(PopArt.cream.opacity(0.92), in: Capsule())
+                                        .overlay(
+                                            Capsule()
+                                                .strokeBorder(style: StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
+                                                .foregroundStyle(PopArt.ink.opacity(0.45))
+                                        )
+                                        .padding(.bottom, 10)
+                                }
+                                .allowsHitTesting(false)
+                            }
+                        }
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(PopArt.ink, lineWidth: 3))
+                        .gesture(
+                            DragGesture(minimumDistance: 0)
+                                .onChanged { value in
+                                    let w = max(1, geo.size.width)
+                                    let h = max(1, geo.size.height)
+                                    let nx = min(1.0, max(0.0, value.location.x / w))
+                                    let ny = min(1.0, max(0.0, value.location.y / h))
+                                    let pt = NormalizedPoint(x: nx, y: ny)
+
+                                    if selectedTool == .freehand {
+                                        if let last = activePoints.last {
+                                            let dist = hypot(pt.x - last.x, pt.y - last.y)
+                                            if dist < 0.006 { return }
+                                        }
+                                        activePoints.append(pt)
+                                    } else {
+                                        if dragStartPoint == nil {
+                                            dragStartPoint = NormalizedPoint(
+                                                x: min(1.0, max(0.0, value.startLocation.x / w)),
+                                                y: min(1.0, max(0.0, value.startLocation.y / h))
+                                            )
+                                        }
+                                        dragCurrentPoint = pt
+                                    }
+
+                                    if Date().timeIntervalSince(lastSentAt) > 0.12 {
+                                        lastSentAt = Date()
+                                        onCanvasChanged(DrawingCanvasData(strokes: previewStrokes))
+                                    }
+                                }
+                                .onEnded { _ in
+                                    if selectedTool == .freehand {
+                                        guard !activePoints.isEmpty else { return }
+                                        let smoothed = DrawingBank.smoothPoints(activePoints)
+                                        strokes.append(DrawingStroke(colorHex: selectedColorHex, lineWidth: selectedLineWidth, points: smoothed))
+                                        undoGroupSizes.append(1)
+                                        redoGroups.removeAll()
+                                        activePoints.removeAll()
+                                    } else if let start = dragStartPoint, let end = dragCurrentPoint {
+                                        let built = DrawingBank.makeShapeStrokes(
+                                            tool: selectedTool,
+                                            start: start,
+                                            end: end,
+                                            colorHex: selectedColorHex,
+                                            lineWidth: selectedLineWidth
+                                        )
+                                        strokes.append(contentsOf: built)
+                                        undoGroupSizes.append(built.count)
+                                        redoGroups.removeAll()
+                                        dragStartPoint = nil
+                                        dragCurrentPoint = nil
+                                    }
+                                    onCanvasChanged(DrawingCanvasData(strokes: strokes))
+                                }
+                        )
+                    }
+                    .aspectRatio(CGFloat(DrawingCanvasData.portraitAspectRatio), contentMode: .fit)
+                    .frame(maxWidth: .infinity)
+
+                    // Easel Bottom Bar : Épaisseur + Gomme
+                    HStack(spacing: 8) {
+                        Text("ÉPAISSEUR :")
+                            .font(.system(size: 10, weight: .black, design: .rounded))
+                            .foregroundStyle(PopArt.ink.opacity(0.65))
+
+                        ForEach(brushSizes, id: \.label) { sizeOpt in
+                            let isCurrentSize = abs(selectedLineWidth - sizeOpt.width) < 1.5 && selectedColorHex != "#FFFFFF"
+                            Button {
+                                if selectedColorHex == "#FFFFFF" {
+                                    selectedColorHex = "#111827"
+                                }
+                                selectedLineWidth = sizeOpt.width
+                            } label: {
+                                ZStack {
+                                    Circle()
+                                        .fill(isCurrentSize ? PopArt.yellow : PopArt.white)
+                                        .frame(width: 28, height: 28)
+                                        .overlay(Circle().strokeBorder(PopArt.ink, lineWidth: 2))
+                                    Circle()
+                                        .fill(PopArt.ink)
+                                        .frame(width: sizeOpt.dotSize, height: sizeOpt.dotSize)
+                                }
+                            }
+                            .buttonStyle(.plain)
+                        }
+
+                        Spacer()
+
+                        let isEraser = (selectedColorHex == "#FFFFFF")
+                        Button {
+                            if isEraser {
                                 selectedColorHex = "#111827"
+                                selectedLineWidth = 7.5
+                            } else {
+                                selectedColorHex = "#FFFFFF"
+                                selectedTool = .freehand
+                                selectedLineWidth = 18.0
                             }
                         } label: {
-                            Text(tool.label)
-                                .font(.system(size: 12, weight: .black, design: .rounded))
-                                .foregroundStyle(isSelected ? .white : PopArt.ink)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 6)
-                                .background(isSelected ? PopArt.blue : PopArt.cream, in: Capsule())
-                                .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
+                            HStack(spacing: 4) {
+                                Text("🧽")
+                                    .font(.system(size: 12))
+                                Text("GOMME")
+                                    .font(.system(size: 10, weight: .black, design: .rounded))
+                                    .foregroundStyle(isEraser ? .white : PopArt.ink)
+                            }
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(isEraser ? PopArt.blue : PopArt.white, in: Capsule())
+                            .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
                         }
                         .buttonStyle(.plain)
                     }
                 }
+                .padding(10)
             }
 
-            if selectedTool != .freehand {
-                Text("👆 Glisse ton doigt sur la toile pour placer : \(selectedTool.label)")
-                    .font(.system(size: 11, weight: .black, design: .rounded))
-                    .foregroundStyle(PopArt.blue)
-            }
+            // 2. STITCH DOCK CARD 1 : STICKERS 1-CLIC & FORMES GÉOMÉTRIQUES
+            PopArtCard(cornerRadius: 18, borderWidth: 3, backgroundColor: PopArt.white, shadowOffset: 3) {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("✨ STICKERS 1-CLIC (TOUCHE POUR POSER SUR LA TOILE)")
+                            .font(.system(size: 10, weight: .black, design: .rounded))
+                            .foregroundStyle(PopArt.purple)
+                        Spacer()
+                    }
 
-            // 2. Portrait 3:4 Drawing Canvas — Matches Apple TV aspect ratio 1:1
-            GeometryReader { geo in
-                ZStack {
-                    Color.white
-                    VectorCanvasPreviewView(
-                        canvas: DrawingCanvasData(strokes: previewStrokes)
-                    )
-                }
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-                .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(PopArt.ink, lineWidth: 3))
-                .gesture(
-                    DragGesture(minimumDistance: 0)
-                        .onChanged { value in
-                            let w = max(1, geo.size.width)
-                            let h = max(1, geo.size.height)
-                            let nx = min(1.0, max(0.0, value.location.x / w))
-                            let ny = min(1.0, max(0.0, value.location.y / h))
-                            let pt = NormalizedPoint(x: nx, y: ny)
-
-                            if selectedTool == .freehand {
-                                if let last = activePoints.last {
-                                    let dist = hypot(pt.x - last.x, pt.y - last.y)
-                                    if dist < 0.006 { return }
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 6) {
+                            ForEach(DrawingBank.DrawingSticker.allCases) { sticker in
+                                Button {
+                                    stampOneTapSticker(sticker)
+                                } label: {
+                                    Text(sticker.label)
+                                        .font(.system(size: 12, weight: .black, design: .rounded))
+                                        .foregroundStyle(PopArt.ink)
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 7)
+                                        .background(PopArt.yellow.opacity(0.55), in: RoundedRectangle(cornerRadius: 11))
+                                        .overlay(RoundedRectangle(cornerRadius: 11).strokeBorder(PopArt.ink, lineWidth: 2))
                                 }
-                                activePoints.append(pt)
-                            } else {
-                                if dragStartPoint == nil {
-                                    dragStartPoint = NormalizedPoint(
-                                        x: min(1.0, max(0.0, value.startLocation.x / w)),
-                                        y: min(1.0, max(0.0, value.startLocation.y / h))
-                                    )
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 6) {
+                            ForEach(DrawingBank.DrawingToolMode.allCases) { tool in
+                                let isSelected = (selectedTool == tool)
+                                Button {
+                                    selectedTool = tool
+                                    if selectedColorHex == "#FFFFFF" && tool != .freehand {
+                                        selectedColorHex = "#111827"
+                                    }
+                                } label: {
+                                    Text(tool.label)
+                                        .font(.system(size: 12, weight: .black, design: .rounded))
+                                        .foregroundStyle(isSelected ? .white : PopArt.ink)
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 6)
+                                        .background(isSelected ? PopArt.blue : PopArt.cream, in: RoundedRectangle(cornerRadius: 10))
+                                        .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(PopArt.ink, lineWidth: 2))
                                 }
-                                dragCurrentPoint = pt
-                            }
-
-                            if Date().timeIntervalSince(lastSentAt) > 0.12 {
-                                lastSentAt = Date()
-                                onCanvasChanged(DrawingCanvasData(strokes: previewStrokes))
+                                .buttonStyle(.plain)
                             }
                         }
-                        .onEnded { _ in
-                            if selectedTool == .freehand {
-                                guard !activePoints.isEmpty else { return }
-                                let smoothed = DrawingBank.smoothPoints(activePoints)
-                                strokes.append(DrawingStroke(colorHex: selectedColorHex, lineWidth: selectedLineWidth, points: smoothed))
-                                activePoints.removeAll()
-                            } else if let start = dragStartPoint, let end = dragCurrentPoint {
-                                let built = DrawingBank.makeShapeStrokes(
-                                    tool: selectedTool,
-                                    start: start,
-                                    end: end,
-                                    colorHex: selectedColorHex,
-                                    lineWidth: selectedLineWidth
-                                )
-                                strokes.append(contentsOf: built)
-                                dragStartPoint = nil
-                                dragCurrentPoint = nil
-                            }
-                            onCanvasChanged(DrawingCanvasData(strokes: strokes))
-                        }
-                )
-            }
-            .aspectRatio(CGFloat(DrawingCanvasData.portraitAspectRatio), contentMode: .fit)
-            .frame(maxWidth: .infinity)
-
-            // 3. Palette Row
-            HStack(spacing: 8) {
-                ForEach(palette, id: \.self) { hex in
-                    let isEraser = (hex == "#FFFFFF")
-                    let isSelected = (selectedColorHex == hex)
-                    Button {
-                        selectedColorHex = hex
-                        if isEraser {
-                            selectedTool = .freehand
-                            selectedLineWidth = 18.0
-                        } else if selectedLineWidth > 14.0 {
-                            selectedLineWidth = 7.5
-                        }
-                    } label: {
-                        ZStack {
-                            Circle()
-                                .fill(Color(hex: hex))
-                                .frame(width: 32, height: 32)
-                                .overlay(Circle().strokeBorder(PopArt.ink, lineWidth: isSelected ? 3.5 : 2))
-                            if isEraser {
-                                Text("🧽")
-                                    .font(.system(size: 14))
-                            }
-                        }
-                        .scaleEffect(isSelected ? 1.15 : 1.0)
                     }
-                    .buttonStyle(.plain)
                 }
+                .padding(10)
             }
 
-            // 4. Brush Thickness + Undo / Clear Row
-            HStack(spacing: 8) {
-                ForEach(brushSizes, id: \.label) { sizeOpt in
-                    let isCurrentSize = abs(selectedLineWidth - sizeOpt.width) < 1.5 && selectedColorHex != "#FFFFFF"
-                    Button {
-                        if selectedColorHex == "#FFFFFF" {
-                            selectedColorHex = "#111827"
+            // 3. STITCH DOCK CARD 2 : NUANCIER POP (7 COULEURS)
+            PopArtCard(cornerRadius: 18, borderWidth: 3, backgroundColor: PopArt.white, shadowOffset: 3) {
+                HStack(spacing: 10) {
+                    ForEach(palette, id: \.self) { hex in
+                        let isSelected = (selectedColorHex == hex)
+                        Button {
+                            selectedColorHex = hex
+                            if selectedLineWidth > 14.0 {
+                                selectedLineWidth = 7.5
+                            }
+                        } label: {
+                            ZStack {
+                                Circle()
+                                    .fill(Color(hex: hex))
+                                    .frame(width: 34, height: 34)
+                                    .overlay(Circle().strokeBorder(PopArt.ink, lineWidth: isSelected ? 3.5 : 2.2))
+                                if isSelected {
+                                    Text("✓")
+                                        .font(.system(size: 15, weight: .black, design: .rounded))
+                                        .foregroundStyle(.white)
+                                }
+                            }
+                            .scaleEffect(isSelected ? 1.12 : 1.0)
                         }
-                        selectedLineWidth = sizeOpt.width
-                    } label: {
-                        HStack(spacing: 5) {
-                            Circle()
-                                .fill(PopArt.ink)
-                                .frame(width: sizeOpt.dotSize, height: sizeOpt.dotSize)
-                            Text(sizeOpt.label)
-                                .font(.system(size: 12, weight: .black, design: .rounded))
-                                .foregroundStyle(PopArt.ink)
-                        }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(isCurrentSize ? PopArt.yellow : PopArt.cream, in: Capsule())
-                        .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
+                        .buttonStyle(.plain)
+                        .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.plain)
                 }
-
-                Spacer()
-
-                Button {
-                    if !strokes.isEmpty {
-                        _ = strokes.removeLast()
-                        onCanvasChanged(DrawingCanvasData(strokes: strokes))
-                    }
-                } label: {
-                    Text("↩️")
-                        .font(.system(size: 15, weight: .black))
-                        .frame(width: 36, height: 36)
-                        .background(PopArt.cream, in: Circle())
-                        .overlay(Circle().strokeBorder(PopArt.ink, lineWidth: 2))
-                }
-
-                Button {
-                    strokes.removeAll()
-                    activePoints.removeAll()
-                    dragStartPoint = nil
-                    dragCurrentPoint = nil
-                    onCanvasChanged(DrawingCanvasData(strokes: []))
-                } label: {
-                    Text("🗑️")
-                        .font(.system(size: 15, weight: .black))
-                        .frame(width: 36, height: 36)
-                        .background(PopArt.cream, in: Circle())
-                        .overlay(Circle().strokeBorder(PopArt.ink, lineWidth: 2))
-                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 8)
+            }
+        }
+        .onAppear {
+            if strokes.isEmpty && !initialCanvas.strokes.isEmpty {
+                strokes = initialCanvas.strokes
+            }
+        }
+        .onChange(of: initialCanvas) { _, newVal in
+            if newVal.strokes.isEmpty && !strokes.isEmpty {
+                strokes.removeAll()
+                redoGroups.removeAll()
+                undoGroupSizes.removeAll()
             }
         }
     }
@@ -2119,12 +2391,12 @@ struct DrawSomethingTileRackView: View {
     }
 
     var body: some View {
-        PopArtCard(cornerRadius: 20, borderWidth: 3.5, backgroundColor: wrongAttemptFlash ? Color(hex: "#FEE2E2") : PopArt.white) {
+        PopArtCard(cornerRadius: 22, borderWidth: 3.5, backgroundColor: wrongAttemptFlash ? Color(hex: "#FEE2E2") : PopArt.yellow, shadowOffset: 4) {
             VStack(spacing: 10) {
                 HStack(spacing: 8) {
-                    Text("🔤 \(targetLength) LETTRES")
+                    Text("🔤 MOT SECRET (\(targetLength) LETTRES)")
                         .font(.system(size: 13, weight: .black, design: .rounded))
-                        .foregroundStyle(PopArt.orange)
+                        .foregroundStyle(PopArt.ink)
 
                     Spacer()
 
@@ -2135,7 +2407,7 @@ struct DrawSomethingTileRackView: View {
                             applyLockedHintLetters(count: nextCount)
                         } label: {
                             Text("💡 Indice (-300 pts)")
-                                .font(.system(size: 12, weight: .black, design: .rounded))
+                                .font(.system(size: 11, weight: .black, design: .rounded))
                                 .foregroundStyle(.white)
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 6)
@@ -2153,7 +2425,7 @@ struct DrawSomethingTileRackView: View {
                                 .font(.system(size: 13, weight: .black))
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 5)
-                                .background(PopArt.cream, in: Capsule())
+                                .background(PopArt.white, in: Capsule())
                                 .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
                         }
                         .buttonStyle(.plain)
@@ -2169,17 +2441,18 @@ struct DrawSomethingTileRackView: View {
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
                     .frame(maxWidth: .infinity)
-                    .background( Color(hex: "#F3E8FF"), in: RoundedRectangle(cornerRadius: 10))
-                    .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(PopArt.purple, lineWidth: 1.5))
+                    .background(Color.white, in: RoundedRectangle(cornerRadius: 10))
+                    .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(PopArt.ink, lineWidth: 2))
                 }
 
-                // Word Answer Slots
+                // 3D Word Answer Slots (Stitch style)
                 HStack(spacing: 6) {
                     ForEach(0..<targetLength, id: \.self) { pos in
                         let isHintLocked = pos < hintsUsedCount
                         let letter: String = pos < selectedTileIndices.count
                             ? scrambledTiles[selectedTileIndices[pos]]
-                            : ""
+                            : "_"
+                        let isEmptySlot = (pos >= selectedTileIndices.count)
                         Button {
                             if pos >= hintsUsedCount && pos < selectedTileIndices.count {
                                 selectedTileIndices.remove(at: pos)
@@ -2187,21 +2460,26 @@ struct DrawSomethingTileRackView: View {
                         } label: {
                             Text(letter)
                                 .font(.system(size: 20, weight: .black, design: .rounded))
-                                .foregroundStyle(isHintLocked ? .white : PopArt.ink)
+                                .foregroundStyle(isHintLocked ? .white : (isEmptySlot ? PopArt.ink.opacity(0.28) : PopArt.ink))
                                 .frame(maxWidth: .infinity)
-                                .frame(height: 44)
+                                .frame(height: 46)
                                 .background(
-                                    isHintLocked ? PopArt.purple : (letter.isEmpty ? PopArt.cream : PopArt.yellow),
-                                    in: RoundedRectangle(cornerRadius: 10)
+                                    isHintLocked ? PopArt.purple : (isEmptySlot ? Color.white : PopArt.greenSuccess.opacity(0.35)),
+                                    in: RoundedRectangle(cornerRadius: 11)
                                 )
-                                .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(PopArt.ink, lineWidth: 2.5))
+                                .overlay(RoundedRectangle(cornerRadius: 11).strokeBorder(PopArt.ink, lineWidth: 2.8))
+                                .background(
+                                    RoundedRectangle(cornerRadius: 11)
+                                        .fill(PopArt.ink)
+                                        .offset(x: 0, y: 3)
+                                )
                         }
                         .buttonStyle(.plain)
                         .disabled(isHintLocked)
                     }
                 }
 
-                // 12 Scrambled Letter Tiles (Draw Something style)
+                // 12 Scrambled Letter Tiles (Draw Something 3D Pop style)
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 6), spacing: 8) {
                     ForEach(Array(scrambledTiles.enumerated()), id: \.offset) { idx, letter in
                         let isUsed = selectedTileIndices.contains(idx)
@@ -2227,11 +2505,16 @@ struct DrawSomethingTileRackView: View {
                         } label: {
                             Text(letter)
                                 .font(.system(size: 20, weight: .black, design: .rounded))
-                                .foregroundStyle(isUsed ? PopArt.ink.opacity(0.25) : .white)
+                                .foregroundStyle(isUsed ? PopArt.ink.opacity(0.22) : .white)
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 46)
                                 .background(isUsed ? PopArt.cream : PopArt.blue, in: RoundedRectangle(cornerRadius: 12))
                                 .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(PopArt.ink, lineWidth: 2.5))
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(PopArt.ink)
+                                        .offset(x: 0, y: isUsed ? 0 : 3)
+                                )
                         }
                         .buttonStyle(.plain)
                         .disabled(isUsed)
@@ -2256,6 +2539,7 @@ struct EsquisseInteractiveStepCard: View {
     let stepIndex: Int
     let previousEntry: EsquisseEntry?
     var notebookFirstPrompt: String = ""
+    var onSwapPrompt: () -> Void = {}
     var onSubmitText: (String) -> Void
     var onSubmitDrawing: (DrawingCanvasData) -> Void
 
@@ -2265,170 +2549,176 @@ struct EsquisseInteractiveStepCard: View {
     @State private var quickGuesses: [String] = []
 
     var body: some View {
-        PopArtCard(cornerRadius: 22, borderWidth: 4, backgroundColor: PopArt.white) {
-            VStack(alignment: .leading, spacing: 12) {
-                if stage == .esquissePromptEntry {
-                    HStack {
-                        Text("✍️ ÉTAPE 1/4 : CHOISIS UNE IDÉE FACILE !")
-                            .font(.system(size: 16, weight: .black, design: .rounded))
-                            .foregroundStyle(PopArt.orange)
-                        Spacer()
-                        Button {
-                            starterIdeas = DrawingBank.pickThreeEsquissePrompts(excluding: Set(starterIdeas))
-                        } label: {
-                            Text("🔄 Autres idées")
-                                .font(.system(size: 12, weight: .black, design: .rounded))
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 6)
-                                .background(PopArt.yellow, in: Capsule())
-                                .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
-                        }
-                        .buttonStyle(.plain)
-                    }
-
-                    Text("Touchez 1 idée facile à dessiner au doigt pour l'envoyer au voisin :")
-                        .font(.system(size: 13, weight: .bold))
-                        .foregroundStyle(PopArt.ink.opacity(0.75))
-
-                    ForEach(starterIdeas, id: \.self) { idea in
-                        Button {
-                            onSubmitText(idea)
-                        } label: {
-                            HStack {
-                                Text("🎨 \(idea)")
-                                    .font(.system(size: 16, weight: .black, design: .rounded))
-                                    .foregroundStyle(PopArt.ink)
-                                    .multilineTextAlignment(.leading)
-                                Spacer()
-                                Text("Choisir ➡️")
-                                    .font(.system(size: 12, weight: .black))
+        VStack(alignment: .leading, spacing: 10) {
+            if stage == .esquissePromptEntry {
+                PopArtCard(cornerRadius: 22, borderWidth: 4, backgroundColor: PopArt.white) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Text("✍️ CHOISIS UNE IDÉE COURTE !")
+                                .font(.system(size: 16, weight: .black, design: .rounded))
+                                .foregroundStyle(PopArt.orange)
+                            Spacer()
+                            Button {
+                                starterIdeas = DrawingBank.pickThreeEsquissePrompts(excluding: Set(starterIdeas))
+                            } label: {
+                                Text("🔄 Autres idées")
+                                    .font(.system(size: 12, weight: .black, design: .rounded))
                                     .padding(.horizontal, 10)
-                                    .padding(.vertical, 5)
-                                    .background(PopArt.greenSuccess, in: Capsule())
-                                    .foregroundStyle(.white)
+                                    .padding(.vertical, 6)
+                                    .background(PopArt.yellow, in: Capsule())
+                                    .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
                             }
-                            .padding(12)
-                            .frame(maxWidth: .infinity)
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.cream, cornerRadius: 14))
-                    }
 
-                    Divider()
-
-                    Text("Ou écris ta propre idée simple :")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(PopArt.ink.opacity(0.65))
-
-                    HStack(spacing: 8) {
-                        TextField("Ex: Un soleil avec des lunettes...", text: $typedText)
-                            .font(.system(size: 15, weight: .heavy, design: .rounded))
-                            .padding(10)
-                            .background(PopArt.cream, in: RoundedRectangle(cornerRadius: 12))
-                            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(PopArt.ink, lineWidth: 2))
-
-                        Button {
-                            onSubmitText(typedText)
-                        } label: {
-                            Text("✅")
-                                .font(.system(size: 18, weight: .black))
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 10)
-                        }
-                        .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.greenSuccess, foregroundColor: .white, cornerRadius: 12))
-                    }
-                } else if stage == .esquisseDrawing {
-                    Text("🎨 ÉTAPE \(stepIndex + 1)/4 : DESSINE CETTE PHRASE !")
-                        .font(.system(size: 17, weight: .black, design: .rounded))
-                        .foregroundStyle(PopArt.orange)
-
-                    Text("« \(previousEntry?.promptText ?? "Un bonhomme de neige sous le soleil") »")
-                        .font(.system(size: 18, weight: .black, design: .rounded))
-                        .foregroundStyle(PopArt.ink)
-                        .padding(10)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(PopArt.yellow.opacity(0.45), in: RoundedRectangle(cornerRadius: 12))
-                        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(PopArt.ink, lineWidth: 2))
-
-                    InteractiveDrawingPadView(
-                        initialCanvas: currentCanvas,
-                        onCanvasChanged: { updated in
-                            currentCanvas = updated
-                        }
-                    )
-
-                    Button {
-                        onSubmitDrawing(currentCanvas)
-                    } label: {
-                        Text("✅ ENVOYER MON DESSIN AU VOISIN")
-                            .font(.system(size: 16, weight: .black, design: .rounded))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                    }
-                    .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.greenSuccess, foregroundColor: .white, cornerRadius: 16))
-                } else {
-                    // .esquisseGuessing — Quick-tap suggestions + Free Text Keyboard!
-                    Text("🕵️ ÉTAPE 3/4 : QU'EST-CE QUE C'EST QUE CE DESSIN ?")
-                        .font(.system(size: 17, weight: .black, design: .rounded))
-                        .foregroundStyle(PopArt.pink)
-
-                    if let drawing = previousEntry?.drawing {
-                        ZStack {
-                            Color.white
-                            VectorCanvasPreviewView(canvas: drawing)
-                        }
-                        .aspectRatio(CGFloat(DrawingCanvasData.portraitAspectRatio), contentMode: .fit)
-                        .frame(maxHeight: 260)
-                        .clipShape(RoundedRectangle(cornerRadius: 14))
-                        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(PopArt.ink, lineWidth: 2.5))
-                        .frame(maxWidth: .infinity)
-                    }
-
-                    Text("💡 Coup de pouce (touche 1 idée ou écris la tienne en dessous) :")
-                        .font(.system(size: 12, weight: .black, design: .rounded))
-                        .foregroundStyle(PopArt.purple)
-
-                    ForEach(quickGuesses, id: \.self) { suggestion in
-                        Button {
-                            onSubmitText(suggestion)
-                        } label: {
-                            HStack {
-                                Text("👉 \(suggestion)")
-                                    .font(.system(size: 15, weight: .black, design: .rounded))
-                                    .foregroundStyle(PopArt.ink)
-                                    .multilineTextAlignment(.leading)
-                                Spacer()
-                            }
-                            .padding(10)
-                            .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.cream, cornerRadius: 12))
-                    }
-
-                    HStack(spacing: 8) {
-                        TextField("Ou tape ta propre interprétation...", text: $typedText)
-                            .font(.system(size: 15, weight: .heavy, design: .rounded))
-                            .padding(10)
-                            .background(PopArt.cream, in: RoundedRectangle(cornerRadius: 12))
-                            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(PopArt.ink, lineWidth: 2))
-                            .onSubmit {
-                                if !typedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                                    onSubmitText(typedText)
+                        ForEach(starterIdeas, id: \.self) { idea in
+                            Button {
+                                onSubmitText(idea)
+                            } label: {
+                                HStack {
+                                    Text("🎨 \(idea)")
+                                        .font(.system(size: 16, weight: .black, design: .rounded))
+                                        .foregroundStyle(PopArt.ink)
+                                    Spacer()
+                                    Text("Choisir ➡️")
+                                        .font(.system(size: 12, weight: .black))
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 5)
+                                        .background(PopArt.greenSuccess, in: Capsule())
+                                        .foregroundStyle(.white)
                                 }
+                                .padding(12)
+                                .frame(maxWidth: .infinity)
                             }
-
-                        Button {
-                            onSubmitText(typedText)
-                        } label: {
-                            Text("✅")
-                                .font(.system(size: 18, weight: .black))
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 10)
+                            .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.cream, cornerRadius: 14))
                         }
-                        .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.greenSuccess, foregroundColor: .white, cornerRadius: 12))
                     }
+                    .padding(16)
+                }
+            } else if stage == .esquisseDrawing {
+                // 1. Yellow Secret Prompt Banner with 🔄 CHANGER button (Stitch design!)
+                let displayStep = (stepIndex <= 1) ? "MANCHE 1/3" : "MANCHE 3/3"
+                StitchSecretPromptBanner(
+                    label: "📞 ESQUISSÉ (\(displayStep)) • MOT SECRET À DESSINER :",
+                    promptText: previousEntry?.promptText ?? "Un chat au soleil",
+                    canSwap: true,
+                    onSwap: {
+                        onSwapPrompt()
+                    }
+                )
+
+                // 2. Stitch Studio Easel + 1-Tap Stickers + Nuancier Pop
+                InteractiveDrawingPadView(
+                    initialCanvas: currentCanvas,
+                    onCanvasChanged: { updated in
+                        currentCanvas = updated
+                    }
+                )
+
+                // 3. Big Emerald Submit Button
+                Button {
+                    onSubmitDrawing(currentCanvas)
+                } label: {
+                    HStack(spacing: 8) {
+                        Text("🚀 ENVOYER MON DESSIN AU VOISIN !")
+                            .font(.system(size: 17, weight: .black, design: .rounded))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 15)
+                }
+                .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.greenSuccess, foregroundColor: .white, cornerRadius: 18))
+            } else {
+                // .esquisseGuessing — Studio Easel Preview + 4 Big 1-Tap Pop-Art QCM Buttons + Optional Free Text!
+                PopArtCard(cornerRadius: 22, borderWidth: 3.5, backgroundColor: PopArt.cream, shadowOffset: 5) {
+                    VStack(spacing: 10) {
+                        HStack {
+                            Text("🕵️ MANCHE 2/3 : QU'A DESSINÉ TON VOISIN ?")
+                                .font(.system(size: 14, weight: .black, design: .rounded))
+                                .foregroundStyle(PopArt.pink)
+                            Spacer()
+                        }
+
+                        if let drawing = previousEntry?.drawing {
+                            ZStack {
+                                Color.white
+                                CanvasDotGridView()
+                                VectorCanvasPreviewView(canvas: drawing)
+                            }
+                            .aspectRatio(CGFloat(DrawingCanvasData.portraitAspectRatio), contentMode: .fit)
+                            .frame(maxHeight: 260)
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                            .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(PopArt.ink, lineWidth: 3))
+                            .frame(maxWidth: .infinity)
+                        }
+                    }
+                    .padding(12)
+                }
+
+                PopArtCard(cornerRadius: 20, borderWidth: 3.5, backgroundColor: PopArt.white, shadowOffset: 4) {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("⚡ TOUCHE 1 PROPOSITION EN UN CLIC :")
+                            .font(.system(size: 12, weight: .black, design: .rounded))
+                            .foregroundStyle(PopArt.purple)
+
+                        let letters = ["A", "B", "C", "D"]
+                        ForEach(Array(quickGuesses.enumerated()), id: \.offset) { idx, suggestion in
+                            Button {
+                                onSubmitText(suggestion)
+                            } label: {
+                                HStack(spacing: 10) {
+                                    Text(letters[idx % letters.count])
+                                        .font(.system(size: 16, weight: .black, design: .rounded))
+                                        .foregroundStyle(PopArt.ink)
+                                        .frame(width: 32, height: 32)
+                                        .background(PopArt.yellow, in: RoundedRectangle(cornerRadius: 9))
+                                        .overlay(RoundedRectangle(cornerRadius: 9).strokeBorder(PopArt.ink, lineWidth: 2))
+
+                                    Text(suggestion)
+                                        .font(.system(size: 15, weight: .black, design: .rounded))
+                                        .foregroundStyle(PopArt.ink)
+                                        .multilineTextAlignment(.leading)
+
+                                    Spacer()
+                                }
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 10)
+                                .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.cream, cornerRadius: 14))
+                        }
+
+                        Divider()
+
+                        Text("✍️ Ou écris ton propre gag :")
+                            .font(.system(size: 11, weight: .black, design: .rounded))
+                            .foregroundStyle(PopArt.ink.opacity(0.65))
+
+                        HStack(spacing: 8) {
+                            TextField("Tape ta propre interprétation...", text: $typedText)
+                                .font(.system(size: 15, weight: .heavy, design: .rounded))
+                                .padding(10)
+                                .background(PopArt.cream, in: RoundedRectangle(cornerRadius: 12))
+                                .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(PopArt.ink, lineWidth: 2))
+                                .onSubmit {
+                                    if !typedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                        onSubmitText(typedText)
+                                    }
+                                }
+
+                            Button {
+                                onSubmitText(typedText)
+                            } label: {
+                                Text("✅")
+                                    .font(.system(size: 18, weight: .black))
+                                    .padding(.horizontal, 14)
+                                    .padding(.vertical, 10)
+                            }
+                            .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.greenSuccess, foregroundColor: .white, cornerRadius: 12))
+                        }
+                    }
+                    .padding(14)
                 }
             }
-            .padding(16)
         }
         .onAppear {
             quickGuesses = DrawingBank.quickGuessSuggestions(from: notebookFirstPrompt)

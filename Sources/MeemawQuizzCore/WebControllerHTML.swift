@@ -524,6 +524,13 @@ public enum WebControllerHTML {
                   if (isDrawer) {
                     titleEl.innerText = `🎨 DESSINE : « ${dr.chosenWord ? dr.chosenWord.word : ''} »`;
                     contentEl.innerHTML = `
+                      <div style="background:#FFD700;border:3px solid #1A1A1A;border-radius:14px;padding:8px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+                        <div>
+                          <div style="font-size:10px;font-weight:900;">MOT SECRET À FAIRE DEVINER :</div>
+                          <div style="font-size:18px;font-weight:900;">« ${dr.chosenWord ? dr.chosenWord.word : ''} »</div>
+                        </div>
+                        <button class="badge" style="background:#fff;cursor:pointer;" onclick="beep(650,60);sendMsg({action:'swap_secret_prompt'})">🔄 CHANGER</button>
+                      </div>
                       <canvas id="drawerPadCanvas" width="300" height="400" style="width:100%;max-width:300px;aspect-ratio:3/4;margin:0 auto;display:block;background:#fff;border:3px solid #1A1A1A;border-radius:14px;touch-action:none;"></canvas>
                       <div style="display:flex;gap:6px;justify-content:space-between;align-items:center;margin-top:8px;flex-wrap:wrap;">
                         ${['#111827','#E11D48','#FF8C42','#F59E0B','#10B981','#2563EB','#8E44AD'].map(c =>
@@ -604,8 +611,16 @@ public enum WebControllerHTML {
                 }
 
                 if (st.stage === 'esquisse_drawing') {
-                  titleEl.innerText = `🎨 DESSINE : « ${lastEntry && lastEntry.promptText ? lastEntry.promptText : 'Un chat sur un vélo'} »`;
+                  const secretText = lastEntry && lastEntry.promptText ? lastEntry.promptText : 'Un chat au soleil';
+                  titleEl.innerText = `🎨 ESQUISSÉ : DESSINE L'IDÉE SECRÈTE !`;
                   contentEl.innerHTML = `
+                    <div style="background:#FFD700;border:3px solid #1A1A1A;border-radius:14px;padding:8px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+                      <div>
+                        <div style="font-size:10px;font-weight:900;">MOT SECRET À FAIRE DEVINER :</div>
+                        <div style="font-size:17px;font-weight:900;">« ${secretText} »</div>
+                      </div>
+                      <button class="badge" style="background:#fff;cursor:pointer;" onclick="beep(650,60);sendMsg({action:'swap_secret_prompt'})">🔄 CHANGER</button>
+                    </div>
                     <canvas id="esqPadCanvas" width="300" height="400" style="width:100%;max-width:300px;aspect-ratio:3/4;margin:0 auto;display:block;background:#fff;border:3px solid #1A1A1A;border-radius:14px;touch-action:none;"></canvas>
                     <div style="display:flex;gap:6px;justify-content:space-between;align-items:center;margin:8px 0;flex-wrap:wrap;">
                       ${['#111827','#E11D48','#FF8C42','#F59E0B','#10B981','#2563EB','#8E44AD'].map(c =>
@@ -614,7 +629,7 @@ public enum WebControllerHTML {
                       <button class="badge" onclick="undoPadStroke()">↩️</button>
                       <button class="badge" onclick="clearPadCanvas()">🗑️</button>
                     </div>
-                    <button class="btn-primary" style="background:#10B981;color:#fff;" onclick="submitEsqDrawing()">✅ Envoyer mon dessin</button>
+                    <button class="btn-primary" style="background:#10B981;color:#fff;" onclick="submitEsqDrawing()">🚀 Envoyer mon dessin</button>
                   `;
                   initInteractivePad('esqPadCanvas', false);
                   return;

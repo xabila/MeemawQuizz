@@ -144,44 +144,44 @@ public enum DrawingBank {
         }.joined(separator: " ")
     }
 
-    // MARK: - 30 Simple, Finger-Friendly Visual Prompts for « Esquissé ! » (Easy to draw on a phone with basic shapes & stickmen!)
+    // MARK: - 30 Expressions Ultra-Courtes (2-3 mots) pour « Esquissé ! » (Dessinables en 10s sur téléphone avec les Stickers & Formes !)
 
     public static let esquisseStarterPrompts: [String] = [
-        "Un bonhomme de neige sous le soleil",
-        "Un serpent avec des lunettes",
-        "Un requin sous un petit bateau",
-        "Une glace qui fond au soleil",
-        "Une pomme avec un petit ver",
-        "Un bonhomme sous la pluie sans parapluie",
-        "Un ballon qui touche un cactus",
-        "Un poisson dans un bocal",
-        "Une maison avec de la fumée en forme de cœur",
-        "Un œuf au plat dans une poêle",
-        "Un bonhomme qui glisse sur une banane",
-        "Une araignée au bout de son fil",
-        "Un fantôme qui a peur d'une souris",
-        "Une fusée qui vole vers la lune",
-        "Un chat caché dans un carton",
-        "Une fleur géante à côté d'une petite maison",
-        "Un escargot avec un drapeau sur le dos",
-        "Un bonhomme qui soulève des haltères",
-        "Une île déserte avec un seul palmier",
-        "Un soleil avec des lunettes noires",
-        "Une tasse de café brûlante qui fume",
-        "Un bonhomme au sommet d'une montagne",
-        "Une bombe avec la mèche allumée",
-        "Un cadeau avec un gros ruban",
-        "Une part de pizza toute chaude",
-        "Un parapluie retourné par le vent",
-        "Un bonhomme dans une montgolfière",
-        "Un poisson au bout d'une canne à pêche",
-        "Une étoile filante au-dessus d'un sapin",
-        "Un bonhomme qui fait du ski sur une bosse"
+        "Un chat au soleil",
+        "Un poisson roi",
+        "Une pizza volante",
+        "Un serpent à lunettes",
+        "Une maison en feu",
+        "Un bonhomme sous la pluie",
+        "Une pomme amoureuse",
+        "Un requin souriant",
+        "Un sapin étoilé",
+        "Un fantôme rigolo",
+        "Une fusée vers la lune",
+        "Un soleil à lunettes",
+        "Un cadeau magique",
+        "Un bateau sous l'orage",
+        "Un bonhomme couronné",
+        "Une tasse qui fume",
+        "Un nuage en colère",
+        "Un ballon et un cactus",
+        "Un escargot rapide",
+        "Une glace qui fond",
+        "Un poisson amoureux",
+        "Un chat avec une couronne",
+        "Une maison sous le soleil",
+        "Un bonhomme au soleil",
+        "Une étoile filante",
+        "Un cœur en flammes",
+        "Un sapin sous la neige",
+        "Un poisson à lunettes",
+        "Un bonhomme amoureux",
+        "Une fusée en feu"
     ]
 
     public static func randomEsquissePrompt(excluding used: Set<String> = []) -> String {
         let avail = esquisseStarterPrompts.filter { !used.contains($0) }
-        return (avail.isEmpty ? esquisseStarterPrompts : avail).randomElement() ?? "Un bonhomme de neige sous le soleil"
+        return (avail.isEmpty ? esquisseStarterPrompts : avail).randomElement() ?? "Un chat au soleil"
     }
 
     public static func pickThreeEsquissePrompts(excluding used: Set<String> = []) -> [String] {
@@ -192,7 +192,7 @@ public enum DrawingBank {
         return Array(esquisseStarterPrompts.shuffled().prefix(3))
     }
 
-    /// Generates 3 quick-tap guess suggestions (1 close/funny + 2 neighbor prompts) so players aren't stuck deciphering a finger drawing on phone.
+    /// Generates 4 quick-tap Pop-Art guess buttons (1 original + 3 funny short misinterpretations) so players can guess in 1 tap on their phone!
     public static func quickGuessSuggestions(from previousPrompt: String) -> [String] {
         let clean = previousPrompt.trimmingCharacters(in: .whitespacesAndNewlines)
         let funny = botFunnyMisinterpretation(from: clean)
@@ -203,7 +203,7 @@ public enum DrawingBank {
         if !options.contains(funny) {
             options.append(funny)
         }
-        for candidate in esquisseStarterPrompts.shuffled() where options.count < 3 {
+        for candidate in esquisseStarterPrompts.shuffled() where options.count < 4 {
             if !options.contains(candidate) {
                 options.append(candidate)
             }
@@ -211,34 +211,253 @@ public enum DrawingBank {
         return options.shuffled()
     }
 
-    /// Funny bot misinterpretation when a bot plays Step 2 (Guessing from a drawing) in Esquissé!
+    /// Short, visual funny misinterpretation (3-4 words max) so the next drawer in Step 3 also has an ultra-simple prompt to draw!
     public static func botFunnyMisinterpretation(from previousPrompt: String) -> String {
         let lower = previousPrompt.lowercased()
-        if lower.contains("neige") || lower.contains("glace") {
-            return "Une boule de glace qui fond sur le trottoir"
-        } else if lower.contains("serpent") || lower.contains("ver") {
-            return "Un spaghetti géant avec des phares de voiture"
-        } else if lower.contains("requin") || lower.contains("bateau") || lower.contains("poisson") {
-            return "Un sous-marin poursuivi par une sardine"
-        } else if lower.contains("pluie") || lower.contains("parapluie") {
-            return "Un bonhomme qui prend sa douche tout habillé"
-        } else if lower.contains("ballon") || lower.contains("cactus") {
-            return "Une sucette plantée dans un cornichon"
-        } else if lower.contains("maison") || lower.contains("fumée") {
-            return "Une cheminée qui envoie des bisous"
+        if lower.contains("chat") {
+            return "Un tigre sous une lampe"
+        } else if lower.contains("poisson") || lower.contains("requin") {
+            return "Une sardine couronnée"
+        } else if lower.contains("pizza") {
+            return "Une soucoupe au fromage"
+        } else if lower.contains("serpent") {
+            return "Un spaghetti à lunettes"
+        } else if lower.contains("maison") {
+            return "Un barbecue géant"
+        } else if lower.contains("pluie") || lower.contains("orage") {
+            return "Un bonhomme sous la douche"
+        } else if lower.contains("pomme") || lower.contains("cœur") || lower.contains("amoureux") {
+            return "Une tomate amoureuse"
+        } else if lower.contains("sapin") {
+            return "Un cactus de Noël"
         } else if lower.contains("fusée") || lower.contains("lune") {
-            return "Une carotte géante lancée dans l'espace"
-        } else if lower.contains("montagne") || lower.contains("ski") {
-            return "Un bonhomme qui dévale un toboggan géant"
+            return "Une carotte dans l'espace"
+        } else if lower.contains("soleil") {
+            return "Une crêpe qui brille"
         } else {
             let fallbacks = [
-                "Un bonhomme bâton perdu dans le désert",
-                "Un soleil qui bronzait à la plage",
-                "Une soucoupe volante au-dessus du jardin",
-                "Un chat déguisé en fantôme",
-                "Un œuf sur le plat qui fait un sourire"
+                "Un bonhomme qui danse",
+                "Un soleil en vacances",
+                "Un poisson qui chante",
+                "Un chat déguisé en roi",
+                "Une étoile magique"
             ]
             return fallbacks.randomElement()!
+        }
+    }
+
+    // MARK: - 1-Tap Vector Stickers / Pochoirs (Pose un dessin propre en 1 clic sur la toile !)
+
+    public enum DrawingSticker: String, CaseIterable, Identifiable, Sendable {
+        case sun = "sun"
+        case cat = "cat"
+        case fish = "fish"
+        case crown = "crown"
+        case glasses = "glasses"
+        case heart = "heart"
+        case star = "star"
+        case fire = "fire"
+        case house = "house"
+        case stickman = "stickman"
+
+        public var id: String { rawValue }
+
+        public var label: String {
+            switch self {
+            case .sun: "☀️ Soleil"
+            case .cat: "🐱 Chat"
+            case .fish: "🐟 Poisson"
+            case .crown: "👑 Couronne"
+            case .glasses: "🕶️ Lunettes"
+            case .heart: "❤️ Cœur"
+            case .star: "⭐ Étoile"
+            case .fire: "🔥 Feu"
+            case .house: "🏠 Maison"
+            case .stickman: "🧍 Bonhomme"
+            }
+        }
+
+        public var defaultColorHex: String {
+            switch self {
+            case .sun: "#F59E0B"
+            case .cat: "#FF8C42"
+            case .fish: "#2563EB"
+            case .crown: "#F59E0B"
+            case .glasses: "#111827"
+            case .heart: "#E11D48"
+            case .star: "#F59E0B"
+            case .fire: "#E11D48"
+            case .house: "#2563EB"
+            case .stickman: "#111827"
+            }
+        }
+    }
+
+    /// Generates clean, ready-to-stamp vector strokes centered around `center` so players can assemble a drawing in 1 tap on their phone!
+    public static func makeStickerStrokes(
+        sticker: DrawingSticker,
+        center: NormalizedPoint = NormalizedPoint(x: 0.5, y: 0.5),
+        scale: Double = 1.0,
+        colorOverride: String? = nil
+    ) -> [DrawingStroke] {
+        let cx = min(0.82, max(0.18, center.x))
+        let cy = min(0.82, max(0.18, center.y))
+        let col = (colorOverride == "#FFFFFF" ? nil : colorOverride) ?? sticker.defaultColorHex
+        let w = 6.5
+
+        switch sticker {
+        case .sun:
+            let r = 0.12 * scale
+            var strokes: [DrawingStroke] = [circleStroke(cx: cx, cy: cy, r: r, color: col, width: w)]
+            for i in 0..<8 {
+                let a = Double(i) * (.pi / 4.0)
+                let p1 = NormalizedPoint(x: cx + cos(a) * (r * 1.25), y: cy + sin(a) * (r * 1.25))
+                let p2 = NormalizedPoint(x: cx + cos(a) * (r * 1.85), y: cy + sin(a) * (r * 1.85))
+                strokes.append(DrawingStroke(colorHex: col, lineWidth: w, points: [p1, p2]))
+            }
+            return strokes
+
+        case .cat:
+            let r = 0.15 * scale
+            let head = circleStroke(cx: cx, cy: cy, r: r, color: col, width: w)
+            let leftEar = DrawingStroke(colorHex: col, lineWidth: w, points: [
+                NormalizedPoint(x: cx - r * 0.85, y: cy - r * 0.45),
+                NormalizedPoint(x: cx - r * 0.95, y: cy - r * 1.45),
+                NormalizedPoint(x: cx - r * 0.20, y: cy - r * 0.92)
+            ])
+            let rightEar = DrawingStroke(colorHex: col, lineWidth: w, points: [
+                NormalizedPoint(x: cx + r * 0.20, y: cy - r * 0.92),
+                NormalizedPoint(x: cx + r * 0.95, y: cy - r * 1.45),
+                NormalizedPoint(x: cx + r * 0.85, y: cy - r * 0.45)
+            ])
+            let leftEye = circleStroke(cx: cx - r * 0.38, cy: cy - r * 0.15, r: 0.018 * scale, color: "#111827", width: 5)
+            let rightEye = circleStroke(cx: cx + r * 0.38, cy: cy - r * 0.15, r: 0.018 * scale, color: "#111827", width: 5)
+            let whiskersL = DrawingStroke(colorHex: col, lineWidth: 4.5, points: [
+                NormalizedPoint(x: cx - r * 1.35, y: cy + r * 0.05),
+                NormalizedPoint(x: cx - r * 0.55, y: cy + r * 0.12),
+                NormalizedPoint(x: cx - r * 1.35, y: cy + r * 0.28)
+            ])
+            let whiskersR = DrawingStroke(colorHex: col, lineWidth: 4.5, points: [
+                NormalizedPoint(x: cx + r * 1.35, y: cy + r * 0.05),
+                NormalizedPoint(x: cx + r * 0.55, y: cy + r * 0.12),
+                NormalizedPoint(x: cx + r * 1.35, y: cy + r * 0.28)
+            ])
+            return [head, leftEar, rightEar, leftEye, rightEye, whiskersL, whiskersR]
+
+        case .fish:
+            let s = 0.20 * scale
+            let body = DrawingStroke(colorHex: col, lineWidth: w, points: [
+                NormalizedPoint(x: cx - s, y: cy),
+                NormalizedPoint(x: cx - s * 0.2, y: cy - s * 0.65),
+                NormalizedPoint(x: cx + s * 0.45, y: cy - s * 0.45),
+                NormalizedPoint(x: cx + s, y: cy + s * 0.55),
+                NormalizedPoint(x: cx + s, y: cy - s * 0.55),
+                NormalizedPoint(x: cx + s * 0.45, y: cy + s * 0.45),
+                NormalizedPoint(x: cx - s * 0.2, y: cy + s * 0.65),
+                NormalizedPoint(x: cx - s, y: cy)
+            ])
+            let eye = circleStroke(cx: cx - s * 0.48, cy: cy - s * 0.12, r: 0.02 * scale, color: "#111827", width: 5)
+            return [body, eye]
+
+        case .crown:
+            let s = 0.18 * scale
+            return [
+                DrawingStroke(colorHex: col, lineWidth: w, points: [
+                    NormalizedPoint(x: cx - s, y: cy + s * 0.55),
+                    NormalizedPoint(x: cx - s, y: cy - s * 0.55),
+                    NormalizedPoint(x: cx - s * 0.45, y: cy),
+                    NormalizedPoint(x: cx, y: cy - s * 0.75),
+                    NormalizedPoint(x: cx + s * 0.45, y: cy),
+                    NormalizedPoint(x: cx + s, y: cy - s * 0.55),
+                    NormalizedPoint(x: cx + s, y: cy + s * 0.55),
+                    NormalizedPoint(x: cx - s, y: cy + s * 0.55)
+                ])
+            ]
+
+        case .glasses:
+            let r = 0.085 * scale
+            return [
+                circleStroke(cx: cx - r * 1.35, cy: cy, r: r, color: col, width: w),
+                circleStroke(cx: cx + r * 1.35, cy: cy, r: r, color: col, width: w),
+                DrawingStroke(colorHex: col, lineWidth: w, points: [
+                    NormalizedPoint(x: cx - r * 0.35, y: cy),
+                    NormalizedPoint(x: cx + r * 0.35, y: cy)
+                ]),
+                DrawingStroke(colorHex: col, lineWidth: w, points: [
+                    NormalizedPoint(x: cx - r * 2.35, y: cy),
+                    NormalizedPoint(x: cx - r * 2.85, y: cy - r * 0.45)
+                ]),
+                DrawingStroke(colorHex: col, lineWidth: w, points: [
+                    NormalizedPoint(x: cx + r * 2.35, y: cy),
+                    NormalizedPoint(x: cx + r * 2.85, y: cy - r * 0.45)
+                ])
+            ]
+
+        case .heart:
+            let s = 0.16 * scale
+            let steps = 28
+            let pts = (0...steps).map { idx -> NormalizedPoint in
+                let t = Double(idx) / Double(steps) * (2.0 * .pi)
+                let x = 16.0 * pow(sin(t), 3) / 16.0
+                let y = -(13.0 * cos(t) - 5.0 * cos(2 * t) - 2.0 * cos(3 * t) - cos(4 * t)) / 16.0
+                return NormalizedPoint(
+                    x: min(0.98, max(0.02, cx + x * s)),
+                    y: min(0.98, max(0.02, cy + y * s))
+                )
+            }
+            return [DrawingStroke(colorHex: col, lineWidth: w, points: pts)]
+
+        case .star:
+            let outer = 0.16 * scale
+            let inner = 0.068 * scale
+            var pts: [NormalizedPoint] = []
+            for i in 0...10 {
+                let r = (i % 2 == 0) ? outer : inner
+                let angle = Double(i) * (.pi / 5.0) - (.pi / 2.0)
+                pts.append(NormalizedPoint(
+                    x: min(0.98, max(0.02, cx + cos(angle) * r)),
+                    y: min(0.98, max(0.02, cy + sin(angle) * r))
+                ))
+            }
+            return [DrawingStroke(colorHex: col, lineWidth: w, points: pts)]
+
+        case .fire:
+            let s = 0.18 * scale
+            return [
+                DrawingStroke(colorHex: col, lineWidth: w, points: [
+                    NormalizedPoint(x: cx, y: cy + s * 0.85),
+                    NormalizedPoint(x: cx - s * 0.75, y: cy + s * 0.35),
+                    NormalizedPoint(x: cx - s * 0.55, y: cy - s * 0.35),
+                    NormalizedPoint(x: cx - s * 0.15, y: cy + s * 0.05),
+                    NormalizedPoint(x: cx, y: cy - s * 0.95),
+                    NormalizedPoint(x: cx + s * 0.25, y: cy - s * 0.05),
+                    NormalizedPoint(x: cx + s * 0.65, y: cy - s * 0.45),
+                    NormalizedPoint(x: cx + s * 0.75, y: cy + s * 0.35),
+                    NormalizedPoint(x: cx, y: cy + s * 0.85)
+                ])
+            ]
+
+        case .house:
+            let s = 0.18 * scale
+            return [
+                DrawingStroke(colorHex: col, lineWidth: w, points: [
+                    NormalizedPoint(x: cx - s, y: cy - s * 0.1),
+                    NormalizedPoint(x: cx - s, y: cy + s * 0.95),
+                    NormalizedPoint(x: cx + s, y: cy + s * 0.95),
+                    NormalizedPoint(x: cx + s, y: cy - s * 0.1),
+                    NormalizedPoint(x: cx - s, y: cy - s * 0.1)
+                ]),
+                DrawingStroke(colorHex: "#E11D48", lineWidth: w, points: [
+                    NormalizedPoint(x: cx - s * 1.2, y: cy - s * 0.1),
+                    NormalizedPoint(x: cx, y: cy - s * 1.05),
+                    NormalizedPoint(x: cx + s * 1.2, y: cy - s * 0.1)
+                ])
+            ]
+
+        case .stickman:
+            let start = NormalizedPoint(x: max(0.05, cx - 0.14 * scale), y: max(0.05, cy - 0.22 * scale))
+            let end = NormalizedPoint(x: min(0.95, cx + 0.14 * scale), y: min(0.95, cy + 0.22 * scale))
+            return makeShapeStrokes(tool: .stickman, start: start, end: end, colorHex: col, lineWidth: w)
         }
     }
 

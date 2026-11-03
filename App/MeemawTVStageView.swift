@@ -653,107 +653,289 @@ struct MeemawTVStageView: View {
         }
     }
 
-    // MARK: - 3E. 🎨 Draw Something & 📞 Esquissé ! TV Stages
+    // MARK: - 3E. 🎨 Draw Something & 📞 Esquissé ! TV Stages (Stitch Broadway Marquee & Comic Strip UI)
+
+    private static let marqueeBulbHexes: [String] = [
+        "#FFD700", "#FF4D94", "#10B981", "#3B82F6", "#FFD700", "#FF8C42", "#8E44AD", "#FFD700", "#FF4D94"
+    ]
 
     private func tvDrawSomethingStage(drawRound: DrawRoundState, scale: CGFloat) -> some View {
         HStack(spacing: 18 * scale) {
-            // Giant Live Portrait (3:4) Vector Canvas — Identical aspect ratio & proportional stroke width to iPhone!
+            // LEFT / CENTER: Stitch Broadway Marquee Studio Easel (Amber frame + Marquee Bulbs + 3:4 Portrait Dot-Grid Canvas)
             PopArtCard(
-                cornerRadius: 26 * scale,
+                cornerRadius: 28 * scale,
                 borderWidth: 4.5,
-                backgroundColor: PopArt.cream,
-                shadowOffset: 7 * scale
+                backgroundColor: Color(hex: "#D97706"),
+                shadowOffset: 8 * scale
             ) {
-                ZStack {
-                    ZStack {
-                        Color.white
-                        VectorCanvasPreviewView(canvas: drawRound.canvas)
-                    }
-                    .aspectRatio(CGFloat(DrawingCanvasData.portraitAspectRatio), contentMode: .fit)
-                    .clipShape(RoundedRectangle(cornerRadius: 18 * scale))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 18 * scale)
-                            .strokeBorder(PopArt.ink, lineWidth: 3.5 * scale)
-                    )
-                    .padding(10 * scale)
-
-                    if snap.stage == .drawWordChoice {
-                        VStack(spacing: 12 * scale) {
-                            Text("\(drawRound.drawerEmoji)")
-                                .font(.system(size: 64 * scale))
-                            Text("\(drawRound.drawerPlayerName) choisit secrètement son mot...")
-                                .font(.system(size: 28 * scale, weight: .black, design: .rounded))
-                                .foregroundStyle(PopArt.ink)
-                                .multilineTextAlignment(.center)
+                VStack(spacing: 8 * scale) {
+                    // 1. Broadway Marquee Bulbs Row
+                    HStack(spacing: 18 * scale) {
+                        ForEach(Array(Self.marqueeBulbHexes.enumerated()), id: \.offset) { _, hex in
+                            Circle()
+                                .fill(Color(hex: hex))
+                                .frame(width: 14 * scale, height: 14 * scale)
+                                .overlay(Circle().strokeBorder(PopArt.ink, lineWidth: 2 * scale))
+                                .shadow(color: Color(hex: hex).opacity(0.85), radius: 5 * scale)
                         }
-                        .padding(24 * scale)
-                        .background(PopArt.white.opacity(0.95), in: RoundedRectangle(cornerRadius: 20 * scale))
-                        .overlay(RoundedRectangle(cornerRadius: 20 * scale).strokeBorder(PopArt.ink, lineWidth: 3))
                     }
+                    .padding(.top, 2 * scale)
+
+                    // 2. Easel Artist Header Bar
+                    HStack {
+                        HStack(spacing: 8 * scale) {
+                            Text(drawRound.drawerEmoji)
+                                .font(.system(size: 20 * scale))
+                                .frame(width: 34 * scale, height: 34 * scale)
+                                .background(PopArt.orange, in: RoundedRectangle(cornerRadius: 9 * scale))
+                                .overlay(RoundedRectangle(cornerRadius: 9 * scale).strokeBorder(PopArt.ink, lineWidth: 2))
+
+                            Text("ARTISTE EN DIRECT : \(drawRound.drawerPlayerName.uppercased())")
+                                .font(.system(size: 15 * scale, weight: .black, design: .rounded))
+                                .foregroundStyle(PopArt.ink)
+                        }
+                        .padding(.horizontal, 12 * scale)
+                        .padding(.vertical, 6 * scale)
+                        .background(PopArt.white, in: RoundedRectangle(cornerRadius: 14 * scale))
+                        .overlay(RoundedRectangle(cornerRadius: 14 * scale).strokeBorder(PopArt.ink, lineWidth: 2.8))
+
+                        Spacer()
+
+                        HStack(spacing: 6 * scale) {
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: 10 * scale, height: 10 * scale)
+                            Text("EN DIRECT")
+                                .font(.system(size: 13 * scale, weight: .black, design: .rounded))
+                                .foregroundStyle(.white)
+                        }
+                        .padding(.horizontal, 12 * scale)
+                        .padding(.vertical, 6 * scale)
+                        .background(PopArt.redError, in: Capsule())
+                        .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2.5))
+                    }
+                    .padding(.horizontal, 12 * scale)
+
+                    // 3. Giant Portrait 3:4 Canvas with Dot-Grid — 1:1 Stroke Width with iPhone!
+                    ZStack {
+                        ZStack(alignment: .bottomTrailing) {
+                            ZStack {
+                                Color.white
+                                CanvasDotGridView(spacing: 20 * scale, dotRadius: 1.5 * scale)
+                                VectorCanvasPreviewView(canvas: drawRound.canvas)
+                            }
+                            .aspectRatio(CGFloat(DrawingCanvasData.portraitAspectRatio), contentMode: .fit)
+                            .clipShape(RoundedRectangle(cornerRadius: 18 * scale))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 18 * scale)
+                                    .strokeBorder(PopArt.ink, lineWidth: 3.5 * scale)
+                            )
+
+                            if snap.stage == .drawLiveGuessing {
+                                Text("✏️ \(drawRound.drawerPlayerName) dessine...")
+                                    .font(.system(size: 13 * scale, weight: .black, design: .rounded))
+                                    .foregroundStyle(PopArt.ink)
+                                    .padding(.horizontal, 12 * scale)
+                                    .padding(.vertical, 6 * scale)
+                                    .background(PopArt.yellow, in: Capsule())
+                                    .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2.2))
+                                    .padding(12 * scale)
+                            }
+                        }
+
+                        if snap.stage == .drawWordChoice {
+                            VStack(spacing: 12 * scale) {
+                                Text("\(drawRound.drawerEmoji)")
+                                    .font(.system(size: 58 * scale))
+                                Text("\(drawRound.drawerPlayerName) choisit secrètement son mot...")
+                                    .font(.system(size: 24 * scale, weight: .black, design: .rounded))
+                                    .foregroundStyle(PopArt.ink)
+                                    .multilineTextAlignment(.center)
+                            }
+                            .padding(22 * scale)
+                            .background(PopArt.white.opacity(0.96), in: RoundedRectangle(cornerRadius: 20 * scale))
+                            .overlay(RoundedRectangle(cornerRadius: 20 * scale).strokeBorder(PopArt.ink, lineWidth: 3))
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding(.horizontal, 12 * scale)
+
+                    // 4. Easel Bottom Studio Palette Bar
+                    HStack(spacing: 10 * scale) {
+                        HStack(spacing: 6 * scale) {
+                            ForEach(["#111827", "#E11D48", "#F59E0B", "#10B981", "#2563EB", "#8E44AD"], id: \.self) { hex in
+                                Circle()
+                                    .fill(Color(hex: hex))
+                                    .frame(width: 20 * scale, height: 20 * scale)
+                                    .overlay(Circle().strokeBorder(PopArt.ink, lineWidth: 2))
+                            }
+                        }
+                        .padding(.horizontal, 10 * scale)
+                        .padding(.vertical, 5 * scale)
+                        .background(PopArt.cream, in: Capsule())
+                        .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
+
+                        Spacer()
+
+                        Text("🖌️ Pinceau Studio • Échelle 1:1")
+                            .font(.system(size: 12 * scale, weight: .black, design: .rounded))
+                            .foregroundStyle(PopArt.ink)
+                            .padding(.horizontal, 12 * scale)
+                            .padding(.vertical, 5 * scale)
+                            .background(PopArt.cream, in: Capsule())
+                            .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
+                    }
+                    .padding(.horizontal, 12 * scale)
+                    .padding(.bottom, 4 * scale)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(.vertical, 8 * scale)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            // Word Slots & Found Players Column (Zero free hints!)
-            PopArtCard(
-                cornerRadius: 24 * scale,
-                borderWidth: 4,
-                backgroundColor: PopArt.cream,
-                shadowOffset: 6 * scale
-            ) {
-                VStack(spacing: 14 * scale) {
-                    Text("\(drawRound.drawerEmoji) ARTISTE : \(drawRound.drawerPlayerName.uppercased())")
-                        .font(.system(size: 18 * scale, weight: .black, design: .rounded))
-                        .foregroundStyle(PopArt.orange)
-                        .multilineTextAlignment(.center)
+            // RIGHT COLUMN: Card 1 (Yellow 3D Letter Slots) + Card 2 (Emerald Found Players Podium)
+            VStack(spacing: 14 * scale) {
+                // Card 1: Sun Yellow 3D Word Slots Card
+                PopArtCard(
+                    cornerRadius: 24 * scale,
+                    borderWidth: 4,
+                    backgroundColor: PopArt.yellow,
+                    shadowOffset: 6 * scale
+                ) {
+                    VStack(spacing: 12 * scale) {
+                        HStack {
+                            Text("🔤 MOT SECRET À DEVINER")
+                                .font(.system(size: 16 * scale, weight: .black, design: .rounded))
+                                .foregroundStyle(PopArt.ink)
+                            Spacer()
+                            if let chosen = drawRound.chosenWord {
+                                Text("+\(chosen.points) PTS")
+                                    .font(.system(size: 14 * scale, weight: .black, design: .monospaced))
+                                    .foregroundStyle(.white)
+                                    .padding(.horizontal, 12 * scale)
+                                    .padding(.vertical, 5 * scale)
+                                    .background(PopArt.pink, in: Capsule())
+                                    .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2.2))
+                            }
+                        }
 
-                    if let chosen = drawRound.chosenWord {
-                        Text("MOT MYSTÈRE : \(chosen.word.count) LETTRES (+\(chosen.points) PTS)")
-                            .font(.system(size: 16 * scale, weight: .black, design: .rounded))
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 14 * scale)
-                            .padding(.vertical, 6 * scale)
-                            .background(PopArt.blue, in: Capsule())
+                        if let chosen = drawRound.chosenWord {
+                            let chars = Array(chosen.word)
+                            let isRevealed = (snap.stage == .drawReveal)
+                            HStack(spacing: 6 * scale) {
+                                ForEach(0..<chars.count, id: \.self) { idx in
+                                    Text(isRevealed ? String(chars[idx]) : "_")
+                                        .font(.system(size: 28 * scale, weight: .black, design: .rounded))
+                                        .foregroundStyle(isRevealed ? PopArt.greenSuccess : PopArt.ink.opacity(0.35))
+                                        .frame(maxWidth: .infinity)
+                                        .frame(height: 54 * scale)
+                                        .background(Color.white, in: RoundedRectangle(cornerRadius: 12 * scale))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 12 * scale)
+                                                .strokeBorder(PopArt.ink, lineWidth: 3 * scale)
+                                        )
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 12 * scale)
+                                                .fill(PopArt.ink)
+                                                .offset(x: 0, y: 4 * scale)
+                                        )
+                                }
+                            }
+                            .padding(.vertical, 4 * scale)
+                        } else {
+                            Text("L'artiste choisit son mot mystère...")
+                                .font(.system(size: 18 * scale, weight: .black, design: .rounded))
+                                .foregroundStyle(PopArt.ink.opacity(0.75))
+                                .padding(.vertical, 12 * scale)
+                        }
 
-                        Text(snap.stage == .drawReveal ? chosen.word : drawRound.maskedWordPattern)
-                            .font(.system(size: 34 * scale, weight: .black, design: .monospaced))
-                            .foregroundStyle(snap.stage == .drawReveal ? PopArt.greenSuccess : PopArt.ink)
-                            .padding(.vertical, 10 * scale)
-                            .padding(.horizontal, 16 * scale)
-                            .background(PopArt.yellow, in: RoundedRectangle(cornerRadius: 16 * scale))
-                            .overlay(RoundedRectangle(cornerRadius: 16 * scale).strokeBorder(PopArt.ink, lineWidth: 3))
+                        Text("📱 Composez le mot avec les tuiles sur votre téléphone • Indice 💡 (-300 pts)")
+                            .font(.system(size: 13 * scale, weight: .bold, design: .rounded))
+                            .foregroundStyle(PopArt.ink.opacity(0.8))
+                            .multilineTextAlignment(.center)
                     }
+                    .padding(16 * scale)
+                }
 
-                    Text("📱 Composez le mot sur votre téléphone !\n(Bouton 💡 Indice disponible contre -300 pts)")
-                        .font(.system(size: 14 * scale, weight: .bold, design: .rounded))
-                        .foregroundStyle(PopArt.ink.opacity(0.75))
-                        .multilineTextAlignment(.center)
+                // Card 2: Emerald Green Found Players Flash Podium Card
+                PopArtCard(
+                    cornerRadius: 24 * scale,
+                    borderWidth: 4,
+                    backgroundColor: PopArt.greenSuccess,
+                    shadowOffset: 6 * scale
+                ) {
+                    VStack(alignment: .leading, spacing: 10 * scale) {
+                        HStack {
+                            Text("🎉 ILS ONT TROUVÉ !")
+                                .font(.system(size: 17 * scale, weight: .black, design: .rounded))
+                                .foregroundStyle(.white)
+                            Spacer()
+                            Text("PODIUM FLASH ⚡")
+                                .font(.system(size: 12 * scale, weight: .black, design: .rounded))
+                                .foregroundStyle(PopArt.yellow)
+                                .padding(.horizontal, 10 * scale)
+                                .padding(.vertical, 4 * scale)
+                                .background(PopArt.ink, in: Capsule())
+                        }
 
-                    Spacer()
+                        if drawRound.foundPlayerIDs.isEmpty {
+                            VStack(spacing: 8 * scale) {
+                                Text("⏳ En attente du 1er détective...")
+                                    .font(.system(size: 17 * scale, weight: .black, design: .rounded))
+                                    .foregroundStyle(.white)
+                                Text("Le plus rapide rafle le bonus vitesse !")
+                                    .font(.system(size: 13 * scale, weight: .bold, design: .rounded))
+                                    .foregroundStyle(.white.opacity(0.88))
+                            }
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .padding(14 * scale)
+                            .background(Color.white.opacity(0.15), in: RoundedRectangle(cornerRadius: 16 * scale))
+                        } else {
+                            ScrollView(.vertical, showsIndicators: false) {
+                                VStack(spacing: 8 * scale) {
+                                    ForEach(Array(drawRound.foundPlayerIDs.enumerated()), id: \.element) { idx, pid in
+                                        if let p = snap.players.first(where: { $0.id == pid }) {
+                                            HStack(spacing: 10 * scale) {
+                                                Text(idx == 0 ? "⚡ 1er" : "#\(idx + 1)")
+                                                    .font(.system(size: 14 * scale, weight: .black, design: .rounded))
+                                                    .foregroundStyle(PopArt.ink)
+                                                    .padding(.horizontal, 8 * scale)
+                                                    .padding(.vertical, 4 * scale)
+                                                    .background(PopArt.yellow, in: Capsule())
+                                                    .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
 
-                    if !drawRound.foundPlayerIDs.isEmpty {
-                        VStack(spacing: 6 * scale) {
-                            Text("🎉 ILS ONT TROUVÉ :")
-                                .font(.system(size: 15 * scale, weight: .black))
-                                .foregroundStyle(PopArt.greenSuccess)
-                            ForEach(drawRound.foundPlayerIDs, id: \.self) { pid in
-                                if let p = snap.players.first(where: { $0.id == pid }) {
-                                    Text("\(p.avatarEmoji) \(p.name)")
-                                        .font(.system(size: 17 * scale, weight: .black, design: .rounded))
-                                        .foregroundStyle(.white)
-                                        .padding(.horizontal, 14 * scale)
-                                        .padding(.vertical, 6 * scale)
-                                        .background(PopArt.greenSuccess, in: Capsule())
+                                                Text("\(p.avatarEmoji) \(p.name)")
+                                                    .font(.system(size: 17 * scale, weight: .black, design: .rounded))
+                                                    .foregroundStyle(PopArt.ink)
+                                                    .lineLimit(1)
+
+                                                Spacer()
+
+                                                if let delta = p.lastDeltaScore, delta > 0 {
+                                                    Text("+\(delta) PTS")
+                                                        .font(.system(size: 14 * scale, weight: .black, design: .monospaced))
+                                                        .foregroundStyle(.white)
+                                                        .padding(.horizontal, 10 * scale)
+                                                        .padding(.vertical, 4 * scale)
+                                                        .background(PopArt.greenSuccess, in: Capsule())
+                                                        .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
+                                                }
+                                            }
+                                            .padding(.horizontal, 12 * scale)
+                                            .padding(.vertical, 8 * scale)
+                                            .background(Color.white, in: RoundedRectangle(cornerRadius: 14 * scale))
+                                            .overlay(RoundedRectangle(cornerRadius: 14 * scale).strokeBorder(PopArt.ink, lineWidth: 2.5))
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
+                    .padding(16 * scale)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
-                .padding(18 * scale)
                 .frame(maxHeight: .infinity)
             }
-            .frame(width: 420 * scale)
+            .frame(width: 455 * scale)
         }
     }
 
@@ -766,106 +948,175 @@ struct MeemawTVStageView: View {
                     PopArtCard(
                         cornerRadius: 26 * scale,
                         borderWidth: 4.5,
-                        backgroundColor: PopArt.white,
-                        shadowOffset: 7 * scale
+                        backgroundColor: PopArt.cream,
+                        shadowOffset: 8 * scale
                     ) {
                         VStack(spacing: 12 * scale) {
+                            // Top Comic Strip Header
                             HStack {
-                                Text("📒 CARNET DE \(notebook.ownerEmoji) \(notebook.ownerName.uppercased()) (\(nbIdx + 1)/\(esq.notebooks.count))")
-                                    .font(.system(size: 24 * scale, weight: .black, design: .rounded))
-                                    .foregroundStyle(PopArt.orange)
+                                HStack(spacing: 10 * scale) {
+                                    Text("📖 ALBUM ESQUISSÉ • CHAÎNE DE DÉLIRE")
+                                        .font(.system(size: 22 * scale, weight: .black, design: .rounded))
+                                        .foregroundStyle(PopArt.ink)
+
+                                    Text("CARNET DE \(notebook.ownerEmoji) \(notebook.ownerName.uppercased()) (\(nbIdx + 1)/\(esq.notebooks.count))")
+                                        .font(.system(size: 14 * scale, weight: .black, design: .rounded))
+                                        .foregroundStyle(PopArt.ink)
+                                        .padding(.horizontal, 12 * scale)
+                                        .padding(.vertical, 5 * scale)
+                                        .background(PopArt.yellow, in: Capsule())
+                                        .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2.2))
+                                }
+
                                 Spacer()
-                                Text("😂 \(notebook.voteVoterIDs.count) COUP(S) DE CŒUR")
-                                    .font(.system(size: 18 * scale, weight: .black, design: .rounded))
+
+                                Text("❤️ \(notebook.voteVoterIDs.count) VOTE(S) COUP DE CŒUR")
+                                    .font(.system(size: 16 * scale, weight: .black, design: .rounded))
                                     .foregroundStyle(.white)
                                     .padding(.horizontal, 16 * scale)
-                                    .padding(.vertical, 8 * scale)
+                                    .padding(.vertical, 7 * scale)
                                     .background(PopArt.pink, in: Capsule())
                                     .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2.5))
                             }
 
-                            HStack(spacing: 14 * scale) {
-                                ForEach(notebook.entries) { entry in
-                                    VStack(spacing: 8 * scale) {
-                                        Text("\(entry.authorEmoji) \(entry.authorName)")
-                                            .font(.system(size: 15 * scale, weight: .black, design: .rounded))
-                                            .foregroundStyle(PopArt.ink)
-                                            .lineLimit(1)
+                            // 4-Column Comic Strip (Bande Dessinée) Side-by-Side
+                            HStack(spacing: 10 * scale) {
+                                ForEach(Array(notebook.entries.enumerated()), id: \.element.id) { idx, entry in
+                                    let stepTitle = idx == 0 ? "1. IDÉE INITIALE" : (idx == 1 ? "2. 1er DESSIN" : (idx == 2 ? "3. DEVIENT..." : "4. CHUTE FINALE !"))
+                                    let headerBg = idx == 0 ? PopArt.yellow : (idx == 1 ? Color(hex: "#F3E8FF") : (idx == 2 ? Color(hex: "#FFE4E8") : Color(hex: "#D1FAE5")))
 
-                                        if let prompt = entry.promptText {
-                                            VStack {
+                                    VStack(spacing: 0) {
+                                        // Top Panel Badge
+                                        Text(stepTitle)
+                                            .font(.system(size: 13 * scale, weight: .black, design: .rounded))
+                                            .foregroundStyle(PopArt.ink)
+                                            .frame(maxWidth: .infinity)
+                                            .padding(.vertical, 7 * scale)
+                                            .background(headerBg)
+
+                                        Divider().overlay(PopArt.ink)
+
+                                        // Panel Content (Speech Bubble or 3:4 Portrait Drawing)
+                                        ZStack {
+                                            Color.white
+                                            if let prompt = entry.promptText {
                                                 Text("« \(prompt) »")
-                                                    .font(.system(size: 20 * scale, weight: .black, design: .rounded))
+                                                    .font(.system(size: 21 * scale, weight: .black, design: .rounded))
                                                     .foregroundStyle(PopArt.ink)
                                                     .multilineTextAlignment(.center)
+                                                    .padding(14 * scale)
+                                            } else if let drawing = entry.drawing {
+                                                ZStack {
+                                                    Color.white
+                                                    CanvasDotGridView(spacing: 16 * scale, dotRadius: 1.2 * scale)
+                                                    VectorCanvasPreviewView(canvas: drawing)
+                                                }
+                                                .aspectRatio(CGFloat(DrawingCanvasData.portraitAspectRatio), contentMode: .fit)
+                                                .padding(6 * scale)
                                             }
-                                            .padding(14 * scale)
-                                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                            .background(PopArt.yellow.opacity(0.45), in: RoundedRectangle(cornerRadius: 16 * scale))
-                                            .overlay(RoundedRectangle(cornerRadius: 16 * scale).strokeBorder(PopArt.ink, lineWidth: 3))
-                                        } else if let drawing = entry.drawing {
-                                            ZStack {
-                                                Color.white
-                                                VectorCanvasPreviewView(canvas: drawing)
-                                            }
-                                            .aspectRatio(CGFloat(DrawingCanvasData.portraitAspectRatio), contentMode: .fit)
-                                            .clipShape(RoundedRectangle(cornerRadius: 16 * scale))
-                                            .overlay(RoundedRectangle(cornerRadius: 16 * scale).strokeBorder(PopArt.ink, lineWidth: 3))
-                                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                                         }
+                                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                                        Divider().overlay(PopArt.ink)
+
+                                        // Bottom Author Footer
+                                        Text("Par \(entry.authorEmoji) \(entry.authorName)")
+                                            .font(.system(size: 13 * scale, weight: .black, design: .rounded))
+                                            .foregroundStyle(PopArt.ink.opacity(0.8))
+                                            .lineLimit(1)
+                                            .frame(maxWidth: .infinity)
+                                            .padding(.vertical, 6 * scale)
+                                            .background(PopArt.cream)
                                     }
+                                    .clipShape(RoundedRectangle(cornerRadius: 18 * scale))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 18 * scale)
+                                            .strokeBorder(PopArt.ink, lineWidth: 3.2 * scale)
+                                    )
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 18 * scale)
+                                            .fill(PopArt.ink)
+                                            .offset(x: 3 * scale, y: 4 * scale)
+                                    )
                                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                                 }
                             }
                         }
-                        .padding(20 * scale)
+                        .padding(18 * scale)
                     }
                 }
             } else {
+                // Live Studio Progress Card during Esquissé Drawing / Guessing
                 PopArtCard(
                     cornerRadius: 26 * scale,
                     borderWidth: 4.5,
-                    backgroundColor: PopArt.white,
-                    shadowOffset: 7 * scale
+                    backgroundColor: PopArt.cream,
+                    shadowOffset: 8 * scale
                 ) {
                     VStack(spacing: 16 * scale) {
-                        Text(
-                            snap.stage == .esquissePromptEntry
-                                ? "✍️ ÉTAPE 1/4 : ÉCRIVEZ UNE SCÈNE FOLLE SUR VOS TÉLÉPHONES !"
-                                : (snap.stage == .esquisseDrawing
-                                    ? "🎨 ÉTAPE \(esq.stepIndex + 1)/4 : DESSINEZ LA PHRASE DU VOISIN !"
-                                    : "🕵️ ÉTAPE 3/4 : DEVINEZ AU CLAVIER CE QUE LE VOISIN A DESSINÉ !")
-                        )
-                        .font(.system(size: 28 * scale, weight: .black, design: .rounded))
-                        .foregroundStyle(PopArt.ink)
-                        .multilineTextAlignment(.center)
+                        HStack(spacing: 10 * scale) {
+                            ForEach(Self.marqueeBulbHexes.prefix(7), id: \.self) { hex in
+                                Circle()
+                                    .fill(Color(hex: hex))
+                                    .frame(width: 12 * scale, height: 12 * scale)
+                                    .overlay(Circle().strokeBorder(PopArt.ink, lineWidth: 2))
+                            }
+                        }
 
-                        Text("Tout se passe en secret sur vos téléphones — interdiction de regarder l'écran du voisin !")
-                            .font(.system(size: 19 * scale, weight: .bold, design: .rounded))
-                            .foregroundStyle(PopArt.orange)
+                        let stepBanner: String = {
+                            if snap.stage == .esquisseDrawing {
+                                let label = (esq.stepIndex <= 1) ? "MANCHE 1/3" : "MANCHE 3/3"
+                                return "🎨 \(label) : DESSINEZ L'EXPRESSION SECRÈTE SUR VOS TÉLÉPHONES !"
+                            } else if snap.stage == .esquisseGuessing {
+                                return "🕵️ MANCHE 2/3 : DEVINEZ EN 1 CLIC CE QUE LE VOISIN A DESSINÉ !"
+                            } else {
+                                return "✍️ CHOISISSEZ UNE IDÉE COURTE SUR VOS TÉLÉPHONES !"
+                            }
+                        }()
+
+                        Text(stepBanner)
+                            .font(.system(size: 27 * scale, weight: .black, design: .rounded))
+                            .foregroundStyle(PopArt.ink)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 20 * scale)
+                            .padding(.vertical, 10 * scale)
+                            .background(PopArt.yellow, in: RoundedRectangle(cornerRadius: 16 * scale))
+                            .overlay(RoundedRectangle(cornerRadius: 16 * scale).strokeBorder(PopArt.ink, lineWidth: 3))
+
+                        Text("Utilisez les Stickers 1-clic (☀️ Soleil, 🐱 Chat, 👑 Couronne...) ou le bouton 🔄 CHANGER si le mot vous semble trop dur !")
+                            .font(.system(size: 17 * scale, weight: .bold, design: .rounded))
+                            .foregroundStyle(PopArt.ink.opacity(0.8))
+                            .multilineTextAlignment(.center)
 
                         HStack(spacing: 16 * scale) {
                             ForEach(snap.players) { p in
                                 VStack(spacing: 8 * scale) {
                                     Text(p.avatarEmoji)
-                                        .font(.system(size: 40 * scale))
+                                        .font(.system(size: 42 * scale))
                                     Text(p.name)
                                         .font(.system(size: 18 * scale, weight: .black, design: .rounded))
-                                    Text(p.hasSubmittedEsquisseStep ? "✅ TERMINÉ !" : "✏️ EN COURS...")
-                                        .font(.system(size: 14 * scale, weight: .black))
+                                        .foregroundStyle(PopArt.ink)
+                                    Text(p.hasSubmittedEsquisseStep ? "✅ CARNET PRÊT !" : "✏️ EN CRÉATION...")
+                                        .font(.system(size: 13 * scale, weight: .black, design: .rounded))
                                         .foregroundStyle(.white)
-                                        .padding(.horizontal, 12 * scale)
+                                        .padding(.horizontal, 14 * scale)
                                         .padding(.vertical, 6 * scale)
                                         .background(p.hasSubmittedEsquisseStep ? PopArt.greenSuccess : PopArt.blue, in: Capsule())
+                                        .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
                                 }
                                 .padding(16 * scale)
-                                .background(PopArt.cream, in: RoundedRectangle(cornerRadius: 18 * scale))
+                                .background(Color.white, in: RoundedRectangle(cornerRadius: 18 * scale))
                                 .overlay(RoundedRectangle(cornerRadius: 18 * scale).strokeBorder(PopArt.ink, lineWidth: 3))
+                                .background(
+                                    RoundedRectangle(cornerRadius: 18 * scale)
+                                        .fill(PopArt.ink)
+                                        .offset(x: 3 * scale, y: 4 * scale)
+                                )
                             }
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .padding(24 * scale)
+                    .padding(22 * scale)
                 }
             }
         }
