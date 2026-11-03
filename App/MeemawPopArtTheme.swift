@@ -3,21 +3,23 @@ import MeemawQuizzCore
 import SwiftUI
 import UIKit
 
-// MARK: - Meemaw Pop-Art TV Show Design System
+// MARK: - Meemaw TV Quiz Show Studio Design System (Aligned with App Icon: Royal Studio Blue, Spotlight Gold & Copper Amber)
 
 enum PopArt {
-    static let orange = Color(hex: "#FF8C42")
-    static let orangeLight = Color(hex: "#FFA64D")
-    static let cream = Color(hex: "#FFF8F0")
-    static let ink = Color(hex: "#1A1A1A")
+    static let studioNavy = Color(hex: "#111E48")
+    static let studioRoyal = Color(hex: "#1E3A8A")
+    static let orange = Color(hex: "#F97316")      // Warm Copper-Amber ("QUIZ" card & Meemaw hair)
+    static let orangeLight = Color(hex: "#FB923C")
+    static let cream = Color(hex: "#FFFDF8")       // Clean Warm Ivory surface
+    static let ink = Color(hex: "#0F172A")         // Deep Studio Navy-Black border
     static let white = Color.white
     static let greenSuccess = Color(hex: "#10B981")
-    static let redError = Color(hex: "#E11D48")
-    static let yellow = Color(hex: "#FFD700")
-    static let cyan = Color(hex: "#00ACC1")
-    static let purple = Color(hex: "#8E44AD")
-    static let pink = Color(hex: "#FF4D94")
-    static let blue = Color(hex: "#2563EB")
+    static let redError = Color(hex: "#E11D48")    // TV Buzzer Crimson Red
+    static let yellow = Color(hex: "#FBBF24")      // Spotlight Gold (Microphone, Bow Tie & Marquee)
+    static let cyan = Color(hex: "#0284C7")        // Studio Rim Light Blue
+    static let purple = Color(hex: "#1D4ED8")      // Harmonized Royal Studio Blue (replaces neon purple)
+    static let pink = Color(hex: "#E11D48")        // Harmonized Buzzer Red (replaces neon candy pink)
+    static let blue = Color(hex: "#2563EB")        // Meemaw Blazer Royal Blue
 
     static func color(for playerColor: PlayerColor) -> Color {
         Color(hex: playerColor.hex)
@@ -74,30 +76,34 @@ struct HalftonePattern: View {
 struct PopArtTVBackground: View {
     var roundKind: QuizRoundKind
 
-    private var topColor: Color {
-        switch roundKind {
-        case .cashSpeed: Color(hex: "#FFF3E0")
-        case .tuTeMetsCombien: Color(hex: "#FEF9C3")
-        case .jukeboxExpress: Color(hex: "#FCE7F3")
-        case .drawSomething: Color(hex: "#ECFDF5")
-        case .leSolo: Color(hex: "#FFE4E8")
-        case .couciCouca: Color(hex: "#FFF8E1")
-        case .quoizziQuoissa: Color(hex: "#E0F7FA")
-        case .esquisseTeleArabe: Color(hex: "#F3E8FF")
-        case .finaleDouble: Color(hex: "#F3E5F5")
-        }
-    }
-
     var body: some View {
         ZStack {
+            // Cohesive TV Studio Royal Blue background matching the MeemawQuizz App Icon
             LinearGradient(
-                colors: [topColor, PopArt.cream],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
+                colors: [
+                    Color(hex: "#1E3A8A"),
+                    Color(hex: "#132356"),
+                    Color(hex: "#0D183A")
+                ],
+                startPoint: .top,
+                endPoint: .bottom
             )
             .ignoresSafeArea()
 
-            HalftonePattern(dotColor: PopArt.orange.opacity(0.09), dotSize: 4, spacing: 16)
+            // Subtle Golden Marquee Spotlight Glow at top center (like the App Icon arch)
+            RadialGradient(
+                colors: [
+                    PopArt.yellow.opacity(0.22),
+                    PopArt.orange.opacity(0.08),
+                    Color.clear
+                ],
+                center: .top,
+                startRadius: 10,
+                endRadius: 380
+            )
+            .ignoresSafeArea()
+
+            HalftonePattern(dotColor: PopArt.yellow.opacity(0.06), dotSize: 3.5, spacing: 18)
                 .drawingGroup()
                 .ignoresSafeArea()
         }

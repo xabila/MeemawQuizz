@@ -5,15 +5,7 @@ struct PlayerControllerView: View {
     @Bindable var session: GameSessionController
     var displayManager = ExternalDisplayManager.shared
 
-    enum LobbyTab: String, CaseIterable, Identifiable {
-        case play = "play"
-        case profile = "profile"
-        case room = "room"
-
-        var id: String { rawValue }
-    }
-
-    @State private var selectedLobbyTab: LobbyTab = .play
+    @State private var isShowingSettingsSheet: Bool = false
 
     private var snap: HostToClientStateSnapshot {
         session.effectiveSnapshot
@@ -27,7 +19,7 @@ struct PlayerControllerView: View {
         ZStack {
             PopArtTVBackground(roundKind: snap.roundKind)
 
-            VStack(spacing: 10) {
+            VStack(spacing: 12) {
                 topPlayerAndHostBar
 
                 if displayManager.isPreviewTVOnPhoneSelected {
@@ -38,7 +30,7 @@ struct PlayerControllerView: View {
                             RoundedRectangle(cornerRadius: 18, style: .continuous)
                                 .strokeBorder(PopArt.ink, lineWidth: 3.5)
                         )
-                        .shadow(color: PopArt.ink.opacity(0.35), radius: 6, x: 0, y: 4)
+                        .shadow(color: PopArt.ink.opacity(0.45), radius: 8, x: 0, y: 4)
                 } else if !displayManager.isExternalTVSceneConnected
                             && snap.stage != .lobby
                             && snap.stage != .drawLiveGuessing
@@ -47,7 +39,7 @@ struct PlayerControllerView: View {
                 }
 
                 ScrollView(.vertical, showsIndicators: false) {
-                    VStack(spacing: 12) {
+                    VStack(spacing: 14) {
                         switch snap.stage {
                         case .lobby:
                             lobbyControllerSection
@@ -81,8 +73,8 @@ struct PlayerControllerView: View {
                     .padding(.bottom, 20)
                 }
             }
-            .padding(.horizontal, 14)
-            .padding(.top, 8)
+            .padding(.horizontal, 16)
+            .padding(.top, 10)
 
             // Bisou Baveux Screen Sabotage Overlay
             if let me, me.activeBisouWipesRemaining > 0 {
@@ -90,6 +82,9 @@ struct PlayerControllerView: View {
             }
         }
         .background(SceneAccessoryHostInjector().frame(width: 0, height: 0))
+        .sheet(isPresented: $isShowingSettingsSheet) {
+            lobbySettingsSheet
+        }
         .onChange(of: snap.stage) { _, newStage in
             if newStage == .questionReveal || newStage == .couciCoucaReveal {
                 let delta = me?.lastDeltaScore ?? 0
@@ -99,67 +94,29 @@ struct PlayerControllerView: View {
         }
     }
 
-    // MARK: - 1. Top Player Status & Host Régie Bar (Stitch Neo-Brutalist Header)
+    // MARK: - 1. Ultra-Clean Top Header (Only 2 Buttons in Lobby: [Profil & Réglages] + [📺 TV])
 
     private var topPlayerAndHostBar: some View {
         VStack(spacing: 8) {
-            HStack(spacing: 8) {
-                // Interactive Player Badge (Tap in Lobby to open Profile tab!)
+            HStack(spacing: 10) {
+                // Left Button: Player Profile & Settings Sheet Trigger
                 Button {
-                    if snap.stage == .lobby {
-                        withAnimation(.spring(response: 0.28, dampingFraction: 0.8)) {
-                            selectedLobbyTab = .profile
-                        }
-                    }
+                    isShowingSettingsSheet = true
                 } label: {
-                    HStack(spacing: 6) {
+                    HStack(spacing: 7) {
                         Text(me?.avatarEmoji ?? session.localAvatarEmoji)
-                            .font(.system(size: 20))
+                            .font(.system(size: 19))
                         Text(me?.name ?? session.localPlayerName)
                             .font(.system(size: 15, weight: .black, design: .rounded))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(PopArt.ink)
                             .lineLimit(1)
-                        if snap.stage == .lobby {
-                            Image(systemName: "pencil")
-                                .font(.system(size: 11, weight: .black))
-                                .foregroundStyle(.white.opacity(0.9))
-                        }
+                        Image(systemName: "gearshape.fill")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(PopArt.ink.opacity(0.65))
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 7)
-                    .background(PopArt.color(for: me?.color ?? session.localSelectedColor), in: Capsule())
-                    .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2.5))
-                }
-                .buttonStyle(.plain)
-
-                Spacer(minLength: 4)
-
-                if snap.stage != .lobby {
-                    Text("\(me?.score ?? 0) PTS")
-                        .font(.system(size: 15, weight: .black, design: .monospaced))
-                        .foregroundStyle(PopArt.ink)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 7)
-                        .background(PopArt.yellow, in: Capsule())
-                        .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2.5))
-                }
-
-                // Beloved 📺 TV Live Preview Toggle Button (Highlighted Neo-Brutalist Pill!)
-                Button {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.82)) {
-                        displayManager.isPreviewTVOnPhoneSelected.toggle()
-                    }
-                } label: {
-                    HStack(spacing: 5) {
-                        Image(systemName: displayManager.isPreviewTVOnPhoneSelected ? "tv.fill" : "tv")
-                            .font(.system(size: 13, weight: .black))
-                        Text(displayManager.isPreviewTVOnPhoneSelected ? "TV ON" : "TV")
-                            .font(.system(size: 13, weight: .black, design: .rounded))
-                    }
-                    .foregroundStyle(PopArt.ink)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 7)
-                    .background(displayManager.isPreviewTVOnPhoneSelected ? PopArt.yellow : PopArt.white, in: Capsule())
+                    .padding(.horizontal, 13)
+                    .padding(.vertical, 8)
+                    .background(PopArt.white, in: Capsule())
                     .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2.5))
                     .background(
                         Capsule()
@@ -169,32 +126,53 @@ struct PlayerControllerView: View {
                 }
                 .buttonStyle(.plain)
 
-                Button {
-                    session.audio.isMusicMuted.toggle()
-                } label: {
-                    Image(systemName: session.audio.isMusicMuted ? "speaker.slash.fill" : "music.note")
-                        .font(.system(size: 14, weight: .black))
+                Spacer(minLength: 4)
+
+                if snap.stage != .lobby {
+                    Text("\(me?.score ?? 0) PTS")
+                        .font(.system(size: 15, weight: .black, design: .monospaced))
                         .foregroundStyle(PopArt.ink)
-                        .frame(width: 34, height: 34)
-                        .background(session.audio.isMusicMuted ? PopArt.white : PopArt.cyan, in: Circle())
-                        .overlay(Circle().strokeBorder(PopArt.ink, lineWidth: 2.5))
+                        .padding(.horizontal, 11)
+                        .padding(.vertical, 8)
+                        .background(PopArt.yellow, in: Capsule())
+                        .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2.5))
                 }
 
-                AirPlayRoutePickerButton(tintColor: .black)
-                    .frame(width: 34, height: 34)
-                    .background(PopArt.white, in: Circle())
-                    .overlay(Circle().strokeBorder(PopArt.ink, lineWidth: 2.5))
+                // Right Button: Beloved 📺 TV Live Preview Toggle
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.82)) {
+                        displayManager.isPreviewTVOnPhoneSelected.toggle()
+                    }
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: displayManager.isPreviewTVOnPhoneSelected ? "tv.fill" : "tv")
+                            .font(.system(size: 13, weight: .black))
+                        Text(displayManager.isPreviewTVOnPhoneSelected ? "TV ON" : "TV")
+                            .font(.system(size: 14, weight: .black, design: .rounded))
+                    }
+                    .foregroundStyle(PopArt.ink)
+                    .padding(.horizontal, 13)
+                    .padding(.vertical, 8)
+                    .background(displayManager.isPreviewTVOnPhoneSelected ? PopArt.yellow : PopArt.white, in: Capsule())
+                    .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2.5))
+                    .background(
+                        Capsule()
+                            .fill(PopArt.ink)
+                            .offset(x: 0, y: 2.5)
+                    )
+                }
+                .buttonStyle(.plain)
             }
 
-            // In-Game Host Régie Bar (Only shown during an active show so the Lobby stays ultra-clean!)
+            // In-Game Host Régie Bar (Only shown during an active show)
             if snap.stage != .lobby {
                 if session.role == .hostAndPlayer1 {
                     HStack(spacing: 8) {
                         Label(
                             displayManager.isExternalTVSceneConnected
-                                ? "AirPlay TV 16:9 Actif"
-                                : "Serveur : \(snap.players.count) joueur(s)",
-                            systemImage: displayManager.isExternalTVSceneConnected ? "airplayvideo" : "wifi"
+                                ? "AirPlay TV Actif"
+                                : "\(snap.players.count) joueur(s)",
+                            systemImage: displayManager.isExternalTVSceneConnected ? "airplayvideo" : "person.2.fill"
                         )
                         .font(.system(size: 12, weight: .black, design: .rounded))
                         .foregroundStyle(PopArt.ink)
@@ -235,13 +213,13 @@ struct PlayerControllerView: View {
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
-                    .background(Color.white.opacity(0.88), in: RoundedRectangle(cornerRadius: 14))
+                    .background(PopArt.white.opacity(0.95), in: RoundedRectangle(cornerRadius: 14))
                     .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(PopArt.ink, lineWidth: 2))
                 } else {
                     HStack(spacing: 8) {
                         Label(
-                            session.isBonjourConnectedToRemoteHost ? "Connecté au salon AirPlay" : "Recherche du salon...",
-                            systemImage: "bonjour"
+                            session.isBonjourConnectedToRemoteHost ? "Connecté au salon" : "Recherche du salon...",
+                            systemImage: "wifi"
                         )
                         .font(.system(size: 12, weight: .black, design: .rounded))
                         .foregroundStyle(PopArt.ink)
@@ -251,7 +229,7 @@ struct PlayerControllerView: View {
                         Button {
                             session.leaveRemoteSession()
                         } label: {
-                            Text("🚪 Quitter la partie")
+                            Text("🚪 Quitter")
                                 .font(.system(size: 12, weight: .black))
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 6)
@@ -260,14 +238,14 @@ struct PlayerControllerView: View {
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
-                    .background(Color.white.opacity(0.88), in: RoundedRectangle(cornerRadius: 14))
+                    .background(PopArt.white.opacity(0.95), in: RoundedRectangle(cornerRadius: 14))
                     .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(PopArt.ink, lineWidth: 2))
                 }
             }
         }
     }
 
-    // MARK: - 1B. Compact Meemaw Banner on Phone (when testing without AirPlay TV)
+    // MARK: - 1B. Compact Meemaw Banner on Phone (when in-game without AirPlay TV)
 
     private var compactPhoneMeemawBanner: some View {
         PopArtCard(cornerRadius: 18, borderWidth: 3, backgroundColor: PopArt.white, shadowOffset: 4) {
@@ -275,7 +253,7 @@ struct PlayerControllerView: View {
                 MeemawGuestStarAvatar(
                     pose: snap.meemawPose,
                     isSpeaking: MeemawShowAudioEngine.shared.isMeemawSpeaking,
-                    size: 62
+                    size: 58
                 )
 
                 VStack(alignment: .leading, spacing: 4) {
@@ -302,105 +280,43 @@ struct PlayerControllerView: View {
         }
     }
 
-    // MARK: - 2. Stitch Modern 3-Screen Segmented Lobby UI (🎮 JOUER / 👤 PROFIL / 👨‍👩‍👧 SALON)
+    // MARK: - 2. Minimalist First Screen (Cohesive App Icon Palette: Studio Blue, White & Gold)
 
     private var lobbyControllerSection: some View {
-        VStack(spacing: 12) {
-            // 3-Screen Neo-Brutalist Segmented Navigation Bar
-            lobbySegmentedTabBar
+        VStack(spacing: 14) {
+            // Compact Studio Header Card (only when TV preview isn't already open)
+            if !displayManager.isPreviewTVOnPhoneSelected {
+                PopArtCard(cornerRadius: 20, borderWidth: 3, backgroundColor: PopArt.white, shadowOffset: 4) {
+                    HStack(spacing: 12) {
+                        MeemawGuestStarAvatar(
+                            pose: snap.meemawPose,
+                            isSpeaking: MeemawShowAudioEngine.shared.isMeemawSpeaking,
+                            size: 58
+                        )
 
-            switch selectedLobbyTab {
-            case .play:
-                lobbyPlayTab
-            case .profile:
-                lobbyProfileTab
-            case .room:
-                lobbyRoomTab
-            }
-        }
-    }
-
-    private var lobbySegmentedTabBar: some View {
-        let tabs: [(tab: LobbyTab, icon: String, title: String)] = [
-            (.play, "🎮", "1. JOUER"),
-            (.profile, "👤", "2. PROFIL"),
-            (.room, "👨‍👩‍👧", "3. SALON (\(snap.players.count))")
-        ]
-
-        return HStack(spacing: 6) {
-            ForEach(tabs, id: \.tab) { item in
-                let isSelected = (selectedLobbyTab == item.tab)
-                Button {
-                    withAnimation(.spring(response: 0.28, dampingFraction: 0.8)) {
-                        selectedLobbyTab = item.tab
-                    }
-                } label: {
-                    HStack(spacing: 5) {
-                        Text(item.icon)
-                            .font(.system(size: 14))
-                        Text(item.title)
-                            .font(.system(size: 12, weight: .black, design: .rounded))
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.75)
-                    }
-                    .foregroundStyle(PopArt.ink)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 10)
-                    .background(
-                        isSelected ? PopArt.yellow : PopArt.white,
-                        in: RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .strokeBorder(PopArt.ink, lineWidth: isSelected ? 3 : 2)
-                    )
-                    .background(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(PopArt.ink)
-                            .offset(x: 0, y: isSelected ? 3 : 0)
-                    )
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .padding(6)
-        .background(PopArt.cream, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .strokeBorder(PopArt.ink, lineWidth: 3)
-        )
-    }
-
-    // MARK: - ÉCRAN 1 : 🎮 JOUER (3 Modes Visuels + Thème Horizontal + Lancement Direct)
-
-    private var lobbyPlayTab: some View {
-        VStack(spacing: 12) {
-            if session.role == .hostAndPlayer1 {
-                // 1. 3 Visual Game Mode Cards (with inline horizontal Theme Pills for Grand Show Quizz!)
-                PopArtCard(cornerRadius: 22, borderWidth: 3.5, backgroundColor: PopArt.cream, shadowOffset: 5) {
-                    VStack(alignment: .leading, spacing: 10) {
-                        HStack {
-                            Text("🎮 CHOISIS TON MODE DE SOIRÉE")
-                                .font(.system(size: 13, weight: .black, design: .rounded))
-                                .foregroundStyle(PopArt.ink)
-                            Spacer()
-                            if !displayManager.isPreviewTVOnPhoneSelected && !displayManager.isExternalTVSceneConnected {
-                                Button {
-                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.82)) {
-                                        displayManager.isPreviewTVOnPhoneSelected = true
-                                    }
-                                } label: {
-                                    Text("📺 Voir l'écran TV")
-                                        .font(.system(size: 11, weight: .black, design: .rounded))
-                                        .foregroundStyle(PopArt.ink)
-                                        .padding(.horizontal, 9)
-                                        .padding(.vertical, 4)
-                                        .background(PopArt.yellow, in: Capsule())
-                                        .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
-                                }
-                                .buttonStyle(.plain)
-                            }
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("🎙️ MEEMAW QUIZZ SHOW")
+                                .font(.system(size: 12, weight: .black, design: .rounded))
+                                .foregroundStyle(PopArt.orange)
+                            Text("Choisis ta partie et lance le show sur l'iPhone ou l'Apple TV !")
+                                .font(.system(size: 13, weight: .bold, design: .rounded))
+                                .foregroundStyle(PopArt.ink.opacity(0.85))
+                                .fixedSize(horizontal: false, vertical: true)
                         }
+                        Spacer(minLength: 0)
+                    }
+                    .padding(12)
+                }
+            }
+
+            if session.role == .hostAndPlayer1 {
+                // Single Cohesive Mode Card (White & Gold — no rainbow clutter)
+                PopArtCard(cornerRadius: 22, borderWidth: 3.5, backgroundColor: PopArt.white, shadowOffset: 5) {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("CHOISIS TA PARTIE")
+                            .font(.system(size: 12, weight: .black, design: .rounded))
+                            .foregroundStyle(PopArt.ink.opacity(0.55))
+                            .padding(.horizontal, 2)
 
                         ForEach(ShowGameMode.allCases) { mode in
                             lobbyModeRow(for: mode)
@@ -409,168 +325,97 @@ struct PlayerControllerView: View {
                     .padding(14)
                 }
 
-                // 2. Compact Connected Players & Quick Bot / QR Strip
-                PopArtCard(cornerRadius: 18, borderWidth: 3, backgroundColor: PopArt.white, shadowOffset: 4) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Text("👨‍👩‍👧‍👦 JOUEURS PRÊTS (\(snap.players.count))")
-                                .font(.system(size: 12, weight: .black, design: .rounded))
-                                .foregroundStyle(PopArt.ink)
-
-                            Spacer()
-
-                            if snap.players.contains(where: { $0.id.hasPrefix("bot_") }) {
-                                Button {
-                                    session.removeAllBots()
-                                } label: {
-                                    Text("🧹 Bots")
-                                        .font(.system(size: 11, weight: .black, design: .rounded))
-                                        .foregroundStyle(PopArt.ink)
-                                        .padding(.horizontal, 8)
-                                        .padding(.vertical, 5)
-                                        .background(PopArt.cream, in: Capsule())
-                                        .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
-                                }
-                                .buttonStyle(.plain)
-                            }
-
-                            Button {
-                                session.addDemoBotPlayers()
-                            } label: {
-                                Text("+ 🤖 Bot")
-                                    .font(.system(size: 11, weight: .black, design: .rounded))
-                                    .foregroundStyle(PopArt.ink)
-                                    .padding(.horizontal, 9)
-                                    .padding(.vertical, 5)
-                                    .background(PopArt.yellow, in: Capsule())
-                                    .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
-                            }
-                            .buttonStyle(.plain)
-
-                            Button {
-                                withAnimation(.spring(response: 0.28, dampingFraction: 0.8)) {
-                                    selectedLobbyTab = .room
-                                }
-                            } label: {
-                                Text("📲 QR Code")
-                                    .font(.system(size: 11, weight: .black, design: .rounded))
-                                    .foregroundStyle(.white)
-                                    .padding(.horizontal, 9)
-                                    .padding(.vertical, 5)
-                                    .background(PopArt.blue, in: Capsule())
-                                    .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
-                            }
-                            .buttonStyle(.plain)
-                        }
-
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 6) {
-                                ForEach(snap.players) { p in
-                                    HStack(spacing: 4) {
-                                        Text(p.avatarEmoji)
-                                            .font(.system(size: 15))
-                                        Text(p.name)
-                                            .font(.system(size: 12, weight: .black, design: .rounded))
-                                            .foregroundStyle(.white)
-                                            .lineLimit(1)
-                                    }
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 5)
-                                    .background(PopArt.color(for: p.color), in: Capsule())
-                                    .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
-                                }
-                            }
-                        }
-                    }
-                    .padding(12)
-                }
-
-                // 3. Bottom Launch Dock (Big 3D Mint Green Primary CTA + 2 Quick-Test Pills)
-                VStack(spacing: 8) {
+                // Single Primary Launch CTA + Subtle Settings/Players Link
+                VStack(spacing: 10) {
                     Button {
                         session.startNewShow()
                     } label: {
-                        HStack(spacing: 8) {
-                            Text("🚀 LANCER LA PARTIE (\(snap.players.count) JOUEUR\(snap.players.count > 1 ? "S" : "")) !")
-                                .font(.system(size: 17, weight: .black, design: .rounded))
+                        HStack(spacing: 10) {
+                            Image(systemName: "play.fill")
+                                .font(.system(size: 16, weight: .black))
+                            Text("LANCER LA PARTIE")
+                                .font(.system(size: 18, weight: .black, design: .rounded))
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
                     }
-                    .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.greenSuccess, foregroundColor: .white, cornerRadius: 18))
+                    .buttonStyle(
+                        PopArtActionButtonStyle(
+                            backgroundColor: PopArt.orange,
+                            foregroundColor: .white,
+                            cornerRadius: 18
+                        )
+                    )
 
-                    HStack(spacing: 8) {
-                        Button {
-                            session.startSoloTestShow(withBots: false)
-                        } label: {
-                            Text("🕹️ Tester Seul")
+                    Button {
+                        isShowingSettingsSheet = true
+                    } label: {
+                        HStack(spacing: 8) {
+                            HStack(spacing: -4) {
+                                ForEach(snap.players.prefix(4)) { p in
+                                    Text(p.avatarEmoji)
+                                        .font(.system(size: 15))
+                                        .frame(width: 26, height: 26)
+                                        .background(PopArt.cream, in: Circle())
+                                        .overlay(Circle().strokeBorder(PopArt.ink, lineWidth: 1.5))
+                                }
+                            }
+                            Text("\(snap.players.count) joueur\(snap.players.count > 1 ? "s" : "") prêt\(snap.players.count > 1 ? "s" : "")")
                                 .font(.system(size: 13, weight: .black, design: .rounded))
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 11)
-                        }
-                        .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.yellow, cornerRadius: 14))
+                                .foregroundStyle(PopArt.ink)
 
-                        Button {
-                            session.startSoloTestShow(withBots: true)
-                        } label: {
-                            Text("🤖 Solo + 2 Bots")
-                                .font(.system(size: 13, weight: .black, design: .rounded))
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 11)
+                            Text("•")
+                                .foregroundStyle(PopArt.ink.opacity(0.4))
+
+                            Text("Profil, Bots & Salon Wi-Fi")
+                                .font(.system(size: 13, weight: .bold, design: .rounded))
+                                .foregroundStyle(PopArt.blue)
+
+                            Spacer(minLength: 2)
+
+                            Image(systemName: "slider.horizontal.3")
+                                .font(.system(size: 13, weight: .black))
+                                .foregroundStyle(PopArt.ink.opacity(0.65))
                         }
-                        .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.cyan, foregroundColor: .white, cornerRadius: 14))
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 11)
+                        .background(PopArt.white.opacity(0.94), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .strokeBorder(PopArt.ink, lineWidth: 2.5)
+                        )
                     }
+                    .buttonStyle(.plain)
                 }
             } else {
-                // Bonjour Client Waiting Card on Tab 1
+                // Minimal Client Waiting Card
                 PopArtCard(cornerRadius: 22, borderWidth: 3.5, backgroundColor: PopArt.white, shadowOffset: 5) {
                     VStack(spacing: 12) {
-                        Text(session.isBonjourConnectedToRemoteHost ? "✅ Connecté au Salon AirPlay !" : "📡 Recherche automatique du salon sur le Wi-Fi...")
-                            .font(.system(size: 18, weight: .black, design: .rounded))
+                        Text(session.isBonjourConnectedToRemoteHost ? "✅ Connecté au Salon" : "📡 Recherche du salon sur le Wi-Fi...")
+                            .font(.system(size: 17, weight: .black, design: .rounded))
                             .foregroundStyle(PopArt.ink)
                             .multilineTextAlignment(.center)
 
-                        HStack(spacing: 8) {
-                            Text("Mode choisi par l'Hôte :")
-                                .font(.system(size: 12, weight: .bold))
-                                .foregroundStyle(PopArt.ink.opacity(0.7))
-                            Text(snap.selectedGameMode.title)
-                                .font(.system(size: 13, weight: .black, design: .rounded))
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 4)
-                                .background(Color(hex: snap.selectedGameMode.accentHex), in: Capsule())
-                                .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
-                        }
+                        Text("Mode choisi : \(snap.selectedGameMode.title)")
+                            .font(.system(size: 13, weight: .bold, design: .rounded))
+                            .foregroundStyle(PopArt.orange)
 
-                        Text("Dès que l'Hôte lance la partie, ta manette interactive s'affichera ici automatiquement !")
-                            .font(.system(size: 13, weight: .bold))
+                        Text("Dès que l'hôte lance la partie, ta manette s'affichera automatiquement.")
+                            .font(.system(size: 13, weight: .medium, design: .rounded))
                             .foregroundStyle(PopArt.ink.opacity(0.75))
                             .multilineTextAlignment(.center)
 
-                        HStack(spacing: 8) {
-                            Button {
-                                selectedLobbyTab = .profile
-                            } label: {
-                                Text("👤 Mon Profil & Couleur")
-                                    .font(.system(size: 13, weight: .black, design: .rounded))
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 11)
-                            }
-                            .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.yellow, cornerRadius: 14))
-
-                            Button {
-                                session.startHostingSession()
-                            } label: {
-                                Text("📺 Devenir Hôte")
-                                    .font(.system(size: 13, weight: .black, design: .rounded))
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 11)
-                            }
-                            .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.white, cornerRadius: 14))
+                        Button {
+                            isShowingSettingsSheet = true
+                        } label: {
+                            Text("⚙️ Mon Profil & Réglages du Salon")
+                                .font(.system(size: 14, weight: .black, design: .rounded))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
                         }
+                        .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.yellow, cornerRadius: 14))
                     }
-                    .padding(18)
+                    .padding(16)
                 }
             }
         }
@@ -578,32 +423,41 @@ struct PlayerControllerView: View {
 
     private func lobbyModeRow(for mode: ShowGameMode) -> some View {
         let isModeSelected = (snap.selectedGameMode == mode)
-        let accentColor = Color(hex: mode.accentHex)
         let iconText: String = {
             switch mode {
             case .fullQuizShow: return "📺"
             case .drawSomethingOnly: return "🎨"
-            case .esquisseParty: return "📞"
+            case .esquisseParty: return "✏️"
             }
         }()
         let cleanTitle: String = {
             switch mode {
-            case .fullQuizShow: return "Grand Show Quizz (+ Dessin)"
-            case .drawSomethingOnly: return "100% Draw Something"
-            case .esquisseParty: return "Esquissé ! (1 Mot Facile)"
+            case .fullQuizShow: return "Grand Quizz TV (+ Dessin)"
+            case .drawSomethingOnly: return "Draw Something"
+            case .esquisseParty: return "Esquissé ! (1 Mot Simple)"
+            }
+        }()
+        let cleanSubtitle: String = {
+            switch mode {
+            case .fullQuizShow: return "Quizz général, Buzzer, Cash, TTMC et épreuves de dessin"
+            case .drawSomethingOnly: return "Un joueur dessine, les autres tapent le mot avec les lettres"
+            case .esquisseParty: return "Téléphone arabe en dessin avec 1 seul mot facile"
             }
         }()
 
-        return VStack(alignment: .leading, spacing: 8) {
+        return VStack(alignment: .leading, spacing: 10) {
             Button {
                 session.selectGameMode(mode)
             } label: {
-                HStack(spacing: 10) {
+                HStack(spacing: 12) {
                     ZStack {
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(accentColor)
-                            .frame(width: 42, height: 42)
-                            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(PopArt.ink, lineWidth: 2.5))
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(isModeSelected ? PopArt.yellow : PopArt.cream)
+                            .frame(width: 44, height: 44)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .strokeBorder(PopArt.ink, lineWidth: 2)
+                            )
                         Text(iconText)
                             .font(.system(size: 21))
                     }
@@ -612,9 +466,9 @@ struct PlayerControllerView: View {
                         Text(cleanTitle)
                             .font(.system(size: 16, weight: .black, design: .rounded))
                             .foregroundStyle(PopArt.ink)
-                        Text(mode.subtitle)
-                            .font(.system(size: 11, weight: .bold, design: .rounded))
-                            .foregroundStyle(PopArt.ink.opacity(0.72))
+                        Text(cleanSubtitle)
+                            .font(.system(size: 12, weight: .medium, design: .rounded))
+                            .foregroundStyle(PopArt.ink.opacity(0.7))
                             .lineLimit(2)
                     }
 
@@ -622,344 +476,397 @@ struct PlayerControllerView: View {
 
                     Image(systemName: isModeSelected ? "checkmark.circle.fill" : "circle")
                         .font(.system(size: 22, weight: .black))
-                        .foregroundStyle(isModeSelected ? accentColor : PopArt.ink.opacity(0.28))
+                        .foregroundStyle(isModeSelected ? PopArt.orange : PopArt.ink.opacity(0.25))
                 }
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
 
+            // Single clean Dropdown Menu for Theme Selection (instead of 7 rainbow buttons)
             if mode == .fullQuizShow && isModeSelected {
-                lobbyThemePillsStrip
+                Divider().overlay(PopArt.ink.opacity(0.15))
+
+                HStack {
+                    Text("Thème des questions")
+                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                        .foregroundStyle(PopArt.ink.opacity(0.75))
+
+                    Spacer()
+
+                    Menu {
+                        ForEach(QuizThemePack.allCases) { pack in
+                            Button {
+                                session.selectThemePack(pack)
+                            } label: {
+                                if snap.selectedPack == pack {
+                                    Label(pack.title, systemImage: "checkmark")
+                                } else {
+                                    Text(pack.title)
+                                }
+                            }
+                        }
+                    } label: {
+                        HStack(spacing: 6) {
+                            Text(snap.selectedPack.title)
+                                .font(.system(size: 13, weight: .black, design: .rounded))
+                                .foregroundStyle(PopArt.ink)
+                            Image(systemName: "chevron.up.chevron.down")
+                                .font(.system(size: 11, weight: .black))
+                                .foregroundStyle(PopArt.ink.opacity(0.7))
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 7)
+                        .background(PopArt.white, in: Capsule())
+                        .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
+                    }
+                }
             }
         }
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(isModeSelected ? PopArt.white : PopArt.white.opacity(0.65))
+                .fill(isModeSelected ? Color(hex: "#FEF3C7") : PopArt.white)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(isModeSelected ? accentColor : PopArt.ink.opacity(0.35), lineWidth: isModeSelected ? 3.5 : 2)
-        )
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(isModeSelected ? PopArt.ink : Color.clear)
-                .offset(x: 0, y: isModeSelected ? 3 : 0)
+                .strokeBorder(isModeSelected ? PopArt.ink : PopArt.ink.opacity(0.22), lineWidth: isModeSelected ? 3 : 1.5)
         )
     }
 
-    private var lobbyThemePillsStrip: some View {
-        let activeCounts = session.unseenQuestionsCount(for: snap.selectedPack)
-        return VStack(alignment: .leading, spacing: 6) {
-            Divider().overlay(PopArt.ink.opacity(0.2))
+    // MARK: - 2B. Dedicated Sheet: ⚙️ Profil, Salon & Réglages
 
-            HStack {
-                Text("📚 THÈME DU QUIZZ :")
-                    .font(.system(size: 10, weight: .black, design: .rounded))
-                    .foregroundStyle(PopArt.orange)
-                Spacer()
-                Text("\(activeCounts.unseen)/\(activeCounts.total) inédites")
-                    .font(.system(size: 10, weight: .black, design: .monospaced))
-                    .foregroundStyle(PopArt.ink.opacity(0.65))
-                Button {
-                    session.resetSeenQuestionsHistory()
-                } label: {
-                    Text("🔄 Reset")
-                        .font(.system(size: 10, weight: .black, design: .rounded))
-                        .foregroundStyle(PopArt.ink)
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 3)
-                        .background(PopArt.white, in: Capsule())
-                        .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 1.5))
-                }
-                .buttonStyle(.plain)
-            }
+    private var lobbySettingsSheet: some View {
+        NavigationStack {
+            ZStack {
+                PopArtTVBackground(roundKind: snap.roundKind)
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 7) {
-                    ForEach(QuizThemePack.allCases) { pack in
-                        let isPackSelected = (snap.selectedPack == pack)
-                        Button {
-                            session.selectThemePack(pack)
-                        } label: {
-                            Text(pack.title)
-                                .font(.system(size: 12, weight: .black, design: .rounded))
-                                .foregroundStyle(isPackSelected ? .white : PopArt.ink)
-                                .padding(.horizontal, 11)
-                                .padding(.vertical, 7)
-                                .background(
-                                    isPackSelected ? Color(hex: pack.accentHex) : PopArt.white,
-                                    in: Capsule()
-                                )
-                                .overlay(
-                                    Capsule()
-                                        .strokeBorder(PopArt.ink, lineWidth: isPackSelected ? 2.5 : 2)
-                                )
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-                .padding(.vertical, 2)
-            }
-        }
-    }
-
-    // MARK: - ÉCRAN 2 : 👤 PROFIL (Pseudo & 8 Couleurs Pop-Art)
-
-    private var lobbyProfileTab: some View {
-        PopArtCard(cornerRadius: 22, borderWidth: 3.5, backgroundColor: PopArt.white, shadowOffset: 5) {
-            VStack(alignment: .leading, spacing: 14) {
-                HStack {
-                    Text("👤 TON PROFIL & TA COULEUR POP")
-                        .font(.system(size: 15, weight: .black, design: .rounded))
-                        .foregroundStyle(PopArt.orange)
-                    Spacer()
-                    HStack(spacing: 6) {
-                        Text(me?.avatarEmoji ?? session.localAvatarEmoji)
-                        Text(me?.name ?? session.localPlayerName)
-                            .font(.system(size: 13, weight: .black, design: .rounded))
-                            .foregroundStyle(.white)
-                    }
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(PopArt.color(for: me?.color ?? session.localSelectedColor), in: Capsule())
-                    .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
-                }
-
-                HStack(spacing: 10) {
-                    TextField("Ton pseudo...", text: $session.localPlayerName)
-                        .font(.system(size: 18, weight: .heavy, design: .rounded))
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 10)
-                        .background(PopArt.cream, in: RoundedRectangle(cornerRadius: 12))
-                        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(PopArt.ink, lineWidth: 2.5))
-                        .onSubmit {
-                            session.sendLocalProfileUpdate()
-                        }
-
-                    Button {
-                        session.sendLocalProfileUpdate()
-                    } label: {
-                        Text("OK")
-                            .font(.system(size: 16, weight: .black))
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 10)
-                    }
-                    .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.orange, cornerRadius: 12))
-                }
-
-                Text("Choisis ta couleur de Buzzer (verrouillée en direct) :")
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(PopArt.ink.opacity(0.68))
-
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4), spacing: 8) {
-                    ForEach(PlayerColor.allCases) { colorOption in
-                        let owner = snap.players.first(where: { $0.color == colorOption })
-                        let isMine = (owner?.id == session.localPlayerID) || (me == nil && session.localSelectedColor == colorOption)
-                        let isTakenByOther = (owner != nil && owner?.id != session.localPlayerID)
-
-                        Button {
-                            guard !isTakenByOther else { return }
-                            session.localSelectedColor = colorOption
-                            session.localAvatarEmoji = colorOption.defaultEmoji
-                            session.sendLocalProfileUpdate()
-                        } label: {
-                            VStack(spacing: 4) {
-                                Text(isTakenByOther ? "🔒" : colorOption.defaultEmoji)
-                                    .font(.system(size: 22))
-                                Text(isTakenByOther ? (owner?.name ?? "Pris") : colorOption.label)
-                                    .font(.system(size: 11, weight: .black, design: .rounded))
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.7)
-                            }
-                            .foregroundStyle(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 10)
-                            .background(PopArt.color(for: colorOption), in: RoundedRectangle(cornerRadius: 14))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 14)
-                                    .strokeBorder(isMine ? PopArt.ink : PopArt.ink.opacity(0.6), lineWidth: isMine ? 4 : 2)
-                            )
-                            .opacity(isTakenByOther ? 0.35 : 1.0)
-                            .scaleEffect(isMine ? 1.04 : 1.0)
-                        }
-                        .disabled(isTakenByOther)
-                    }
-                }
-
-                Button {
-                    session.sendLocalProfileUpdate()
-                    withAnimation(.spring(response: 0.28, dampingFraction: 0.8)) {
-                        selectedLobbyTab = .play
-                    }
-                } label: {
-                    Text("✅ VALIDER & RETOURNER À JOUER")
-                        .font(.system(size: 15, weight: .black, design: .rounded))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 13)
-                }
-                .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.greenSuccess, foregroundColor: .white, cornerRadius: 14))
-            }
-            .padding(16)
-        }
-    }
-
-    // MARK: - ÉCRAN 3 : 👨‍👩‍👧 SALON (QR Code Geant, Bots & Mode Hôte / Client)
-
-    private var lobbyRoomTab: some View {
-        VStack(spacing: 12) {
-            // 1. Giant QR Code & Wi-Fi Join Card
-            PopArtCard(cornerRadius: 22, borderWidth: 3.5, backgroundColor: PopArt.white, shadowOffset: 5) {
-                VStack(spacing: 12) {
-                    Text("📲 INVITER LA FAMILLE SUR LE WI-FI")
-                        .font(.system(size: 15, weight: .black, design: .rounded))
-                        .foregroundStyle(PopArt.orange)
-
-                    HStack(spacing: 14) {
-                        if let qr = GameSessionController.makeQRCodeImage(from: snap.joinURL) {
-                            Image(uiImage: qr)
-                                .interpolation(.none)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 112, height: 112)
-                                .padding(6)
-                                .background(Color.white, in: RoundedRectangle(cornerRadius: 14))
-                                .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(PopArt.ink, lineWidth: 3))
-                        }
-
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("📱 Autre iPhone / iPad :")
-                                .font(.system(size: 12, weight: .black))
-                                .foregroundStyle(PopArt.ink)
-                            Text("Touchez « Rejoindre Salon (Auto) » ci-dessous.")
-                                .font(.system(size: 11, weight: .bold))
-                                .foregroundStyle(PopArt.ink.opacity(0.72))
-
-                            Text("🤖 Android ou Navigateur :")
-                                .font(.system(size: 12, weight: .black))
-                                .foregroundStyle(PopArt.ink)
-                                .padding(.top, 2)
-                            Text("Scannez ce QR Code ou ouvrez :")
-                                .font(.system(size: 11, weight: .bold))
-                                .foregroundStyle(PopArt.ink.opacity(0.72))
-                            Text(snap.joinURL)
-                                .font(.system(size: 12, weight: .black, design: .monospaced))
-                                .foregroundStyle(PopArt.blue)
-                        }
-                        Spacer(minLength: 0)
-                    }
-                    .padding(10)
-                    .background(PopArt.cream, in: RoundedRectangle(cornerRadius: 16))
-                    .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(PopArt.ink.opacity(0.35), lineWidth: 2))
-                }
-                .padding(14)
-            }
-
-            // 2. Connected Players & Bots Management Card
-            PopArtCard(cornerRadius: 20, borderWidth: 3, backgroundColor: PopArt.cream, shadowOffset: 4) {
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack {
-                        Text("👥 JOUEURS DANS LE SALON (\(snap.players.count))")
-                            .font(.system(size: 13, weight: .black, design: .rounded))
-                            .foregroundStyle(PopArt.ink)
-                        Spacer()
-                        if session.role == .hostAndPlayer1 {
-                            if snap.players.contains(where: { $0.id.hasPrefix("bot_") }) {
-                                Button {
-                                    session.removeAllBots()
-                                } label: {
-                                    Text("🧹 Vider Bots")
-                                        .font(.system(size: 11, weight: .black))
-                                        .padding(.horizontal, 9)
-                                        .padding(.vertical, 5)
-                                }
-                                .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.white, cornerRadius: 10))
-                            }
-
-                            Button {
-                                session.addDemoBotPlayers()
-                            } label: {
-                                Text("+ 🤖 Ajouter Bot")
-                                    .font(.system(size: 11, weight: .black))
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(spacing: 16) {
+                        // 1. PROFIL & COULEUR DU JOUEUR
+                        PopArtCard(cornerRadius: 20, borderWidth: 3, backgroundColor: PopArt.white, shadowOffset: 4) {
+                            VStack(alignment: .leading, spacing: 12) {
+                                HStack {
+                                    Text("👤 MON PROFIL JOUEUR")
+                                        .font(.system(size: 14, weight: .black, design: .rounded))
+                                        .foregroundStyle(PopArt.ink)
+                                    Spacer()
+                                    HStack(spacing: 6) {
+                                        Text(me?.avatarEmoji ?? session.localAvatarEmoji)
+                                        Text(me?.name ?? session.localPlayerName)
+                                            .font(.system(size: 13, weight: .black, design: .rounded))
+                                            .foregroundStyle(.white)
+                                    }
                                     .padding(.horizontal, 10)
                                     .padding(.vertical, 5)
-                            }
-                            .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.yellow, cornerRadius: 10))
-                        }
-                    }
+                                    .background(PopArt.color(for: me?.color ?? session.localSelectedColor), in: Capsule())
+                                    .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
+                                }
 
-                    ForEach(snap.players) { p in
-                        HStack(spacing: 10) {
-                            Text(p.avatarEmoji)
-                                .font(.system(size: 20))
-                            Text(p.name)
-                                .font(.system(size: 15, weight: .black, design: .rounded))
-                                .foregroundStyle(PopArt.ink)
-                            Spacer()
-                            Text(p.id.hasPrefix("bot_") ? "🤖 BOT IA" : (p.id == session.localPlayerID ? "⭐ TOI" : "📱 JOUEUR"))
-                                .font(.system(size: 10, weight: .black, design: .rounded))
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 9)
-                                .padding(.vertical, 4)
-                                .background(PopArt.color(for: p.color), in: Capsule())
-                                .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 1.5))
+                                HStack(spacing: 8) {
+                                    TextField("Ton pseudo...", text: $session.localPlayerName)
+                                        .font(.system(size: 16, weight: .heavy, design: .rounded))
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 10)
+                                        .background(PopArt.cream, in: RoundedRectangle(cornerRadius: 12))
+                                        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(PopArt.ink, lineWidth: 2))
+                                        .onSubmit {
+                                            session.sendLocalProfileUpdate()
+                                        }
+
+                                    Button {
+                                        session.sendLocalProfileUpdate()
+                                    } label: {
+                                        Text("Enregistrer")
+                                            .font(.system(size: 13, weight: .black, design: .rounded))
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 10)
+                                    }
+                                    .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.yellow, cornerRadius: 12))
+                                }
+
+                                Text("Couleur de ton buzzer :")
+                                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                                    .foregroundStyle(PopArt.ink.opacity(0.7))
+
+                                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4), spacing: 8) {
+                                    ForEach(PlayerColor.allCases) { colorOption in
+                                        let owner = snap.players.first(where: { $0.color == colorOption })
+                                        let isMine = (owner?.id == session.localPlayerID) || (me == nil && session.localSelectedColor == colorOption)
+                                        let isTakenByOther = (owner != nil && owner?.id != session.localPlayerID)
+
+                                        Button {
+                                            guard !isTakenByOther else { return }
+                                            session.localSelectedColor = colorOption
+                                            session.localAvatarEmoji = colorOption.defaultEmoji
+                                            session.sendLocalProfileUpdate()
+                                        } label: {
+                                            VStack(spacing: 3) {
+                                                Text(isTakenByOther ? "🔒" : colorOption.defaultEmoji)
+                                                    .font(.system(size: 20))
+                                                Text(isTakenByOther ? (owner?.name ?? "Pris") : colorOption.label)
+                                                    .font(.system(size: 11, weight: .black, design: .rounded))
+                                                    .lineLimit(1)
+                                                    .minimumScaleFactor(0.7)
+                                            }
+                                            .foregroundStyle(.white)
+                                            .frame(maxWidth: .infinity)
+                                            .padding(.vertical, 9)
+                                            .background(PopArt.color(for: colorOption), in: RoundedRectangle(cornerRadius: 12))
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 12)
+                                                    .strokeBorder(isMine ? PopArt.ink : PopArt.ink.opacity(0.5), lineWidth: isMine ? 3.5 : 1.5)
+                                            )
+                                            .opacity(isTakenByOther ? 0.35 : 1.0)
+                                        }
+                                        .disabled(isTakenByOther)
+                                    }
+                                }
+                            }
+                            .padding(14)
                         }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(PopArt.white, in: RoundedRectangle(cornerRadius: 12))
-                        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(PopArt.ink, lineWidth: 2))
+
+                        // 2. JOUEURS, BOTS IA & MODES DE TEST RAPIDE
+                        PopArtCard(cornerRadius: 20, borderWidth: 3, backgroundColor: PopArt.white, shadowOffset: 4) {
+                            VStack(alignment: .leading, spacing: 12) {
+                                HStack {
+                                    Text("👥 JOUEURS & BOTS (\(snap.players.count))")
+                                        .font(.system(size: 14, weight: .black, design: .rounded))
+                                        .foregroundStyle(PopArt.ink)
+                                    Spacer()
+                                    if session.role == .hostAndPlayer1 {
+                                        if snap.players.contains(where: { $0.id.hasPrefix("bot_") }) {
+                                            Button {
+                                                session.removeAllBots()
+                                            } label: {
+                                                Text("🧹 Vider Bots")
+                                                    .font(.system(size: 11, weight: .black))
+                                                    .padding(.horizontal, 9)
+                                                    .padding(.vertical, 6)
+                                            }
+                                            .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.cream, cornerRadius: 10))
+                                        }
+
+                                        Button {
+                                            session.addDemoBotPlayers()
+                                        } label: {
+                                            Text("+ 🤖 Ajouter un Bot")
+                                                .font(.system(size: 11, weight: .black))
+                                                .padding(.horizontal, 10)
+                                                .padding(.vertical, 6)
+                                        }
+                                        .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.yellow, cornerRadius: 10))
+                                    }
+                                }
+
+                                ForEach(snap.players) { p in
+                                    HStack(spacing: 10) {
+                                        Text(p.avatarEmoji)
+                                            .font(.system(size: 18))
+                                        Text(p.name)
+                                            .font(.system(size: 14, weight: .black, design: .rounded))
+                                            .foregroundStyle(PopArt.ink)
+                                        Spacer()
+                                        Text(p.id.hasPrefix("bot_") ? "BOT IA" : (p.id == session.localPlayerID ? "MOI" : "INVITÉ"))
+                                            .font(.system(size: 10, weight: .black, design: .rounded))
+                                            .foregroundStyle(.white)
+                                            .padding(.horizontal, 8)
+                                            .padding(.vertical, 4)
+                                            .background(PopArt.color(for: p.color), in: Capsule())
+                                    }
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 8)
+                                    .background(PopArt.cream, in: RoundedRectangle(cornerRadius: 12))
+                                    .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(PopArt.ink.opacity(0.25), lineWidth: 1.5))
+                                }
+
+                                if session.role == .hostAndPlayer1 && snap.stage == .lobby {
+                                    Divider().overlay(PopArt.ink.opacity(0.15))
+
+                                    Text("Lancement rapide d'entraînement :")
+                                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                                        .foregroundStyle(PopArt.ink.opacity(0.7))
+
+                                    HStack(spacing: 8) {
+                                        Button {
+                                            isShowingSettingsSheet = false
+                                            session.startSoloTestShow(withBots: false)
+                                        } label: {
+                                            Text("🕹️ Tester Seul")
+                                                .font(.system(size: 13, weight: .black, design: .rounded))
+                                                .frame(maxWidth: .infinity)
+                                                .padding(.vertical, 10)
+                                        }
+                                        .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.cream, cornerRadius: 12))
+
+                                        Button {
+                                            isShowingSettingsSheet = false
+                                            session.startSoloTestShow(withBots: true)
+                                        } label: {
+                                            Text("🤖 Solo + 2 Bots")
+                                                .font(.system(size: 13, weight: .black, design: .rounded))
+                                                .frame(maxWidth: .infinity)
+                                                .padding(.vertical, 10)
+                                        }
+                                        .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.yellow, cornerRadius: 12))
+                                    }
+                                }
+                            }
+                            .padding(14)
+                        }
+
+                        // 3. SALON WI-FI & QR CODE D'INVITATION
+                        PopArtCard(cornerRadius: 20, borderWidth: 3, backgroundColor: PopArt.white, shadowOffset: 4) {
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("📲 SALON WI-FI & INVITATION")
+                                    .font(.system(size: 14, weight: .black, design: .rounded))
+                                    .foregroundStyle(PopArt.ink)
+
+                                HStack(spacing: 14) {
+                                    if let qr = GameSessionController.makeQRCodeImage(from: snap.joinURL) {
+                                        Image(uiImage: qr)
+                                            .interpolation(.none)
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 96, height: 96)
+                                            .padding(6)
+                                            .background(Color.white, in: RoundedRectangle(cornerRadius: 12))
+                                            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(PopArt.ink, lineWidth: 2.5))
+                                    }
+
+                                    VStack(alignment: .leading, spacing: 5) {
+                                        Text("Scannez pour rejoindre sur le Wi-Fi :")
+                                            .font(.system(size: 12, weight: .bold))
+                                            .foregroundStyle(PopArt.ink.opacity(0.8))
+                                        Text(snap.joinURL)
+                                            .font(.system(size: 12, weight: .black, design: .monospaced))
+                                            .foregroundStyle(PopArt.blue)
+                                        Text("Sur un autre iPhone/iPad, choisissez « Rejoindre un Salon » ci-dessous.")
+                                            .font(.system(size: 11, weight: .medium))
+                                            .foregroundStyle(PopArt.ink.opacity(0.65))
+                                    }
+                                }
+
+                                HStack(spacing: 8) {
+                                    Button {
+                                        session.startHostingSession()
+                                    } label: {
+                                        HStack(spacing: 5) {
+                                            Image(systemName: "tv.and.mediabox")
+                                            Text("Héberger")
+                                        }
+                                        .font(.system(size: 12, weight: .black))
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 10)
+                                    }
+                                    .buttonStyle(
+                                        PopArtActionButtonStyle(
+                                            backgroundColor: session.role == .hostAndPlayer1 ? PopArt.yellow : PopArt.cream,
+                                            cornerRadius: 12
+                                        )
+                                    )
+
+                                    Button {
+                                        session.switchToBonjourClientMode()
+                                    } label: {
+                                        HStack(spacing: 5) {
+                                            Image(systemName: "wifi")
+                                            Text("Rejoindre un Salon")
+                                        }
+                                        .font(.system(size: 12, weight: .black))
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 10)
+                                    }
+                                    .buttonStyle(
+                                        PopArtActionButtonStyle(
+                                            backgroundColor: session.role == .bonjourClient ? PopArt.yellow : PopArt.cream,
+                                            cornerRadius: 12
+                                        )
+                                    )
+                                }
+                            }
+                            .padding(14)
+                        }
+
+                        // 4. RÉGLAGES AUDIO, AIRPLAY & HISTORIQUE DES QUESTIONS
+                        PopArtCard(cornerRadius: 20, borderWidth: 3, backgroundColor: PopArt.white, shadowOffset: 4) {
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("⚙️ RÉGLAGES DU JEU")
+                                    .font(.system(size: 14, weight: .black, design: .rounded))
+                                    .foregroundStyle(PopArt.ink)
+
+                                HStack {
+                                    Label("Musique & Voix du plateau", systemImage: session.audio.isMusicMuted ? "speaker.slash.fill" : "speaker.wave.2.fill")
+                                        .font(.system(size: 13, weight: .bold, design: .rounded))
+                                        .foregroundStyle(PopArt.ink)
+                                    Spacer()
+                                    Button {
+                                        session.audio.isMusicMuted.toggle()
+                                    } label: {
+                                        Text(session.audio.isMusicMuted ? "Couper (OFF)" : "Activé (ON)")
+                                            .font(.system(size: 12, weight: .black, design: .rounded))
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 7)
+                                    }
+                                    .buttonStyle(
+                                        PopArtActionButtonStyle(
+                                            backgroundColor: session.audio.isMusicMuted ? PopArt.cream : PopArt.yellow,
+                                            cornerRadius: 10
+                                        )
+                                    )
+                                }
+
+                                HStack {
+                                    Label("Diffuser sur Apple TV (AirPlay)", systemImage: "airplayvideo")
+                                        .font(.system(size: 13, weight: .bold, design: .rounded))
+                                        .foregroundStyle(PopArt.ink)
+                                    Spacer()
+                                    AirPlayRoutePickerButton(tintColor: .black)
+                                        .frame(width: 38, height: 38)
+                                        .background(PopArt.cream, in: RoundedRectangle(cornerRadius: 10))
+                                        .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(PopArt.ink, lineWidth: 2))
+                                }
+
+                                let activeCounts = session.unseenQuestionsCount(for: snap.selectedPack)
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Questions inédites (\(snap.selectedPack.title))")
+                                            .font(.system(size: 13, weight: .bold, design: .rounded))
+                                            .foregroundStyle(PopArt.ink)
+                                        Text("\(activeCounts.unseen) disponibles sur \(activeCounts.total)")
+                                            .font(.system(size: 11, weight: .medium, design: .monospaced))
+                                            .foregroundStyle(PopArt.ink.opacity(0.65))
+                                    }
+                                    Spacer()
+                                    Button {
+                                        session.resetSeenQuestionsHistory()
+                                    } label: {
+                                        Text("🔄 Réinitialiser")
+                                            .font(.system(size: 12, weight: .black, design: .rounded))
+                                            .padding(.horizontal, 11)
+                                            .padding(.vertical, 7)
+                                    }
+                                    .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.cream, cornerRadius: 10))
+                                }
+                            }
+                            .padding(14)
+                        }
                     }
+                    .padding(16)
                 }
-                .padding(14)
             }
-
-            // 3. Role Switch: Host AirPlay vs Client Bonjour
-            PopArtCard(cornerRadius: 20, borderWidth: 3, backgroundColor: PopArt.white, shadowOffset: 4) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("📡 RÔLE DE CET IPHONE")
-                        .font(.system(size: 12, weight: .black, design: .rounded))
-                        .foregroundStyle(PopArt.ink.opacity(0.75))
-
-                    HStack(spacing: 8) {
-                        Button {
-                            session.startHostingSession()
-                        } label: {
-                            HStack(spacing: 5) {
-                                Image(systemName: "tv.and.mediabox")
-                                Text("Héberger AirPlay")
-                            }
-                            .font(.system(size: 12, weight: .black))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 10)
-                        }
-                        .buttonStyle(
-                            PopArtActionButtonStyle(
-                                backgroundColor: session.role == .hostAndPlayer1 ? PopArt.orange : PopArt.cream,
-                                cornerRadius: 12
-                            )
-                        )
-
-                        Button {
-                            session.switchToBonjourClientMode()
-                        } label: {
-                            HStack(spacing: 5) {
-                                Image(systemName: "bonjour")
-                                Text("Rejoindre Salon (Auto)")
-                            }
-                            .font(.system(size: 12, weight: .black))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 10)
-                        }
-                        .buttonStyle(
-                            PopArtActionButtonStyle(
-                                backgroundColor: session.role == .bonjourClient ? PopArt.cyan : PopArt.cream,
-                                foregroundColor: session.role == .bonjourClient ? .white : PopArt.ink,
-                                cornerRadius: 12
-                            )
-                        )
+            .navigationTitle("Profil, Salon & Réglages")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        session.sendLocalProfileUpdate()
+                        isShowingSettingsSheet = false
+                    } label: {
+                        Text("Fermer")
+                            .font(.system(size: 15, weight: .black, design: .rounded))
+                            .foregroundStyle(PopArt.ink)
                     }
                 }
-                .padding(14)
             }
         }
     }

@@ -76,19 +76,19 @@ struct MeemawTVStageView: View {
                     .font(.system(size: 28 * scale))
                 Text("MEEMAW QUIZZ SHOW")
                     .font(.system(size: 24 * scale, weight: .black, design: .rounded))
-                    .foregroundStyle(PopArt.ink)
+                    .foregroundStyle(.white)
             }
             .padding(.horizontal, 18 * scale)
             .padding(.vertical, 10 * scale)
             .background(PopArt.orange, in: Capsule())
             .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 3.5))
 
-            Text(snap.selectedPack.shortBadge)
+            Text(snap.selectedGameMode == .fullQuizShow ? snap.selectedPack.shortBadge : snap.selectedGameMode.title)
                 .font(.system(size: 17 * scale, weight: .black, design: .rounded))
-                .foregroundStyle(.white)
+                .foregroundStyle(PopArt.ink)
                 .padding(.horizontal, 16 * scale)
                 .padding(.vertical, 9 * scale)
-                .background(Color(hex: snap.selectedPack.accentHex), in: Capsule())
+                .background(PopArt.yellow, in: Capsule())
                 .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 3))
 
             if snap.stage != .lobby {
