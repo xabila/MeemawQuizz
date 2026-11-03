@@ -1833,11 +1833,11 @@ final class GameSessionController {
             }
 
         case 1, 3:
-            // Step 1 or 3: Draw the 1 simple word with 1-tap stickers, shapes or finger!
+            // Step 1 or 3: Draw the 1 simple word with finger!
             stage = .esquisseDrawing
             meemawPose = "meemaw_dictation_talk"
             let displayStep = (stepIndex == 1) ? "1/3" : "3/3"
-            meemawSpeech = "🎨 ESQUISSÉ (Manche \(displayStep)) : Dessinez ce MOT SIMPLE au doigt ou avec les Stickers 1-Clic ! Touchez 🔄 si vous voulez un autre mot !"
+            meemawSpeech = "🎨 ESQUISSÉ (Manche \(displayStep)) : Dessinez ce MOT SIMPLE au doigt ! Touchez 🔄 si vous voulez un autre mot !"
             audio.setMusicMood(.fastAction)
             audio.playMeemawStudioOrFallback(studioFilename: "mq_esquisse_draw.m4a", fallbackText: meemawSpeech)
             broadcastState()

@@ -1083,7 +1083,7 @@ struct MeemawTVStageView: View {
                             .background(PopArt.yellow, in: RoundedRectangle(cornerRadius: 16 * scale))
                             .overlay(RoundedRectangle(cornerRadius: 16 * scale).strokeBorder(PopArt.ink, lineWidth: 3))
 
-                        Text("Utilisez les Stickers 1-clic (☀️ Soleil, 🐱 Chat, 👑 Couronne...) ou le bouton 🔄 CHANGER si le mot vous semble trop dur !")
+                        Text("Dessinez ce mot simple au doigt sur votre téléphone • Touchez 🔄 AUTRE MOT si vous préférez changer !")
                             .font(.system(size: 17 * scale, weight: .bold, design: .rounded))
                             .foregroundStyle(PopArt.ink.opacity(0.8))
                             .multilineTextAlignment(.center)
