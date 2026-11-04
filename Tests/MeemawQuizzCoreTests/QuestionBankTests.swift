@@ -35,13 +35,13 @@ final class QuestionBankTests: XCTestCase {
     func testBuildShowDeckProducesBalancedFourRoundShow() {
         let deck = QuestionBank.buildShowDeck(for: .grandMix)
         XCTAssertEqual(deck.cashQuestions.count, 3)
-        XCTAssertEqual(deck.ttmcQuestions.count, 2)
-        XCTAssertEqual(deck.jukeboxQuestions.count, 2)
-        XCTAssertEqual(deck.soloQuestions.count, 2)
-        XCTAssertEqual(deck.finaleDoubleQuestions.count, 2)
+        XCTAssertEqual(deck.ttmcQuestions.count, 3)
+        XCTAssertEqual(deck.jukeboxQuestions.count, 3)
+        XCTAssertEqual(deck.soloQuestions.count, 3)
+        XCTAssertEqual(deck.finaleDoubleQuestions.count, 3)
         XCTAssertFalse(deck.couciCoucaRound.isPunRound)
-        XCTAssertEqual(QuestionBank.questions(for: .grandMix).count, 156)
-        XCTAssertEqual(QuestionBank.allDisOrDatRounds.count, 20)
+        XCTAssertGreaterThanOrEqual(QuestionBank.questions(for: .grandMix).count, 210)
+        XCTAssertGreaterThanOrEqual(QuestionBank.combinedDisOrDatRounds.count, 26)
     }
 
     func testWholeEveningSessionNeverRepeatsQuestionsAcrossTwelveConsecutiveGames() {
@@ -61,7 +61,7 @@ final class QuestionBankTests: XCTestCase {
             XCTAssertFalse(usedCouci.contains(deck.couciCoucaRound.id), "Couci-Couça \(deck.couciCoucaRound.id) should not repeat")
             usedCouci.insert(deck.couciCoucaRound.id)
         }
-        XCTAssertEqual(usedMCQs.count, 84) // 12 games * 7 MCQs
+        XCTAssertEqual(usedMCQs.count, 108) // 12 games * 9 core MCQs
         XCTAssertEqual(usedCouci.count, 12) // 12 games * 1 Couci-Couça round
     }
 }

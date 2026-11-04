@@ -618,9 +618,19 @@ final class GameSessionController {
 
         let packQuestions = QuestionBank.questions(for: selectedPack)
         let unseenInPack = packQuestions.filter { !usedQuestionIDs.contains($0.id) }
-        if unseenInPack.count < 11 {
+        if unseenInPack.count < 15 {
             usedQuestionIDs.subtract(packQuestions.map(\.id))
         }
+
+        // Assure aussi que les questions Jukebox (JUK_) tournent sur toute la banque sans jamais se bloquer
+        let allJukeboxIDs = QuestionBank.allMusiqueAndJukeboxQuestions
+            .filter { $0.id.hasPrefix("JUK_") }
+            .map(\.id)
+        let unseenJukeboxCount = allJukeboxIDs.filter { !usedQuestionIDs.contains($0) }.count
+        if unseenJukeboxCount < 4 {
+            usedQuestionIDs.subtract(allJukeboxIDs)
+        }
+
         let packCouci = QuestionBank.disOrDatRounds(for: selectedPack)
         if packCouci.filter({ !usedDisOrDatIDs.contains($0.id) }).isEmpty {
             usedDisOrDatIDs.subtract(packCouci.map(\.id))
@@ -635,27 +645,41 @@ final class GameSessionController {
         usedDisOrDatIDs.insert(activeDeck.couciCoucaRound.id)
 
         phaseQueue = [
+            // Manche 1 : 3 questions Cash Rapide
             .roundIntro(.cashSpeed),
             .cashQuestion(activeDeck.cashQuestions[0], isDoubleFinale: false),
             .cashQuestion(activeDeck.cashQuestions[1], isDoubleFinale: false),
+            .cashQuestion(activeDeck.cashQuestions[2], isDoubleFinale: false),
+            // Manche 2 : 3 questions Tu Te Mets Combien ?
             .roundIntro(.tuTeMetsCombien),
             .ttmcQuestion(activeDeck.ttmcQuestions[0]),
             .ttmcQuestion(activeDeck.ttmcQuestions[1]),
+            .ttmcQuestion(activeDeck.ttmcQuestions[2]),
+            // Manche 3 : 3 questions Jukebox Express
             .roundIntro(.jukeboxExpress),
             .jukeboxQuestion(activeDeck.jukeboxQuestions[0]),
             .jukeboxQuestion(activeDeck.jukeboxQuestions[1]),
+            .jukeboxQuestion(activeDeck.jukeboxQuestions[2]),
+            // Manche 4 : 2 tours de Draw Something (au lieu d'un seul)
             .roundIntro(.drawSomething),
             .drawSomethingTurn,
+            .drawSomethingTurn,
+            // Manche 5 : 3 questions LE SOLO (au lieu d'une seule)
             .roundIntro(.leSolo),
             .soloQuestion(activeDeck.soloQuestions[0]),
+            .soloQuestion(activeDeck.soloQuestions[1]),
+            .soloQuestion(activeDeck.soloQuestions[2]),
+            // Manche 6 : La Raclette Quizz (6 questions rapides Gauche / Droite / Les Deux)
             .roundIntro(.couciCouca),
             .couciCouca(activeDeck.couciCoucaRound, .couciCouca),
+            // Manche 7 : 3 questions La Rafale Finale (points doublés)
             .roundIntro(.finaleDouble),
             .cashQuestion(activeDeck.finaleDoubleQuestions[0], isDoubleFinale: true),
             .cashQuestion(activeDeck.finaleDoubleQuestions[1], isDoubleFinale: true),
+            .cashQuestion(activeDeck.finaleDoubleQuestions[2], isDoubleFinale: true),
             .podium
         ]
-        totalQuestions = 11
+        totalQuestions = 18
         questionNumber = 0
         currentStepIndex = -1
 

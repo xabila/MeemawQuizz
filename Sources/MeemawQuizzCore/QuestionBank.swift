@@ -38,27 +38,40 @@ public struct ShowGameDeck: Sendable {
 
 public enum QuestionBank {
 
+    public static var allMusiqueAndJukeboxQuestions: [QuizMCQQuestion] {
+        musiqueQuestions + extraMusiqueAndJukeboxQuestions
+    }
+
+    public static var combinedDisOrDatRounds: [QuizDisOrDatRound] {
+        allDisOrDatRounds + extraDisOrDatRounds
+    }
+
     public static func questions(for pack: QuizThemePack) -> [QuizMCQQuestion] {
         switch pack {
         case .francaisMeemaw:
-            return francaisQuestions
+            return francaisQuestions + extraFrancaisQuestions
         case .mathMeemaw:
-            return mathQuestions
+            return mathQuestions + extraMathQuestions
         case .seriesCinema:
-            return seriesCinemaQuestions
+            return seriesCinemaQuestions + extraSeriesCinemaQuestions
         case .musiqueTubes:
-            return musiqueQuestions
+            return musiqueQuestions + extraMusiqueAndJukeboxQuestions
         case .cultureGInsolite:
-            return cultureGQuestions
+            return cultureGQuestions + extraCultureGQuestions
         case .ecoCash:
-            return ecoCashQuestions
+            return ecoCashQuestions + extraEcoCashQuestions
         case .grandMix:
-            return francaisQuestions + mathQuestions + seriesCinemaQuestions + musiqueQuestions + cultureGQuestions + ecoCashQuestions
+            return (francaisQuestions + extraFrancaisQuestions)
+                + (mathQuestions + extraMathQuestions)
+                + (seriesCinemaQuestions + extraSeriesCinemaQuestions)
+                + (musiqueQuestions + extraMusiqueAndJukeboxQuestions)
+                + (cultureGQuestions + extraCultureGQuestions)
+                + (ecoCashQuestions + extraEcoCashQuestions)
         }
     }
 
     public static func disOrDatRounds(for pack: QuizThemePack) -> [QuizDisOrDatRound] {
-        let nonPun = allDisOrDatRounds.filter { !$0.isPunRound }
+        let nonPun = combinedDisOrDatRounds.filter { !$0.isPunRound }
         switch pack {
         case .francaisMeemaw:
             return nonPun.filter { $0.theme == .francaisMeemaw }
@@ -78,7 +91,7 @@ public enum QuestionBank {
     }
 
     public static var allPunRounds: [QuizDisOrDatRound] {
-        allDisOrDatRounds.filter(\.isPunRound)
+        combinedDisOrDatRounds.filter(\.isPunRound)
     }
 
     public static func buildShowDeck(
@@ -89,51 +102,51 @@ public enum QuestionBank {
         let baseQuestions = questions(for: pack)
         var freshPool = baseQuestions.filter { !excludingQuestionIDs.contains($0.id) }.shuffled()
 
-        if freshPool.count < 9 {
+        if freshPool.count < 12 {
             let grandMixUnseen = questions(for: .grandMix)
                 .filter { !excludingQuestionIDs.contains($0.id) && !freshPool.map(\.id).contains($0.id) }
                 .shuffled()
             freshPool.append(contentsOf: grandMixUnseen)
         }
-        if freshPool.count < 9 {
+        if freshPool.count < 12 {
             freshPool = baseQuestions.shuffled()
         }
 
+        // 3 questions par manche : 3 Cash, 3 Solo, 3 Finale Double, 3 TTMC
         let cash = Array(freshPool.prefix(3))
-        let solo = Array(freshPool.dropFirst(3).prefix(2))
-        let finale = Array(freshPool.dropFirst(5).prefix(2))
-        let ttmc = Array(freshPool.dropFirst(7).prefix(2))
+        let solo = Array(freshPool.dropFirst(3).prefix(3))
+        let finale = Array(freshPool.dropFirst(6).prefix(3))
+        let ttmc = Array(freshPool.dropFirst(9).prefix(3))
         let pickedIDs = Set((cash + solo + finale + ttmc).map(\.id))
 
-        let jukeboxPool = musiqueQuestions
+        let allMusic = allMusiqueAndJukeboxQuestions
+        let jukeboxPool = allMusic
             .filter { $0.id.hasPrefix("JUK_") && !excludingQuestionIDs.contains($0.id) && !pickedIDs.contains($0.id) }
             .shuffled()
-        let fallbackMusicPool = musiqueQuestions
+        let fallbackMusicPool = allMusic
             .filter { !excludingQuestionIDs.contains($0.id) && !pickedIDs.contains($0.id) }
             .shuffled()
-        let jukebox = Array((jukeboxPool + fallbackMusicPool + musiqueQuestions.shuffled()).prefix(2))
+        let jukebox = Array((jukeboxPool + fallbackMusicPool + allMusic.shuffled()).prefix(3))
 
         let themeCouci = disOrDatRounds(for: pack)
-        let unseenRaclette = themeCouci.filter { !excludingDisOrDatIDs.contains($0.id) && $0.optionBoth != nil }
-        let unseenCouci = themeCouci.filter { !excludingDisOrDatIDs.contains($0.id) }
-        let fallbackUnseenCouci = allDisOrDatRounds.filter { !$0.isPunRound && !excludingDisOrDatIDs.contains($0.id) }
-        let couci = unseenRaclette.randomElement()
-            ?? unseenCouci.randomElement()
-            ?? fallbackUnseenCouci.randomElement()
-            ?? themeCouci.randomElement()
-            ?? allDisOrDatRounds[0]
+        let unseenCouci = themeCouci.filter { !excludingDisOrDatIDs.contains($0.id) }.shuffled()
+        let fallbackUnseenCouci = combinedDisOrDatRounds.filter { !$0.isPunRound && !excludingDisOrDatIDs.contains($0.id) }.shuffled()
+        let couci = unseenCouci.first
+            ?? fallbackUnseenCouci.first
+            ?? themeCouci.shuffled().first
+            ?? combinedDisOrDatRounds[0]
 
-        let unseenPuns = allPunRounds.filter { !excludingDisOrDatIDs.contains($0.id) }
-        let punRound = unseenPuns.randomElement() ?? allPunRounds.randomElement() ?? allDisOrDatRounds[0]
+        let unseenPuns = allPunRounds.filter { !excludingDisOrDatIDs.contains($0.id) }.shuffled()
+        let punRound = unseenPuns.first ?? allPunRounds.shuffled().first ?? combinedDisOrDatRounds[0]
 
         return ShowGameDeck(
             cashQuestions: cash,
-            ttmcQuestions: ttmc.count == 2 ? ttmc : Array(freshPool.prefix(2)),
+            ttmcQuestions: ttmc.count == 3 ? ttmc : Array(freshPool.prefix(3)),
             jukeboxQuestions: jukebox,
-            soloQuestions: solo,
+            soloQuestions: solo.count == 3 ? solo : Array(freshPool.suffix(3)),
             couciCoucaRound: couci,
             quoizziPunRound: punRound,
-            finaleDoubleQuestions: finale
+            finaleDoubleQuestions: finale.count == 3 ? finale : Array(freshPool.prefix(3))
         )
     }
 

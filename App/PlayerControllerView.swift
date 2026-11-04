@@ -714,15 +714,62 @@ struct PlayerControllerView: View {
                             .padding(14)
                         }
 
-                        // 3. SALON WI-FI & QR CODE D'INVITATION
+                        // 3. SALON WI-FI, PARTAGE DE CONNEXION & QR CODE D'INVITATION
                         PopArtCard(cornerRadius: 20, borderWidth: 3, backgroundColor: PopArt.white, shadowOffset: 4) {
+                            let liveJoinURL = session.role == .hostAndPlayer1 ? session.joinURLString : snap.joinURL
+                            let isHotspotURL = liveJoinURL.contains("172.20.10.") || session.lanServer.forceHotspotIP
+
                             VStack(alignment: .leading, spacing: 12) {
-                                Text("📲 SALON WI-FI & INVITATION")
-                                    .font(.system(size: 14, weight: .black, design: .rounded))
-                                    .foregroundStyle(PopArt.ink)
+                                HStack {
+                                    Text("📲 SALON WI-FI & PARTAGE 4G/5G")
+                                        .font(.system(size: 14, weight: .black, design: .rounded))
+                                        .foregroundStyle(PopArt.ink)
+                                    Spacer()
+                                    Text(isHotspotURL ? "📶 Partage iPhone" : "🏠 Wi-Fi Local")
+                                        .font(.system(size: 11, weight: .black, design: .rounded))
+                                        .foregroundStyle(PopArt.ink)
+                                        .padding(.horizontal, 9)
+                                        .padding(.vertical, 4)
+                                        .background(PopArt.yellow, in: Capsule())
+                                        .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 1.5))
+                                }
+
+                                if session.role == .hostAndPlayer1 {
+                                    HStack(spacing: 8) {
+                                        Button {
+                                            session.lanServer.forceHotspotIP = false
+                                        } label: {
+                                            Text("🏠 Wi-Fi (Auto)")
+                                                .font(.system(size: 12, weight: .black, design: .rounded))
+                                                .frame(maxWidth: .infinity)
+                                                .padding(.vertical, 8)
+                                        }
+                                        .buttonStyle(
+                                            PopArtActionButtonStyle(
+                                                backgroundColor: !session.lanServer.forceHotspotIP ? PopArt.yellow : PopArt.cream,
+                                                cornerRadius: 10
+                                            )
+                                        )
+
+                                        Button {
+                                            session.lanServer.forceHotspotIP = true
+                                        } label: {
+                                            Text("📶 Partage 4G/5G (172.20.10.1)")
+                                                .font(.system(size: 12, weight: .black, design: .rounded))
+                                                .frame(maxWidth: .infinity)
+                                                .padding(.vertical, 8)
+                                        }
+                                        .buttonStyle(
+                                            PopArtActionButtonStyle(
+                                                backgroundColor: session.lanServer.forceHotspotIP ? PopArt.yellow : PopArt.cream,
+                                                cornerRadius: 10
+                                            )
+                                        )
+                                    }
+                                }
 
                                 HStack(spacing: 14) {
-                                    if let qr = GameSessionController.makeQRCodeImage(from: snap.joinURL) {
+                                    if let qr = GameSessionController.makeQRCodeImage(from: liveJoinURL) {
                                         Image(uiImage: qr)
                                             .interpolation(.none)
                                             .resizable()
@@ -734,15 +781,19 @@ struct PlayerControllerView: View {
                                     }
 
                                     VStack(alignment: .leading, spacing: 5) {
-                                        Text("Scannez pour rejoindre sur le Wi-Fi :")
-                                            .font(.system(size: 12, weight: .bold))
-                                            .foregroundStyle(PopArt.ink.opacity(0.8))
-                                        Text(snap.joinURL)
+                                        Text(isHotspotURL ? "En extérieur (Partage de connexion) :" : "À la maison (Même Wi-Fi) :")
+                                            .font(.system(size: 12, weight: .black))
+                                            .foregroundStyle(PopArt.ink)
+                                        Text(liveJoinURL)
                                             .font(.system(size: 12, weight: .black, design: .monospaced))
                                             .foregroundStyle(PopArt.blue)
-                                        Text("Sur un autre iPhone/iPad, choisissez « Rejoindre un Salon » ci-dessous.")
-                                            .font(.system(size: 11, weight: .medium))
-                                            .foregroundStyle(PopArt.ink.opacity(0.65))
+                                        Text(
+                                            isHotspotURL
+                                                ? "1. Connectez d'abord l'autre téléphone au Wi-Fi Partage de connexion de cet iPhone.\n2. Scannez ce QR Code ou touchez « Rejoindre un Salon »."
+                                                : "Scannez ce QR Code avec l'appareil photo ou touchez « Rejoindre un Salon » sur un autre iPhone."
+                                        )
+                                        .font(.system(size: 11, weight: .medium))
+                                        .foregroundStyle(PopArt.ink.opacity(0.72))
                                     }
                                 }
 
@@ -785,6 +836,9 @@ struct PlayerControllerView: View {
                                 }
                             }
                             .padding(14)
+                        }
+                        .onAppear {
+                            session.lanServer.refreshNetworkAddressAndNotifyIfNeeded(forceNotify: true)
                         }
 
                         // 4. RÉGLAGES AUDIO, AIRPLAY & HISTORIQUE DES QUESTIONS

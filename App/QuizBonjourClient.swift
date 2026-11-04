@@ -2,14 +2,16 @@ import Foundation
 import MeemawQuizzCore
 import Network
 
-/// Client iOS Bonjour (`_meemawquizz._tcp`) :
-/// Découvre automatiquement le salon AirPlay sur le réseau Wi-Fi local (zéro saisie d'IP)
-/// et maintient la connexion WebSocket temps réel avec le serveur Hôte.
+/// Client iOS (`_meemawquizz._tcp` + Auto-Hotspot `172.20.10.1`) :
+/// 1. Découvre automatiquement le salon AirPlay sur le Wi-Fi local via Bonjour.
+/// 2. En Partage de connexion iOS (où Bonjour multicast est parfois filtré par iOS),
+///    tente automatiquement la connexion directe à la passerelle Hotspot `172.20.10.1:8420`.
 @MainActor
 final class QuizBonjourClient {
 
     private var browser: NWBrowser?
     private var connection: NWConnection?
+    private var hotspotFallbackTask: Task<Void, Never>?
     private var receiveBuffer = Data()
     private var isHandshakeCompleted = false
 
@@ -42,15 +44,38 @@ final class QuizBonjourClient {
 
         nwBrowser.start(queue: .main)
         self.browser = nwBrowser
+
+        // En extérieur (Partage de connexion iOS), Bonjour mDNS peut être filtré sur bridge100 :
+        // on tente aussi automatiquement l'IP passerelle du Partage de connexion iPhone (172.20.10.1:8420) !
+        hotspotFallbackTask = Task { @MainActor [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(1200))
+                guard let self, !Task.isCancelled else { return }
+                if !self.isConnectedToHost && self.connection == nil {
+                    self.connectToDirectHost(host: "172.20.10.1", port: 8420)
+                }
+                try? await Task.sleep(for: .milliseconds(2500))
+            }
+        }
     }
 
-    func connectToDirectHost(host: String, port: UInt16) {
-        guard let nwPort = NWEndpoint.Port(rawValue: port) else { return }
-        let endpoint = NWEndpoint.hostPort(host: NWEndpoint.Host(host), port: nwPort)
+    func connectToDirectHost(host: String, port: UInt16 = 8420) {
+        let cleanedHost = host
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "http://", with: "")
+            .replacingOccurrences(of: "https://", with: "")
+            .split(separator: ":")
+            .first
+            .map(String.init) ?? host
+
+        guard !cleanedHost.isEmpty, let nwPort = NWEndpoint.Port(rawValue: port) else { return }
+        let endpoint = NWEndpoint.hostPort(host: NWEndpoint.Host(cleanedHost), port: nwPort)
         connect(to: endpoint)
     }
 
     func stop() {
+        hotspotFallbackTask?.cancel()
+        hotspotFallbackTask = nil
         connection?.cancel()
         connection = nil
         browser?.cancel()
@@ -89,19 +114,13 @@ final class QuizBonjourClient {
                     conn.send(content: handshakeReq, completion: .contentProcessed { _ in })
                     self.readLoop(on: conn)
                 case .failed, .cancelled:
-                    self.connection = nil
+                    if self.connection === conn {
+                        self.connection = nil
+                    }
                     self.isHandshakeCompleted = false
                     if self.isConnectedToHost {
                         self.isConnectedToHost = false
                         self.onConnectionStateChanged?(false)
-                    }
-                    // Auto-rediscover if browser is still active
-                    if self.browser != nil {
-                        Task { @MainActor [weak self] in
-                            try? await Task.sleep(for: .milliseconds(1400))
-                            guard let self, self.browser != nil, !self.isConnectedToHost else { return }
-                            self.startAutoDiscovery()
-                        }
                     }
                 default:
                     break
