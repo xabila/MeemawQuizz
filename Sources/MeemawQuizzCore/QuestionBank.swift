@@ -278,10 +278,10 @@ public enum QuestionBank {
             funnyTitle: "Peigner la girafe avec un râteau",
             prompt: "Si ton grand-père te dit que tu passes ton après-midi à « peigner la girafe », qu'est-ce qu'il te reproche exactement ?",
             choices: [
-                "D'avoir un brushing beaucoup trop haut",
-                "De faire un travail interminable et complètement inutile",
-                "De raconter des mensonges énormes",
-                "D'oublier de fermer la porte du zoo"
+                "Avoir un brushing beaucoup trop haut",
+                "Faire un travail interminable et inutile",
+                "Raconter des mensonges énormes à table",
+                "Oublier de fermer la porte du poulailler"
             ],
             correctIndex: 1,
             baseValue: 2000,
@@ -333,9 +333,9 @@ public enum QuestionBank {
             prompt: "Quelle bizarrerie partagent les trois mots français « amour », « délice » et « orgue » ?",
             choices: [
                 "Ils n'ont aucune voyelle au pluriel",
-                "Ils sont masculins au singulier et deviennent féminins au pluriel !",
-                "Ils prennent un X au pluriel",
-                "Ils sont interdits au Scrabble"
+                "Masculins au singulier, féminins au pluriel",
+                "Ils prennent tous un X au pluriel",
+                "Ils sont interdits au Scrabble officiel"
             ],
             correctIndex: 1,
             baseValue: 2500,
@@ -350,10 +350,10 @@ public enum QuestionBank {
             funnyTitle: "Revenons à nos moutons (et pas à nos chèvres)",
             prompt: "D'où vient la célèbre expression « Revenons à nos moutons » utilisée quand quelqu'un change de sujet ?",
             choices: [
-                "D'une recette de gigot d'Henri IV",
-                "De la pièce « La Farce de Maître Pathelin » au Moyen Âge",
-                "D'une fable perdue de La Fontaine",
-                "Du premier bulletin météo de la télé"
+                "D'une recette de gigot du roi Henri IV",
+                "De la pièce « La Farce de Maître Pathelin »",
+                "D'une fable perdue de Jean de La Fontaine",
+                "Du tout premier bulletin météo de la télé"
             ],
             correctIndex: 1,
             baseValue: 2000,
@@ -494,10 +494,10 @@ public enum QuestionBank {
             funnyTitle: "Tirer les vers du nez sans canne à pêche",
             prompt: "Quand Meemaw te « tire les vers du nez », qu'est-ce qu'elle réussit à faire ?",
             choices: [
-                "Te soigner d'un gros rhume avec du thym",
-                "Te faire avouer un secret habilement en te posant plein de petites questions",
-                "Te faire manger tes légumes verts",
-                "Te couper les poils des narines"
+                "Te soigner d'un gros rhume avec une tisane au thym",
+                "Te faire avouer un secret en posant des questions",
+                "Te forcer à finir tous tes légumes verts à table",
+                "Te raconter des histoires à dormir debout"
             ],
             correctIndex: 1,
             baseValue: 2000,
@@ -643,9 +643,9 @@ public enum QuestionBank {
             funnyTitle: "Les soldes qui te prennent pour un jambon",
             prompt: "Un pull baisse de 50 % pendant les soldes, puis le vendeur remonte son nouveau prix de 50 % la semaine suivante. Par rapport au prix de départ de 100 €, combien coûte-t-il maintenant ?",
             choices: [
-                "Toujours 100 €, -50 % et +50 % ça s'annule !",
+                "100 €",
                 "75 €",
-                "125 €",
+                "90 €",
                 "50 €"
             ],
             correctIndex: 1,
@@ -716,7 +716,7 @@ public enum QuestionBank {
             prompt: "Si 5 grand-mères tricotent 5 écharpes en 5 minutes, combien de minutes faut-il à 100 grand-mères pour tricoter 100 écharpes ?",
             choices: [
                 "100 minutes",
-                "Toujours 5 minutes !",
+                "5 minutes",
                 "20 minutes",
                 "1 minute"
             ],
@@ -803,7 +803,7 @@ public enum QuestionBank {
             theme: .mathMeemaw,
             preferredRound: .finaleDouble,
             funnyTitle: "Diviser par un demi, ce n'est pas couper en deux",
-            prompt: "Combien font : 30 divisé par 0,5 (la moitié), plus 10 ?",
+            prompt: "Combien font : 30 divisé par 0,5, plus 10 ?",
             choices: [
                 "25",
                 "70",
@@ -824,7 +824,7 @@ public enum QuestionBank {
             prompt: "Une brique pèse 1 kilo plus une demi-brique. Combien pèse une brique entière ?",
             choices: [
                 "1,5 kilo",
-                "2 kilos !",
+                "2 kilos",
                 "1 kilo",
                 "3 kilos"
             ],
@@ -897,8 +897,8 @@ public enum QuestionBank {
             choices: [
                 "La hauteur d'un dictionnaire Larousse",
                 "La hauteur de la Tour Eiffel",
-                "Plus de 400 000 kilomètres : elle dépasserait la Lune !",
-                "Environ 12 mètres"
+                "Plus de 400 000 kilomètres",
+                "Environ 12 kilomètres"
             ],
             correctIndex: 2,
             baseValue: 2500,
@@ -913,10 +913,10 @@ public enum QuestionBank {
             funnyTitle: "Une livre de plumes contre une livre de plomb",
             prompt: "Qu'est-ce qui est le plus lourd sur la balance de Meemaw : 1 kilo de plumes d'oie ou 1 kilo de plomb ?",
             choices: [
-                "Ils ont exactement le même poids : 1 kilo chacun !",
-                "1 kilo de plomb, forcément",
-                "1 kilo de plumes car ça prend tout le salon",
-                "Ça dépend du sens du vent"
+                "Ils ont exactement le même poids",
+                "Le kilo de plomb est plus lourd",
+                "Le kilo de plumes est plus lourd",
+                "Ça dépend de la pression atmosphérique"
             ],
             correctIndex: 0,
             baseValue: 2000,
@@ -949,7 +949,7 @@ public enum QuestionBank {
             funnyTitle: "Les moutons survivants du pré",
             prompt: "Le berger du village a 17 moutons dans son pré. Tous, sauf 9, s'échappent par la barrière ouverte. Combien lui reste-t-il de moutons dans le pré ?",
             choices: [
-                "9 moutons !",
+                "9 moutons",
                 "8 moutons",
                 "Aucun mouton",
                 "26 moutons"
@@ -1116,9 +1116,9 @@ public enum QuestionBank {
             funnyTitle: "La botte secrète de Perceval à la Table Ronde",
             prompt: "Dans la série « Kaamelott » d'Alexandre Astier, quelle botte secrète Perceval utilise-t-il quand il ne comprend pas un mot dans une conversation ?",
             choices: [
-                "Il répond « C'est pas faux ! »",
-                "Il chante une chanson galloise",
-                "Il jette du fromage sur la table",
+                "Il répond « C'est pas faux »",
+                "Il chante une vieille chanson galloise",
+                "Il jette son fromage sur la table",
                 "Il fait semblant de s'évanouir"
             ],
             correctIndex: 0,
@@ -1171,9 +1171,9 @@ public enum QuestionBank {
             prompt: "Dans la saison 1 de « Squid Game », quelle est la toute première épreuve mortelle à laquelle participent les 456 joueurs devant une poupée géante ?",
             choices: [
                 "La marelle sur pont de verre",
-                "1, 2, 3, Soleil !",
+                "1, 2, 3, Soleil",
                 "Le tir à la corde",
-                "Le jeu des chaises musicales"
+                "Le jeu des billes"
             ],
             correctIndex: 1,
             baseValue: 2000,
@@ -1350,10 +1350,10 @@ public enum QuestionBank {
             funnyTitle: "Meemaw résume le film : « Une lessive sauve un petit bonhomme à grandes oreilles »",
             prompt: "Dans « Harry Potter et la Chambre des Secrets », quel vêtement Harry glisse-t-il en douce dans le journal intime pour que Lucius Malefoy libère accidentellement son elfe de maison Dobby ?",
             choices: [
-                "Son écharpe Gryffondor",
-                "Une vieille chaussette sale et gluante",
-                "Le slip en laine de Ron",
-                "Un gant de Quidditch"
+                "Son écharpe de Gryffondor",
+                "Une vieille chaussette",
+                "Le pull en laine de Ron",
+                "Un balai de Quidditch"
             ],
             correctIndex: 1,
             baseValue: 2000,
@@ -1569,7 +1569,7 @@ public enum QuestionBank {
             theme: .musiqueTubes,
             preferredRound: .finaleDouble,
             funnyTitle: "Marcher à reculons sur la Lune avec des chaussettes blanches",
-            prompt: "Quel est l'album le plus vendu de toute l'histoire de la musique dans le monde (sorti en 1982 et produit par Quincy Jones) ?",
+            prompt: "Quel est l'album le plus vendu de toute l'histoire de la musique dans le monde ?",
             choices: [
                 "Back in Black",
                 "Thriller",
@@ -1803,7 +1803,7 @@ public enum QuestionBank {
             theme: .musiqueTubes,
             preferredRound: .cashSpeed,
             funnyTitle: "Apateu, Apateu ! Le refrain qui reste collé dans le cerveau",
-            prompt: "Avec quelle chanteuse de K-Pop (membre du groupe BLACKPINK) Bruno Mars chante-t-il le tube planétaire « APT. » sorti fin 2024 ?",
+            prompt: "Avec quelle chanteuse Bruno Mars chante-t-il le tube planétaire « APT. » sorti fin 2024 ?",
             choices: [
                 "ROSÉ",
                 "Lisa",
@@ -2001,7 +2001,7 @@ public enum QuestionBank {
             theme: .musiqueTubes,
             preferredRound: .cashSpeed,
             funnyTitle: "Le signe des deux mains à Marseille",
-            prompt: "Quel rappeur marseillais surnommé « l'Ovni » est devenu le plus gros vendeur d'albums de toute l'histoire du rap français (et a allumé le chaudron olympique à Marseille) ?",
+            prompt: "Quel rappeur marseillais est devenu le plus gros vendeur d'albums de toute l'histoire du rap français ?",
             choices: [
                 "Jul",
                 "SCH",
@@ -2055,7 +2055,7 @@ public enum QuestionBank {
             theme: .musiqueTubes,
             preferredRound: .cashSpeed,
             funnyTitle: "Du pop-corn salé et un piano en flammes",
-            prompt: "Quelle chanteuse française (ex-leader du groupe Hyphen Hyphen) a ému toute la France avec sa ballade au piano « Popcorn salé » et son tube « Recommence-moi » ?",
+            prompt: "Quelle chanteuse française a ému toute la France avec sa ballade au piano « Popcorn salé » et son tube « Recommence-moi » ?",
             choices: [
                 "Santa",
                 "Pomme",
@@ -2333,10 +2333,10 @@ public enum QuestionBank {
             funnyTitle: "Trois cœurs qui battent sous les tentacules",
             prompt: "Combien de cœurs possède une pieuvre (et de quelle couleur est son sang) ?",
             choices: [
-                "1 cœur et du sang rouge comme nous",
-                "3 cœurs et du sang bleu !",
-                "8 cœurs",
-                "Aucun cœur, elle fonctionne à l'eau salée"
+                "1 cœur et du sang rouge",
+                "3 cœurs et du sang bleu",
+                "8 cœurs et du sang vert",
+                "2 cœurs et du sang jaune"
             ],
             correctIndex: 1,
             baseValue: 2000,
@@ -2352,9 +2352,9 @@ public enum QuestionBank {
             prompt: "En plein été, sous l'effet de la chaleur et de la dilatation du fer puddlé, de combien la Tour Eiffel peut-elle grandir par rapport à l'hiver ?",
             choices: [
                 "Elle ne bouge pas d'un millimètre",
-                "D'environ 12 à 15 centimètres !",
-                "De 4 mètres",
-                "Elle rétrécit parce qu'elle transpire"
+                "D'environ 12 à 15 centimètres",
+                "D'environ 4 mètres de haut",
+                "Elle rétrécit d'environ 20 centimètres"
             ],
             correctIndex: 1,
             baseValue: 2500,
@@ -2459,10 +2459,10 @@ public enum QuestionBank {
             funnyTitle: "La fraise qui se prend pour un fruit",
             prompt: "En botanique pure, où se trouvent les VRAIS fruits de la fraise ?",
             choices: [
-                "Dans la chair rouge juteuse",
-                "Ce sont les petits grains jaunes croquants à la surface !",
-                "Dans la feuille verte sur le dessus",
-                "Sous la terre comme une patate"
+                "Dans la chair rouge au centre du fruit",
+                "Dans les petits grains jaunes à la surface",
+                "Dans la collerette de feuilles vertes",
+                "Dans les racines sous la terre"
             ],
             correctIndex: 1,
             baseValue: 2500,
@@ -2477,9 +2477,9 @@ public enum QuestionBank {
             funnyTitle: "L'inventeur de la barbe à papa avait une drôle de profession",
             prompt: "Quel était le vrai métier de William Morrison, qui a co-inventé la machine à barbe à papa en 1897 ?",
             choices: [
-                "Coiffeur pour caniches",
-                "Dentiste !",
-                "Fabricant d'oreillers",
+                "Coiffeur",
+                "Dentiste",
+                "Boulanger",
                 "Pompier"
             ],
             correctIndex: 1,
@@ -2496,9 +2496,9 @@ public enum QuestionBank {
             prompt: "Quel animal totalement légendaire est pourtant l'emblème national OFFICIEL de l'Écosse depuis le XIVe siècle ?",
             choices: [
                 "Le monstre du Loch Ness",
-                "La licorne !",
-                "Le mouton à lunettes",
-                "Le hérisson"
+                "La licorne",
+                "Le mouton des Highlands",
+                "L'aigle royal"
             ],
             correctIndex: 1,
             baseValue: 2500,
@@ -2514,9 +2514,9 @@ public enum QuestionBank {
             prompt: "En 1889 (il y a plus de 135 ans !), que fabriquait l'entreprise japonaise Nintendo lors de sa création à Kyoto ?",
             choices: [
                 "Des sabres de samouraï en bois",
-                "Des cartes à jouer traditionnelles peintes à la main",
-                "Des théières en fonte",
-                "Des vélos à trois roues"
+                "Des cartes à jouer traditionnelles",
+                "Des théières en fonte ciselée",
+                "Des lanternes en papier peint"
             ],
             correctIndex: 1,
             baseValue: 2500,
@@ -2550,7 +2550,7 @@ public enum QuestionBank {
             prompt: "De quelle couleur sont peintes les « boîtes noires » (enregistreurs de vol) des avions de ligne modernes ?",
             choices: [
                 "Noir mat",
-                "Orange vif fluorescent",
+                "Orange vif",
                 "Blanc nacré",
                 "Bleu marine"
             ],
@@ -2567,10 +2567,10 @@ public enum QuestionBank {
             funnyTitle: "La guerre la plus courte de toute l'Histoire",
             prompt: "Combien de temps a duré la guerre la plus courte de toute l'Histoire (entre le Royaume-Uni et le sultanat de Zanzibar le 27 août 1896) ?",
             choices: [
-                "Entre 38 et 45 minutes",
                 "3 jours",
+                "38 à 45 minutes",
                 "12 heures",
-                "Une semaine"
+                "2 semaines"
             ],
             correctIndex: 0,
             baseValue: 2500,
@@ -2585,10 +2585,10 @@ public enum QuestionBank {
             funnyTitle: "Dormir en se tenant par la patte",
             prompt: "Pourquoi les loutres de mer dorment-elles sur le dos en se tenant la patte les unes aux autres ?",
             choices: [
-                "Pour ne pas dériver séparément avec le courant pendant leur sommeil",
-                "Pour jouer à Jacques a dit",
-                "Pour se réchauffer les griffes",
-                "Parce qu'elles ont peur du noir"
+                "Pour ne pas dériver séparément avec le courant",
+                "Pour empêcher les prédateurs de les approcher",
+                "Pour garder leurs pattes bien au chaud",
+                "Pour partager leurs coquillages au réveil"
             ],
             correctIndex: 0,
             baseValue: 2000,
@@ -2790,8 +2790,8 @@ public enum QuestionBank {
             choices: [
                 "30 %",
                 "12,8 %",
-                "0 % d'impôt sur le revenu !",
-                "50 %"
+                "0 %",
+                "17,2 %"
             ],
             correctIndex: 2,
             baseValue: 2000,
@@ -2824,10 +2824,10 @@ public enum QuestionBank {
             funnyTitle: "Se payer en premier le jour de la paie",
             prompt: "Dans la célèbre règle budgétaire « 50 / 30 / 20 », à quoi correspondent les 20 % que Meemaw conseille de virer dès le lendemain du salaire ?",
             choices: [
-                "Aux éclairs au chocolat",
-                "À l'épargne et aux investissements long terme",
-                "Au loyer et à l'électricité",
-                "Aux cadeaux de Noël"
+                "Aux restaurants et aux loisirs",
+                "À l'épargne et aux investissements",
+                "Au loyer et aux factures fixes",
+                "Aux cadeaux et aux vacances"
             ],
             correctIndex: 1,
             baseValue: 2000,
@@ -2842,10 +2842,10 @@ public enum QuestionBank {
             funnyTitle: "Le matelas de sécurité anti-tuiles",
             prompt: "Combien de mois de dépenses courantes Meemaw recommande-t-elle de garder sur un livret disponible (Livret A / LDDS) en « épargne de précaution » avant d'investir en Bourse ?",
             choices: [
-                "0 mois, tapis sur le rouge !",
-                "3 à 6 mois de dépenses courantes",
-                "15 ans de salaire",
-                "38 euros et un ticket resto"
+                "Aucun mois d'avance",
+                "3 à 6 mois de dépenses",
+                "10 ans de salaire",
+                "1 seule semaine"
             ],
             correctIndex: 1,
             baseValue: 2000,
@@ -2860,10 +2860,10 @@ public enum QuestionBank {
             funnyTitle: "La méthode DCA du jardinier tranquille",
             prompt: "En investissement, que signifie faire du « DCA » (Dollar-Cost Averaging) ?",
             choices: [
-                "Investir la même somme automatiquement chaque mois, que la Bourse monte ou baisse",
-                "Attendre le krach du siècle en lisant dans le marc de café",
-                "Tout vendre dès que le journal de 20h a peur",
-                "Acheter uniquement des actions de fabricants de canapés"
+                "Attendre le krach du siècle avant d'acheter",
+                "Investir la même somme régulièrement chaque mois",
+                "Tout vendre dès que le journal télévisé s'inquiète",
+                "N'acheter que des actions d'entreprises américaines"
             ],
             correctIndex: 0,
             baseValue: 2500,
@@ -2914,10 +2914,10 @@ public enum QuestionBank {
             funnyTitle: "Le monstre du découvert bancaire",
             prompt: "Si tu es à découvert tous les mois avec des agios et commissions d'intervention, à quel taux annuel effectif (TAEG) cela revient-il souvent ?",
             choices: [
-                "1 % par an",
-                "Entre 15 % et plus de 20 % par an",
-                "Gratuit le week-end",
-                "3 % par an"
+                "Environ 1 % par an",
+                "Entre 15 % et 20 % par an",
+                "Environ 0,5 % par an",
+                "Environ 3 % par an"
             ],
             correctIndex: 1,
             baseValue: 2000,
@@ -3150,7 +3150,7 @@ public enum QuestionBank {
             id: "DOD_MATH_2",
             theme: .mathMeemaw,
             funnyTitle: "Nombre Premier ou Nombre Divisible ?",
-            prompt: "Tape à GAUCHE si ce nombre est PREMIER (divisible que par 1 et lui-même), ou à DROITE s'il est DIVISIBLE !",
+            prompt: "Tape à GAUCHE si ce nombre est PREMIER, ou à DROITE s'il est DIVISIBLE !",
             optionLeft: "PREMIER 🔒",
             optionRight: "DIVISIBLE ➗",
             valuePerItem: 500,
@@ -3276,7 +3276,7 @@ public enum QuestionBank {
             id: "DOD_ECO_1",
             theme: .ecoCash,
             funnyTitle: "Actif qui t'Enrichit ou Passif qui te Plume ?",
-            prompt: "Tape à GAUCHE si ça met des sous dans ta poche (ACTIF), ou à DROITE si ça en fait sortir (PASSIF) !",
+            prompt: "Tape à GAUCHE s'il s'agit d'un ACTIF financier, ou à DROITE s'il s'agit d'un PASSIF !",
             optionLeft: "ACTIF 💰",
             optionRight: "PASSIF 💸",
             valuePerItem: 500,
@@ -3389,7 +3389,7 @@ public enum QuestionBank {
             id: "RAC_MATH_1",
             theme: .mathMeemaw,
             funnyTitle: "🧀 Raclette des Nombres : Divisible par 2, Divisible par 5, ou LES DEUX ?",
-            prompt: "Calcul mental : ce nombre se divise-t-il par 2, par 5, ou par LES DEUX (donc par 10) ?",
+            prompt: "Calcul mental : ce nombre se divise-t-il par 2, par 5, ou par LES DEUX ?",
             optionLeft: "PAR 2 ✌️",
             optionRight: "PAR 5 🖐️",
             optionBoth: "🧀 LES DEUX !",

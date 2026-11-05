@@ -56,7 +56,7 @@ extension QuestionBank {
             theme: .francaisMeemaw,
             preferredRound: .tuTeMetsCombien,
             funnyTitle: "The Most Misspelled Word on the Internet",
-            prompt: "What is the ONLY correct spelling of the word meaning 'without a doubt' (which half the internet spells 'defiantly')?",
+            prompt: "What is the ONLY correct spelling of the word meaning 'without a doubt'?",
             choices: [
                 "DEFINITELY",
                 "DEFINATELY",
@@ -76,7 +76,7 @@ extension QuestionBank {
             funnyTitle: "Spilling the Beans in the Kitchen",
             prompt: "When Meemaw says 'Don't spill the beans at Sunday dinner!', what is she telling you NOT to do?",
             choices: [
-                "Reveal a secret prematurely!",
+                "Reveal a secret prematurely",
                 "Drop the chili pot on the carpet",
                 "Feed the dog under the table",
                 "Complain about her meatloaf"
@@ -94,7 +94,7 @@ extension QuestionBank {
             funnyTitle: "A Piece of Cake (With Extra Frosting)",
             prompt: "In English slang, if a quiz question is 'a piece of cake', what does that mean?",
             choices: [
-                "It is super easy!",
+                "It is super easy",
                 "It is full of calories",
                 "It is a total lie",
                 "It takes two hours to bake"
@@ -112,7 +112,7 @@ extension QuestionBank {
             funnyTitle: "Embarrassing Double Letters",
             prompt: "How many R's and how many S's are in the word meaning to make someone blush with shame?",
             choices: [
-                "2 R's and 2 S's: E-M-B-A-R-R-A-S-S",
+                "2 R's and 2 S's: EMBARRASS",
                 "1 R and 2 S's: EMBARASS",
                 "2 R's and 1 S: EMBARRAS",
                 "1 R and 1 S: EMBARAS"
@@ -148,10 +148,10 @@ extension QuestionBank {
             funnyTitle: "Bite the Bullet, Cowboy",
             prompt: "What does the idiom 'to bite the bullet' mean?",
             choices: [
-                "To face a difficult or unpleasant situation with courage and get it over with",
-                "To chew on aluminum foil for fun",
-                "To argue with the dentist",
-                "To run away from a fight"
+                "Face a tough situation with courage",
+                "Chew on aluminum foil for fun",
+                "Argue with the family dentist",
+                "Run away from an argument"
             ],
             correctIndex: 0,
             baseValue: 2000,
@@ -207,7 +207,7 @@ extension QuestionBank {
             funnyTitle: "Meemaw's Oven Timer Riddle",
             prompt: "If it takes 5 machines 5 minutes to make 5 cookies, how long does it take 100 machines to make 100 cookies?",
             choices: [
-                "Still 5 minutes!",
+                "5 minutes",
                 "100 minutes",
                 "500 minutes",
                 "1 minute"
@@ -225,10 +225,10 @@ extension QuestionBank {
             funnyTitle: "Passing Second Place in the Marathon",
             prompt: "You are running a race and you overtake the person in 2nd place. What place are you in right now?",
             choices: [
-                "2nd place!",
-                "1st place!",
+                "2nd place",
+                "1st place",
                 "3rd place",
-                "Disqualified for speeding"
+                "Last place"
             ],
             correctIndex: 0,
             baseValue: 2000,
@@ -279,7 +279,7 @@ extension QuestionBank {
             funnyTitle: "The Lily Pad Double-Up",
             prompt: "A patch of lily pads on a pond doubles in size every single day. If it takes 48 days to cover the entire pond, how many days did it take to cover HALF the pond?",
             choices: [
-                "47 days!",
+                "47 days",
                 "24 days",
                 "12 days",
                 "46 days"
@@ -297,8 +297,8 @@ extension QuestionBank {
             funnyTitle: "How Many Months Have 28 Days?",
             prompt: "Quick! How many months of the year have 28 days?",
             choices: [
-                "All 12 of them!",
-                "Only 1",
+                "All 12 months",
+                "Only 1 month",
                 "Only in leap years",
                 "6 months"
             ],
@@ -392,10 +392,10 @@ extension QuestionBank {
             funnyTitle: "Kevin Malone's Carpet Disaster in The Office",
             prompt: "In the legendary cold open of 'The Office' (US), what prized family recipe does Kevin Malone spill all over the Dunder Mifflin carpet?",
             choices: [
-                "A giant pot of his famous homemade Chili!",
-                "A 5-tier wedding cake",
+                "A giant pot of his homemade chili",
+                "A 5-tier chocolate wedding cake",
                 "Michael Scott's chicken pot pie",
-                "A bucket of clam chowder"
+                "A bucket of New England clam chowder"
             ],
             correctIndex: 0,
             baseValue: 2000,
@@ -428,10 +428,10 @@ extension QuestionBank {
             funnyTitle: "Doc Brown's Time Machine Speed",
             prompt: "In 'Back to the Future', what exact speed (in miles per hour) must the DeLorean reach to travel through time?",
             choices: [
-                "88 mph!",
+                "88 mph",
                 "100 mph",
                 "66 mph",
-                "1.21 mph"
+                "121 mph"
             ],
             correctIndex: 0,
             baseValue: 2200,
@@ -464,7 +464,7 @@ extension QuestionBank {
             funnyTitle: "Young Sheldon's Favorite Grandma",
             prompt: "In 'Young Sheldon' and 'The Big Bang Theory', what is the real first name of Sheldon Cooper's sassy Texas grandmother, 'Meemaw'?",
             choices: [
-                "Constance Tucker!",
+                "Constance Tucker",
                 "Mary Cooper",
                 "Betty White",
                 "Dorothy Zbornak"
@@ -654,7 +654,7 @@ extension QuestionBank {
             funnyTitle: "The Surprising Day Job of Cotton Candy's Inventor",
             prompt: "What was the day job of William Morrison, the man who co-invented the Cotton Candy machine in 1897?",
             choices: [
-                "He was a DENTIST!",
+                "He was a dentist",
                 "He was a firefighter",
                 "He was a barber",
                 "He was a mattress maker"
@@ -726,9 +726,9 @@ extension QuestionBank {
             funnyTitle: "Octopus Cardiology",
             prompt: "How many hearts does an octopus have, and what color is its blood?",
             choices: [
-                "3 hearts and blue blood!",
+                "3 hearts and blue blood",
                 "1 heart and red blood",
-                "8 hearts",
+                "8 hearts and red blood",
                 "2 hearts and green blood"
             ],
             correctIndex: 0,
@@ -749,7 +749,7 @@ extension QuestionBank {
             funnyTitle: "Honey, I Shrunk the Cereal Box",
             prompt: "What is the term for when a company secretly reduces the weight of a snack bag or cereal box while keeping the exact SAME price?",
             choices: [
-                "Shrinkflation!",
+                "Shrinkflation",
                 "Snack-theft",
                 "Dietflation",
                 "Reverse Cashback"
@@ -767,10 +767,10 @@ extension QuestionBank {
             funnyTitle: "The Danish Cookie Tin Illusion",
             prompt: "Universal Law of Grandmas: when you open a round blue 'Royal Dansk' Danish butter cookie tin at Meemaw's house, what is inside 99.9% of the time?",
             choices: [
-                "Sewing needles, thread spools, and random buttons!",
-                "Freshly baked butter cookies",
-                "Gold bars",
-                "A live hamster"
+                "Sewing needles, thread, and buttons",
+                "Freshly baked Danish butter cookies",
+                "Shiny gold coins and jewelry",
+                "Old family vacation postcards"
             ],
             correctIndex: 0,
             baseValue: 2000,
@@ -1053,7 +1053,7 @@ extension QuestionBank {
                 QuizJackAttackWave(
                     id: "EN_JACK_02_W1",
                     clueTitle: "MATCH THE CHARACTER TO THEIR FAMOUS LINE!",
-                    anchorText: "Buzz Lightyear (Toy Story) ➜ ...",
+                    anchorText: "Buzz Lightyear ➜ ...",
                     options: ["“Where's the beef?”", "“To infinity and beyond!”", "“I'll be back!”", "“Winter is coming”"],
                     correctOptionIndex: 1,
                     explanation: "Buzz Lightyear: 'To infinity and beyond!'"
@@ -1069,7 +1069,7 @@ extension QuestionBank {
                 QuizJackAttackWave(
                     id: "EN_JACK_02_W3",
                     clueTitle: "MATCH THE CHARACTER TO THEIR FAMOUS LINE!",
-                    anchorText: "Gandalf (Lord of the Rings) ➜ ...",
+                    anchorText: "Gandalf ➜ ...",
                     options: ["“I am Groot”", "“You shall not pass!”", "“Show me the money!”", "“Here's Johnny!”"],
                     correctOptionIndex: 1,
                     explanation: "Gandalf facing the Balrog: 'You shall not pass!'"

@@ -12,10 +12,10 @@ extension QuestionBank {
             funnyTitle: "La soupe à la grimace et les haricots...",
             prompt: "Quand Meemaw soupire « C'est la fin des haricots ! », d'où vient vraiment cette expression dramatique ?",
             choices: [
-                "D'une famine de cassoulet à Toulouse en 1812",
-                "Des jeux de société où l'on misait des haricots secs en guise de jetons",
+                "Des jeux où l'on misait des haricots secs comme jetons",
+                "D'une grande pénurie de cassoulet à Toulouse en 1812",
                 "Du potager de Louis XIV dévoré par des sangliers",
-                "D'une chanson triste de Johnny sur les légumes verts"
+                "D'une vieille chanson sur les marchands de légumes"
             ],
             correctIndex: 1,
             baseValue: 2000,
@@ -138,10 +138,10 @@ extension QuestionBank {
             funnyTitle: "Les amours, délices et orgues de Meemaw",
             prompt: "Quelle est la particularité grammaticale très célèbre des trois mots « amour », « délice » et « orgue » en français ?",
             choices: [
-                "Ils sont masculins au singulier et deviennent féminins au pluriel !",
-                "Ils s'écrivent exactement pareil à l'endroit et à l'envers",
-                "Ils prennent trois X au pluriel",
-                "Ils sont interdits au Scrabble le dimanche"
+                "Ils sont masculins au singulier et féminins au pluriel",
+                "Ils s'écrivent pareil à l'endroit et à l'envers",
+                "Ils prennent tous trois X au pluriel",
+                "Ils sont interdits au Scrabble officiel"
             ],
             correctIndex: 0,
             baseValue: 2500,
@@ -269,10 +269,10 @@ extension QuestionBank {
             funnyTitle: "La course cycliste du dimanche",
             prompt: "Tu participes au Tour du Village à vélo et tu dépasses le 2e de la course juste avant la ligne. À quelle place termines-tu ?",
             choices: [
-                "1er, champion du monde !",
+                "1er",
                 "2e",
                 "3e",
-                "Dans le fossé avec les orties"
+                "Dernier"
             ],
             correctIndex: 1,
             baseValue: 2000,
@@ -285,12 +285,12 @@ extension QuestionBank {
             theme: .mathMeemaw,
             preferredRound: .cashSpeed,
             funnyTitle: "La boîte à couture géométrique",
-            prompt: "Combien de faces possède un dé à jouer classique (un cube), et quelle est la somme de deux faces opposées sur un vrai dé ?",
+            prompt: "Combien de faces possède un dé à jouer classique, et quelle est la somme de deux faces opposées sur un vrai dé ?",
             choices: [
-                "6 faces, et deux faces opposées font toujours 7 !",
+                "6 faces, et deux faces opposées font 7",
                 "8 faces, et deux faces opposées font 6",
                 "6 faces, et deux faces opposées font 10",
-                "4 faces quand Pépé triche au Yam's"
+                "4 faces, et deux faces opposées font 5"
             ],
             correctIndex: 0,
             baseValue: 2000,
@@ -418,9 +418,9 @@ extension QuestionBank {
             funnyTitle: "OSS 117 et la blanquette",
             prompt: "Dans « OSS 117 : Le Caire, nid d'espions », comment est la blanquette selon Hubert Bonisseur de La Bath ?",
             choices: [
-                "La blanquette est bonne !",
+                "La blanquette est bonne",
                 "Elle manque d'un soupçon de muscade",
-                "Elle est trop froide",
+                "Elle est beaucoup trop froide",
                 "C'est un couscous déguisé"
             ],
             correctIndex: 0,
@@ -454,10 +454,10 @@ extension QuestionBank {
             funnyTitle: "Astérix et Obélix : Mission Cléopâtre",
             prompt: "Selon le scribe Otis (Édouard Baer) dans son monologue légendaire, qu'est-ce qu'une bonne ou une mauvaise situation ?",
             choices: [
-                "Il n'y a pas de bonne ou de mauvaise situation, c'est avant tout des rencontres !",
+                "Il n'y a pas de bonne ou de mauvaise situation, ce sont des rencontres",
                 "Une bonne situation c'est 13 mois de salaire et une place de parking",
-                "C'est d'habiter face aux pyramides",
-                "C'est d'avoir du pudding à l'arsenic au dessert"
+                "Une bonne situation c'est d'habiter en face des pyramides",
+                "Une bonne situation c'est d'avoir du pudding à l'arsenic au dessert"
             ],
             correctIndex: 0,
             baseValue: 2000,
@@ -490,7 +490,7 @@ extension QuestionBank {
             funnyTitle: "Kaamelott : la technique du gras",
             prompt: "Dans la série « Kaamelott », quel est le proverbe fétiche de Karadoc (Jean-Christophe Hembert) concernant la charcuterie ?",
             choices: [
-                "Le gras, c'est la vie !",
+                "Le gras, c'est la vie",
                 "Un saucisson par jour éloigne le médecin",
                 "Qui mange du lard va moins au placard",
                 "Pas de rillettes, pas de conquête"
@@ -509,9 +509,9 @@ extension QuestionBank {
             prompt: "Dans « Le Père Noël est une ordure », comment Pierre Mortez (Thierry Lhermitte) réagit-il en découvrant le gilet tricoté par Thérèse avec des trous sous les bras ?",
             choices: [
                 "« Oh, une serpillière ! C'est formidable, Thérèse ! »",
-                "« Il est un peu serré aux entournures »",
-                "« Je vais le mettre pour aller au bal des pompiers »",
-                "« C'est exactement ma couleur préférée : gris poussière »"
+                "« Il est un peu serré aux entournures, Thérèse ! »",
+                "« Je vais le mettre pour le bal des pompiers ! »",
+                "« C'est exactement ma couleur préférée, Thérèse ! »"
             ],
             correctIndex: 0,
             baseValue: 2200,
@@ -729,10 +729,10 @@ extension QuestionBank {
             funnyTitle: "🎧 Jukebox : Daniel Balavoine et l'Aziza",
             prompt: "Complète le refrain de Daniel Balavoine (1985) : « L'Aziza, ton étoile ___ »",
             choices: [
-                "jaune, c'est ta peau, tu n'as pas le choix !",
-                "file dans le ciel du soir",
-                "brille au-dessus des toits",
-                "danse la samba"
+                "jaune, c'est ta peau, tu n'as pas le choix",
+                "file dans le ciel du soir sans s'arrêter",
+                "brille au-dessus des toits de la ville",
+                "danse dans la nuit jusqu'au matin"
             ],
             correctIndex: 0,
             baseValue: 2000,
@@ -767,8 +767,8 @@ extension QuestionBank {
             choices: [
                 "« Cendrillon pour ses vingt ans, est la plus jolie des enfants... »",
                 "« Cendrillon a perdu sa pantoufle sur le périphérique... »",
-                "« Il était une fois une citrouille bio... »",
-                "« Un autre monde, super ! »"
+                "« Il était une fois une citrouille au bord de la route... »",
+                "« Cendrillon s'endort tous les soirs devant la télé... »"
             ],
             correctIndex: 0,
             baseValue: 2000,
@@ -860,10 +860,10 @@ extension QuestionBank {
             funnyTitle: "Les cœurs de la pieuvre",
             prompt: "Combien de cœurs possède une pieuvre (un poulpe), et de quelle couleur est son sang ?",
             choices: [
-                "3 cœurs et le sang bleu !",
+                "3 cœurs et le sang bleu",
                 "1 cœur et le sang rouge",
-                "8 cœurs",
-                "2 cœurs et le sang vert fluo"
+                "8 cœurs et le sang rouge",
+                "2 cœurs et le sang vert"
             ],
             correctIndex: 0,
             baseValue: 2200,
@@ -991,10 +991,10 @@ extension QuestionBank {
             funnyTitle: "Les billets d'euros et leurs monuments",
             prompt: "De quel pays d'Europe proviennent les ponts et les fenêtres dessinés sur les billets de 5 €, 10 €, 20 €, 50 € et 100 € ?",
             choices: [
-                "D'aucun pays : ce sont des ponts 100 % fictifs",
+                "D'aucun pays, ce sont des ponts fictifs",
                 "Uniquement des ponts français et allemands",
-                "Tous les ponts sont à Rome",
-                "C'est le viaduc de Millau sous 7 angles différents"
+                "Tous les ponts se trouvent à Rome",
+                "Du viaduc de Millau sous 7 angles différents"
             ],
             correctIndex: 0,
             baseValue: 2200,
@@ -1286,7 +1286,7 @@ extension QuestionBank {
             id: "PIF_06",
             theme: .francaisMeemaw,
             funnyTitle: "Le record du mot le plus long",
-            prompt: "Combien de lettres compte le mot « ANTICONSTITUTIONNELLEMENT », longtemps considéré comme le plus long du dictionnaire ?",
+            prompt: "Combien de lettres compte le célèbre adverbe de 8 syllabes commençant par « ANTI- » et finissant par « -MENT », longtemps considéré comme le mot le plus long du dictionnaire ?",
             unitLabel: "lettres",
             correctValue: 25,
             meemawComment: "25 lettres ! Même au Scrabble il dépasse du plateau et renverse le bol de cacahuètes !"
@@ -1450,7 +1450,7 @@ extension QuestionBank {
                     id: "JACK_03_W1",
                     clueTitle: "COMPLÈTE L'EXPRESSION FRANÇAISE EXACTE !",
                     anchorText: "Pédaler dans la ...",
-                    options: ["Bétonnière", "Semoule (ou Choucroute)", "Confiture de prunes", "Piscine municipale"],
+                    options: ["Bétonnière", "Semoule", "Confiture de prunes", "Piscine municipale"],
                     correctOptionIndex: 1,
                     explanation: "Pédaler dans la semoule (ou dans la choucroute) !"
                 ),
@@ -1495,7 +1495,7 @@ extension QuestionBank {
                 QuizJackAttackWave(
                     id: "JACK_04_W1",
                     clueTitle: "ASSOCIE LE HÉROS À SON EXPRESSION CULTE !",
-                    anchorText: "Hubert Bonisseur de La Bath (OSS 117) ➜ ...",
+                    anchorText: "Hubert Bonisseur de La Bath ➜ ...",
                     options: ["« Vers l'infini et au-delà ! »", "« Comment est votre blanquette ? »", "« Je suis ton père »", "« Nom de Zeus ! »"],
                     correctOptionIndex: 1,
                     explanation: "« Comment est votre blanquette ? — Elle est bonne. » (OSS 117) !"
@@ -1503,15 +1503,15 @@ extension QuestionBank {
                 QuizJackAttackWave(
                     id: "JACK_04_W2",
                     clueTitle: "ASSOCIE LE HÉROS À SON EXPRESSION CULTE !",
-                    anchorText: "Doc Brown (Retour vers le Futur) ➜ ...",
-                    options: ["« Nom de Zeus ! (2,21 Gigowatts !) »", "« Hakuna Matata ! »", "« Tu ne passeras pas ! »", "« Ça farte ? »"],
+                    anchorText: "Doc Brown ➜ ...",
+                    options: ["« Nom de Zeus ! »", "« Hakuna Matata ! »", "« Tu ne passeras pas ! »", "« Ça farte ? »"],
                     correctOptionIndex: 0,
                     explanation: "Doc Brown et ses 2,21 Gigowatts : « Nom de Zeus ! »"
                 ),
                 QuizJackAttackWave(
                     id: "JACK_04_W3",
                     clueTitle: "ASSOCIE LE HÉROS À SON EXPRESSION CULTE !",
-                    anchorText: "Gandalf (Le Seigneur des Anneaux) ➜ ...",
+                    anchorText: "Gandalf ➜ ...",
                     options: ["« Où sont les toilettes ? »", "« Vous ne passerez pas ! »", "« Le gras, c'est la vie ! »", "« C'est à moi que tu parles ? »"],
                     correctOptionIndex: 1,
                     explanation: "Gandalf face au Balrog sur le pont de Khazad-dûm : « Vous ne passerez pas ! »"
@@ -1519,7 +1519,7 @@ extension QuestionBank {
                 QuizJackAttackWave(
                     id: "JACK_04_W4",
                     clueTitle: "ASSOCIE LE HÉROS À SON EXPRESSION CULTE !",
-                    anchorText: "Karadoc (Kaamelott) ➜ ...",
+                    anchorText: "Karadoc ➜ ...",
                     options: ["« Je s'appelle Groot »", "« Le gras, c'est la vie ! »", "« Hasta la vista, baby »", "« Mon précieux ! »"],
                     correctOptionIndex: 1,
                     explanation: "Karadoc de Vannes : « Le gras, c'est la vie ! »"

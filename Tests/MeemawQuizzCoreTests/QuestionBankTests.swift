@@ -14,6 +14,14 @@ final class QuestionBankTests: XCTestCase {
                 for choice in q.choices {
                     XCTAssertFalse(choice.contains("(") || choice.contains(")"), "Choice '\(choice)' in \(q.id) must not contain parenthetical hints")
                 }
+                let ans = q.choices[q.correctIndex]
+                let wrongs = q.choices.enumerated().compactMap { $0.offset == q.correctIndex ? nil : $0.element }
+                if ans.contains("!") {
+                    XCTAssertFalse(wrongs.allSatisfy { !$0.contains("!") }, "Question \(q.id) must not have '!' only on the correct answer")
+                }
+                if ans.contains(":") {
+                    XCTAssertFalse(wrongs.allSatisfy { !$0.contains(":") }, "Question \(q.id) must not have ':' only on the correct answer")
+                }
                 XCTAssertFalse(q.funnyTitle.isEmpty)
                 XCTAssertFalse(q.prompt.isEmpty)
                 XCTAssertFalse(q.meemawRoastOnWrong.isEmpty)
