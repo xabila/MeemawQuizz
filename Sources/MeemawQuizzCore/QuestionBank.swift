@@ -1,30 +1,39 @@
 import Foundation
 
 public struct ShowGameDeck: Sendable {
+    public var sponsor: MeemawSponsor
     public var cashQuestions: [QuizMCQQuestion]
     public var ttmcQuestions: [QuizMCQQuestion]
     public var jukeboxQuestions: [QuizMCQQuestion]
+    public var justePifQuestions: [QuizJustePifQuestion]
     public var soloQuestions: [QuizMCQQuestion]
     public var couciCoucaRound: QuizDisOrDatRound
     public var quoizziPunRound: QuizDisOrDatRound
     public var finaleDoubleQuestions: [QuizMCQQuestion]
+    public var jackAttackRound: QuizJackAttackRound
 
     public init(
+        sponsor: MeemawSponsor = QuestionBank.allSponsors[0],
         cashQuestions: [QuizMCQQuestion],
         ttmcQuestions: [QuizMCQQuestion] = [],
         jukeboxQuestions: [QuizMCQQuestion] = [],
+        justePifQuestions: [QuizJustePifQuestion] = [],
         soloQuestions: [QuizMCQQuestion],
         couciCoucaRound: QuizDisOrDatRound,
         quoizziPunRound: QuizDisOrDatRound? = nil,
-        finaleDoubleQuestions: [QuizMCQQuestion]
+        finaleDoubleQuestions: [QuizMCQQuestion],
+        jackAttackRound: QuizJackAttackRound = QuestionBank.allJackAttackRounds[0]
     ) {
+        self.sponsor = sponsor
         self.cashQuestions = cashQuestions
         self.ttmcQuestions = ttmcQuestions
         self.jukeboxQuestions = jukeboxQuestions
+        self.justePifQuestions = justePifQuestions
         self.soloQuestions = soloQuestions
         self.couciCoucaRound = couciCoucaRound
         self.quoizziPunRound = quoizziPunRound ?? couciCoucaRound
         self.finaleDoubleQuestions = finaleDoubleQuestions
+        self.jackAttackRound = jackAttackRound
     }
 
     public var allMCQIDs: [String] {
@@ -112,12 +121,26 @@ public enum QuestionBank {
             freshPool = baseQuestions.shuffled()
         }
 
+        let sponsor = allSponsors.shuffled().first ?? allSponsors[0]
+
         // 3 questions par manche : 3 Cash, 3 Solo, 3 Finale Double, 3 TTMC
-        let cash = Array(freshPool.prefix(3))
+        var cash = Array(freshPool.prefix(3))
         let solo = Array(freshPool.dropFirst(3).prefix(3))
         let finale = Array(freshPool.dropFirst(6).prefix(3))
         let ttmc = Array(freshPool.dropFirst(9).prefix(3))
         let pickedIDs = Set((cash + solo + finale + ttmc).map(\.id))
+
+        // Inject the Sponsor Wrong Answer of the Game into one of the Cash questions (index 1 if available, else 0)
+        if !cash.isEmpty {
+            let targetQIdx = cash.count > 1 ? 1 : 0
+            var q = cash[targetQIdx]
+            let wrongIndices = q.choices.indices.filter { $0 != q.correctIndex }
+            if let slot = wrongIndices.randomElement() {
+                q.choices[slot] = sponsor.trapChoiceText
+                q.sponsoredChoiceIndex = slot
+                cash[targetQIdx] = q
+            }
+        }
 
         let allMusic = allMusiqueAndJukeboxQuestions
         let jukeboxPool = allMusic
@@ -127,6 +150,21 @@ public enum QuestionBank {
             .filter { !excludingQuestionIDs.contains($0.id) && !pickedIDs.contains($0.id) }
             .shuffled()
         let jukebox = Array((jukeboxPool + fallbackMusicPool + allMusic.shuffled()).prefix(3))
+
+        // 3 questions Le Juste Pif
+        let themePif = pack == .grandMix
+            ? allJustePifQuestions
+            : allJustePifQuestions.filter { $0.theme == pack }
+        let unseenPif = (themePif + allJustePifQuestions)
+            .filter { !excludingQuestionIDs.contains($0.id) }
+            .shuffled()
+        var uniquePif: [QuizJustePifQuestion] = []
+        for item in (unseenPif + allJustePifQuestions.shuffled()) {
+            if !uniquePif.contains(where: { $0.id == item.id }) {
+                uniquePif.append(item)
+            }
+            if uniquePif.count == 3 { break }
+        }
 
         let themeCouci = disOrDatRounds(for: pack)
         let unseenCouci = themeCouci.filter { !excludingDisOrDatIDs.contains($0.id) }.shuffled()
@@ -139,14 +177,20 @@ public enum QuestionBank {
         let unseenPuns = allPunRounds.filter { !excludingDisOrDatIDs.contains($0.id) }.shuffled()
         let punRound = unseenPuns.first ?? allPunRounds.shuffled().first ?? combinedDisOrDatRounds[0]
 
+        let unseenJack = allJackAttackRounds.filter { !excludingDisOrDatIDs.contains($0.id) }.shuffled()
+        let jackRound = unseenJack.first ?? allJackAttackRounds.shuffled().first ?? allJackAttackRounds[0]
+
         return ShowGameDeck(
+            sponsor: sponsor,
             cashQuestions: cash,
             ttmcQuestions: ttmc.count == 3 ? ttmc : Array(freshPool.prefix(3)),
             jukeboxQuestions: jukebox,
+            justePifQuestions: uniquePif,
             soloQuestions: solo.count == 3 ? solo : Array(freshPool.suffix(3)),
             couciCoucaRound: couci,
             quoizziPunRound: punRound,
-            finaleDoubleQuestions: finale.count == 3 ? finale : Array(freshPool.prefix(3))
+            finaleDoubleQuestions: finale.count == 3 ? finale : Array(freshPool.prefix(3)),
+            jackAttackRound: jackRound
         )
     }
 

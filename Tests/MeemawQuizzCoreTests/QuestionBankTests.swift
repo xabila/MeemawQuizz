@@ -37,11 +37,29 @@ final class QuestionBankTests: XCTestCase {
         XCTAssertEqual(deck.cashQuestions.count, 3)
         XCTAssertEqual(deck.ttmcQuestions.count, 3)
         XCTAssertEqual(deck.jukeboxQuestions.count, 3)
+        XCTAssertEqual(deck.justePifQuestions.count, 3)
         XCTAssertEqual(deck.soloQuestions.count, 3)
         XCTAssertEqual(deck.finaleDoubleQuestions.count, 3)
+        XCTAssertEqual(deck.jackAttackRound.waves.count, 5)
+        XCTAssertNotNil(deck.cashQuestions[1].sponsoredChoiceIndex)
+        XCTAssertNotEqual(deck.cashQuestions[1].sponsoredChoiceIndex, deck.cashQuestions[1].correctIndex)
         XCTAssertFalse(deck.couciCoucaRound.isPunRound)
         XCTAssertGreaterThanOrEqual(QuestionBank.questions(for: .grandMix).count, 210)
         XCTAssertGreaterThanOrEqual(QuestionBank.combinedDisOrDatRounds.count, 26)
+    }
+
+    func testYDKJNewMechanicsScoring() {
+        let pifScores = QuizScoringEngine.scoreJustePifEstimates(
+            correctValue: 100,
+            estimatesByPlayerID: ["p1": 100, "p2": 95, "p3": 200]
+        )
+        XCTAssertEqual(pifScores["p1"], 5000) // Tout pile
+        XCTAssertEqual(pifScores["p2"], 1500) // 2e plus proche
+        XCTAssertEqual(pifScores["p3"], -500) // Pif cassé (le plus loin)
+
+        XCTAssertEqual(QuizScoringEngine.scoreJackAttackBuzz(isCorrect: true), 3000)
+        XCTAssertEqual(QuizScoringEngine.scoreJackAttackBuzz(isCorrect: false), -1500)
+        XCTAssertEqual(QuizScoringEngine.sponsorJackpotPoints, 3500)
     }
 
     func testWholeEveningSessionNeverRepeatsQuestionsAcrossTwelveConsecutiveGames() {

@@ -1164,4 +1164,375 @@ extension QuestionBank {
             isPunRound: false
         )
     ]
+
+    // MARK: - 8. 🪤 Les Sponsors Bidons de Mamie (« Wrong Answer of the Game » façon YDKJ)
+
+    public static let allSponsors: [MeemawSponsor] = [
+        MeemawSponsor(
+            id: "SPON_01",
+            name: "Les Pantoufles Charentaises Turbo-Grip™",
+            slogan: "« Pour déraper dans le couloir sans perdre son dentier ! »",
+            hintKeyword: "Pantoufles / Charentaises",
+            trapChoiceText: "Des pantoufles charentaises à semelle Turbo-Grip™",
+            jackpotReward: 3500
+        ),
+        MeemawSponsor(
+            id: "SPON_02",
+            name: "Le Camembert Artisanal Le Parfumé™",
+            slogan: "« Affiné sous le radiateur depuis 1984 : il marche tout seul jusqu'à la table ! »",
+            hintKeyword: "Camembert Le Parfumé",
+            trapChoiceText: "Un Camembert Le Parfumé™ oublié sous le radiateur",
+            jackpotReward: 3500
+        ),
+        MeemawSponsor(
+            id: "SPON_03",
+            name: "La Tisane Sommeil de Plomb™",
+            slogan: "« Une gorgée à 20h05, un ronflement dès le générique du JT ! »",
+            hintKeyword: "Tisane Sommeil de Plomb",
+            trapChoiceText: "Deux litres de Tisane Sommeil de Plomb™ à la verveine",
+            jackpotReward: 3500
+        ),
+        MeemawSponsor(
+            id: "SPON_04",
+            name: "Le Caddie à 6 Roues Tout-Terrain MamieCross™",
+            slogan: "« Franchit les trottoirs et écrase les pieds des resquilleurs au marché ! »",
+            hintKeyword: "Caddie MamieCross",
+            trapChoiceText: "Un caddie à 6 roues tout-terrain MamieCross™",
+            jackpotReward: 3500
+        ),
+        MeemawSponsor(
+            id: "SPON_05",
+            name: "Les Bonbons à la Menthe Vieux-Plombage™",
+            slogan: "« Collés au fond du sac à main avec trois mouchoirs et deux tickets de bus depuis 1999 ! »",
+            hintKeyword: "Bonbons Vieux-Plombage",
+            trapChoiceText: "Un bonbon Vieux-Plombage™ collé au fond du sac à main",
+            jackpotReward: 3500
+        ),
+        MeemawSponsor(
+            id: "SPON_06",
+            name: "La Boîte à Biscuits en Métal Danoise™",
+            slogan: "« 0 % sablés au beurre, 100 % bobines de fil et aiguilles à coudre ! »",
+            hintKeyword: "Boîte à couture Danoise",
+            trapChoiceText: "La boîte à biscuits bleue remplie de bobines de fil à coudre",
+            jackpotReward: 3500
+        ),
+        MeemawSponsor(
+            id: "SPON_07",
+            name: "L'Eau de Cologne Foudroyante Lavande-Tonnerre™",
+            slogan: "« Pique les yeux à 15 mètres et fait fuir les moustiques jusqu'en Dordogne ! »",
+            hintKeyword: "Eau de Cologne Lavande-Tonnerre",
+            trapChoiceText: "Un flacon d'Eau de Cologne Lavande-Tonnerre™",
+            jackpotReward: 3500
+        ),
+        MeemawSponsor(
+            id: "SPON_08",
+            name: "Le Napperon au Crochet Anti-Poussière™",
+            slogan: "« Posé sur la télé écran plat pour réchauffer les pixels ! »",
+            hintKeyword: "Napperon au crochet",
+            trapChoiceText: "Un napperon au crochet posé sur le décodeur télé",
+            jackpotReward: 3500
+        )
+    ]
+
+    // MARK: - 9. 🎯 Manche « Le Juste Pif » (18 questions d'estimation chiffrée au plus proche)
+
+    public static let allJustePifQuestions: [QuizJustePifQuestion] = [
+        QuizJustePifQuestion(
+            id: "PIF_01",
+            theme: .cultureGInsolite,
+            funnyTitle: "Le rouleau compresseur des toilettes",
+            prompt: "Combien de rouleaux de papier toilette un Français utilise-t-il en moyenne sur une année entière ?",
+            unitLabel: "rouleaux / an",
+            correctValue: 105,
+            meemawComment: "Environ 105 rouleaux par an (soit 2 par semaine) ! Et le double quand Tonton prépare son chili con carne !"
+        ),
+        QuizJustePifQuestion(
+            id: "PIF_02",
+            theme: .cultureGInsolite,
+            funnyTitle: "La baguette sacrée du matin",
+            prompt: "Combien de baguettes de pain sont vendues chaque SECONDE en France dans les boulangeries ?",
+            unitLabel: "baguettes / seconde",
+            correctValue: 320,
+            meemawComment: "320 baguettes par seconde, soit 10 milliards par an ! Et la moitié a déjà le quignon mangé dans la voiture !"
+        ),
+        QuizJustePifQuestion(
+            id: "PIF_03",
+            theme: .mathMeemaw,
+            funnyTitle: "Les marches de la Dame de Fer",
+            prompt: "Si l'ascenseur est en panne, combien de marches faut-il gravir à pied pour monter tout en haut de la Tour Eiffel (jusqu'au sommet) ?",
+            unitLabel: "marches",
+            correctValue: 1665,
+            meemawComment: "1 665 marches jusqu'au sommet ! Rien que d'y penser, les rotules de Meemaw grincent !"
+        ),
+        QuizJustePifQuestion(
+            id: "PIF_04",
+            theme: .seriesCinema,
+            funnyTitle: "Le marathon Louis de Funès",
+            prompt: "En quelle année est sorti au cinéma le film culte « La Grande Vadrouille » avec Bourvil et Louis de Funès ?",
+            unitLabel: "année",
+            correctValue: 1966,
+            meemawComment: "Sorti en décembre 1966, avec plus de 17 millions d'entrées en salles !"
+        ),
+        QuizJustePifQuestion(
+            id: "PIF_05",
+            theme: .ecoCash,
+            funnyTitle: "L'empire du fromage qui fond",
+            prompt: "Combien de kilos de fromage un Français mange-t-il en moyenne par an (raclette, camembert et comté compris) ?",
+            unitLabel: "kg / an",
+            correctValue: 27,
+            meemawComment: "27 kilos par an et par habitant ! En Savoie, on appelle ça un mardi après-midi."
+        ),
+        QuizJustePifQuestion(
+            id: "PIF_06",
+            theme: .francaisMeemaw,
+            funnyTitle: "Le record du mot le plus long",
+            prompt: "Combien de lettres compte le mot « ANTICONSTITUTIONNELLEMENT », longtemps considéré comme le plus long du dictionnaire ?",
+            unitLabel: "lettres",
+            correctValue: 25,
+            meemawComment: "25 lettres ! Même au Scrabble il dépasse du plateau et renverse le bol de cacahuètes !"
+        ),
+        QuizJustePifQuestion(
+            id: "PIF_07",
+            theme: .musiqueTubes,
+            funnyTitle: "Les Lacs du Connemara en mariage",
+            prompt: "En quelle année Michel Sardou a-t-il sorti « Les Lacs du Connemara », l'hymne officiel des serviettes qui tournent à 3h du matin ?",
+            unitLabel: "année",
+            correctValue: 1981,
+            meemawComment: "En 1981 ! Depuis, 14 millions de serviettes de table ont fini accrochées au lustre !"
+        ),
+        QuizJustePifQuestion(
+            id: "PIF_08",
+            theme: .cultureGInsolite,
+            funnyTitle: "Le coup d'œil au smartphone",
+            prompt: "Combien de fois par JOUR un adulte consulte-t-il ou déverrouille-t-il son téléphone portable en moyenne ?",
+            unitLabel: "fois / jour",
+            correctValue: 96,
+            meemawComment: "96 fois par jour (environ une fois toutes les 10 minutes éveillées) !"
+        ),
+        QuizJustePifQuestion(
+            id: "PIF_09",
+            theme: .mathMeemaw,
+            funnyTitle: "Les os du corps humain",
+            prompt: "Combien d'os possède le squelette d'un être humain adulte ?",
+            unitLabel: "os",
+            correctValue: 206,
+            meemawComment: "206 os chez l'adulte (contre environ 300 à la naissance avant qu'ils ne se soudent) !"
+        ),
+        QuizJustePifQuestion(
+            id: "PIF_10",
+            theme: .ecoCash,
+            funnyTitle: "Le passage à l'Euro",
+            prompt: "En quelle année les pièces et billets en Euros sont-ils arrivés dans les porte-monnaie des Français (adieu les Francs) ?",
+            unitLabel: "année",
+            correctValue: 2002,
+            meemawComment: "Le 1er janvier 2002 ! Et Meemaw convertit encore les baguettes en Anciens Francs !"
+        ),
+        QuizJustePifQuestion(
+            id: "PIF_11",
+            theme: .seriesCinema,
+            funnyTitle: "Le naufrage du Titanic au cinéma",
+            prompt: "Combien de minutes dure le film « Titanic » de James Cameron (prépare le coussin) ?",
+            unitLabel: "minutes",
+            correctValue: 194,
+            meemawComment: "194 minutes (3 heures et 14 minutes) ! Largement le temps de faire tenir Jack sur la planche !"
+        ),
+        QuizJustePifQuestion(
+            id: "PIF_12",
+            theme: .cultureGInsolite,
+            funnyTitle: "La vitesse d'un escargot en plein sprint",
+            prompt: "Combien de MÈTRES un escargot de Bourgogne parcourt-il en 1 heure quand il court à fond vers une salade ?",
+            unitLabel: "mètres / heure",
+            correctValue: 48,
+            meemawComment: "Environ 48 mètres par heure (1,3 cm par seconde) ! Presque aussi rapide que Pépé quand il faut débarrasser la table !"
+        )
+    ]
+
+    // MARK: - 10. ⚡ Finale « Le Jack Attack de Meemaw » (6 rounds de 5 vagues au buzzer)
+
+    public static let allJackAttackRounds: [QuizJackAttackRound] = [
+        QuizJackAttackRound(
+            id: "JACK_01",
+            funnyTitle: "⚡ Jack Attack : Les Duos Inséparables !",
+            waves: [
+                QuizJackAttackWave(
+                    id: "JACK_01_W1",
+                    clueTitle: "TROUVE LE PARTENAIRE OFFICIEL DU DUO !",
+                    anchorText: "Astérix & ...",
+                    options: ["Robocop", "Obélix", "Gandalf", "Inspecteur Derrick"],
+                    correctOptionIndex: 1,
+                    explanation: "Astérix & Obélix, par Toutatis !"
+                ),
+                QuizJackAttackWave(
+                    id: "JACK_01_W2",
+                    clueTitle: "TROUVE LE PARTENAIRE OFFICIEL DU DUO !",
+                    anchorText: "Timon & ...",
+                    options: ["Simba-Turbo", "Tartiflette", "Pumbaa", "Scooby-Doo"],
+                    correctOptionIndex: 2,
+                    explanation: "Timon & Pumbaa (« Hakuna Matata ») !"
+                ),
+                QuizJackAttackWave(
+                    id: "JACK_01_W3",
+                    clueTitle: "TROUVE LE PARTENAIRE OFFICIEL DU DUO !",
+                    anchorText: "Starsky & ...",
+                    options: ["Hutch", "Capitaine Haddock", "Columbo", "Spock"],
+                    correctOptionIndex: 0,
+                    explanation: "Starsky & Hutch dans leur Ford Gran Torino rouge et blanche !"
+                ),
+                QuizJackAttackWave(
+                    id: "JACK_01_W4",
+                    clueTitle: "TROUVE LE PARTENAIRE OFFICIEL DU DUO !",
+                    anchorText: "Sherlock Holmes & ...",
+                    options: ["Arsène Lupin", "Docteur Maboul", "Docteur Watson", "Nestor Burma"],
+                    correctOptionIndex: 2,
+                    explanation: "Élémentaire, mon cher Docteur Watson !"
+                ),
+                QuizJackAttackWave(
+                    id: "JACK_01_W5",
+                    clueTitle: "TROUVE LE PARTENAIRE OFFICIEL DU DUO !",
+                    anchorText: "Bonnie & ...",
+                    options: ["Claudette", "Clyde", "Picsou", "Al Capone"],
+                    correctOptionIndex: 1,
+                    explanation: "Bonnie & Clyde !"
+                )
+            ]
+        ),
+        QuizJackAttackRound(
+            id: "JACK_02",
+            funnyTitle: "⚡ Jack Attack : À Chaque Ville sa Spécialité !",
+            waves: [
+                QuizJackAttackWave(
+                    id: "JACK_02_W1",
+                    clueTitle: "BUZZE SUR LA VRAIE SPÉCIALITÉ DE LA VILLE !",
+                    anchorText: "Marseille ➜ ...",
+                    options: ["La Choucroute garnie", "La Bouillabaisse", "Le Kouign-amann", "Le Cassoulet"],
+                    correctOptionIndex: 1,
+                    explanation: "Marseille et sa célèbre Bouillabaisse !"
+                ),
+                QuizJackAttackWave(
+                    id: "JACK_02_W2",
+                    clueTitle: "BUZZE SUR LA VRAIE SPÉCIALITÉ DE LA VILLE !",
+                    anchorText: "Toulouse ➜ ...",
+                    options: ["Les Crêpes au sarrasin", "La Fondue savoyarde", "Le Cassoulet", "Les Bêtises de Cambrai"],
+                    correctOptionIndex: 2,
+                    explanation: "Toulouse (avec Castelnaudary et Carcassonne), capitale du Cassoulet !"
+                ),
+                QuizJackAttackWave(
+                    id: "JACK_02_W3",
+                    clueTitle: "BUZZE SUR LA VRAIE SPÉCIALITÉ DE LA VILLE !",
+                    anchorText: "Montélimar ➜ ...",
+                    options: ["Le Nougat", "La Moutarde", "Le Roquefort", "Les Canelés"],
+                    correctOptionIndex: 0,
+                    explanation: "Le Nougat de Montélimar (attention aux plombages de Mamie) !"
+                ),
+                QuizJackAttackWave(
+                    id: "JACK_02_W4",
+                    clueTitle: "BUZZE SUR LA VRAIE SPÉCIALITÉ DE LA VILLE !",
+                    anchorText: "Bordeaux ➜ ...",
+                    options: ["La Quiche lorraine", "L'Aligot", "Les Canelés", "Le Calisson"],
+                    correctOptionIndex: 2,
+                    explanation: "Les Canelés bordelais caramélisés au rhum et à la vanille !"
+                ),
+                QuizJackAttackWave(
+                    id: "JACK_02_W5",
+                    clueTitle: "BUZZE SUR LA VRAIE SPÉCIALITÉ DE LA VILLE !",
+                    anchorText: "Dijon ➜ ...",
+                    options: ["Le Piment d'Espelette", "La Moutarde", "Les Galettes de Pont-Aven", "Le Pastis"],
+                    correctOptionIndex: 1,
+                    explanation: "La Moutarde de Dijon qui monte au nez !"
+                )
+            ]
+        ),
+        QuizJackAttackRound(
+            id: "JACK_03",
+            funnyTitle: "⚡ Jack Attack : Les Expressions de Meemaw !",
+            waves: [
+                QuizJackAttackWave(
+                    id: "JACK_03_W1",
+                    clueTitle: "COMPLÈTE L'EXPRESSION FRANÇAISE EXACTE !",
+                    anchorText: "Pédaler dans la ...",
+                    options: ["Bétonnière", "Semoule (ou Choucroute)", "Confiture de prunes", "Piscine municipale"],
+                    correctOptionIndex: 1,
+                    explanation: "Pédaler dans la semoule (ou dans la choucroute) !"
+                ),
+                QuizJackAttackWave(
+                    id: "JACK_03_W2",
+                    clueTitle: "COMPLÈTE L'EXPRESSION FRANÇAISE EXACTE !",
+                    anchorText: "Poser un ...",
+                    options: ["Kangourou", "Radiateur en fonte", "Lapin", "Parapluie"],
+                    correctOptionIndex: 2,
+                    explanation: "Poser un lapin (ne pas venir à un rendez-vous) !"
+                ),
+                QuizJackAttackWave(
+                    id: "JACK_03_W3",
+                    clueTitle: "COMPLÈTE L'EXPRESSION FRANÇAISE EXACTE !",
+                    anchorText: "Avoir un poil dans la ...",
+                    options: ["Soupe", "Narines", "Main", "Pantoufle"],
+                    correctOptionIndex: 2,
+                    explanation: "Avoir un poil dans la main (être sacrément flemmard) !"
+                ),
+                QuizJackAttackWave(
+                    id: "JACK_03_W4",
+                    clueTitle: "COMPLÈTE L'EXPRESSION FRANÇAISE EXACTE !",
+                    anchorText: "Donner sa langue au ...",
+                    options: ["Facteur", "Perroquet", "Chat", "Contrôleur des impôts"],
+                    correctOptionIndex: 2,
+                    explanation: "Donner sa langue au chat !"
+                ),
+                QuizJackAttackWave(
+                    id: "JACK_03_W5",
+                    clueTitle: "COMPLÈTE L'EXPRESSION FRANÇAISE EXACTE !",
+                    anchorText: "Mettre les pieds dans le ...",
+                    options: ["Plat", "Grille-pain", "Lavabo", "Pot d'échappement"],
+                    correctOptionIndex: 0,
+                    explanation: "Mettre les pieds dans le plat !"
+                )
+            ]
+        ),
+        QuizJackAttackRound(
+            id: "JACK_04",
+            funnyTitle: "⚡ Jack Attack : Les Répliques & Héros Cultes !",
+            waves: [
+                QuizJackAttackWave(
+                    id: "JACK_04_W1",
+                    clueTitle: "ASSOCIE LE HÉROS À SON EXPRESSION CULTE !",
+                    anchorText: "Hubert Bonisseur de La Bath (OSS 117) ➜ ...",
+                    options: ["« Vers l'infini et au-delà ! »", "« Comment est votre blanquette ? »", "« Je suis ton père »", "« Nom de Zeus ! »"],
+                    correctOptionIndex: 1,
+                    explanation: "« Comment est votre blanquette ? — Elle est bonne. » (OSS 117) !"
+                ),
+                QuizJackAttackWave(
+                    id: "JACK_04_W2",
+                    clueTitle: "ASSOCIE LE HÉROS À SON EXPRESSION CULTE !",
+                    anchorText: "Doc Brown (Retour vers le Futur) ➜ ...",
+                    options: ["« Nom de Zeus ! (2,21 Gigowatts !) »", "« Hakuna Matata ! »", "« Tu ne passeras pas ! »", "« Ça farte ? »"],
+                    correctOptionIndex: 0,
+                    explanation: "Doc Brown et ses 2,21 Gigowatts : « Nom de Zeus ! »"
+                ),
+                QuizJackAttackWave(
+                    id: "JACK_04_W3",
+                    clueTitle: "ASSOCIE LE HÉROS À SON EXPRESSION CULTE !",
+                    anchorText: "Gandalf (Le Seigneur des Anneaux) ➜ ...",
+                    options: ["« Où sont les toilettes ? »", "« Vous ne passerez pas ! »", "« Le gras, c'est la vie ! »", "« C'est à moi que tu parles ? »"],
+                    correctOptionIndex: 1,
+                    explanation: "Gandalf face au Balrog sur le pont de Khazad-dûm : « Vous ne passerez pas ! »"
+                ),
+                QuizJackAttackWave(
+                    id: "JACK_04_W4",
+                    clueTitle: "ASSOCIE LE HÉROS À SON EXPRESSION CULTE !",
+                    anchorText: "Karadoc (Kaamelott) ➜ ...",
+                    options: ["« Je s'appelle Groot »", "« Le gras, c'est la vie ! »", "« Hasta la vista, baby »", "« Mon précieux ! »"],
+                    correctOptionIndex: 1,
+                    explanation: "Karadoc de Vannes : « Le gras, c'est la vie ! »"
+                ),
+                QuizJackAttackWave(
+                    id: "JACK_04_W5",
+                    clueTitle: "ASSOCIE LE HÉROS À SON EXPRESSION CULTE !",
+                    anchorText: "Brice de Nice ➜ ...",
+                    options: ["« J'ai glissé chef ! »", "« Je t'ai cassé ! »", "« On attend pas Patrick ? »", "« C'est l'jeu ma pauv' Lucette ! »"],
+                    correctOptionIndex: 1,
+                    explanation: "Brice de Nice, roi de la casse : « Je t'ai cassé ! »"
+                )
+            ]
+        )
+    ]
 }

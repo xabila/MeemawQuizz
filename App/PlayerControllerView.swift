@@ -6,6 +6,7 @@ struct PlayerControllerView: View {
     var displayManager = ExternalDisplayManager.shared
 
     @State private var isShowingSettingsSheet: Bool = false
+    @State private var justePifInputString: String = ""
 
     private var snap: HostToClientStateSnapshot {
         session.effectiveSnapshot
@@ -53,12 +54,16 @@ struct PlayerControllerView: View {
                             soloAnsweringControllerSection
                         case .questionReading, .cashAnswering, .questionReveal:
                             cashMCQControllerSection
+                        case .justePifAnswering, .justePifReveal:
+                            justePifControllerSection
                         case .couciCoucaIntro, .couciCoucaItem, .couciCoucaReveal, .couciCoucaSummary:
                             couciCoucaControllerSection
                         case .drawWordChoice, .drawLiveGuessing, .drawReveal:
                             drawSomethingControllerSection
                         case .esquissePromptEntry, .esquisseDrawing, .esquisseGuessing, .esquisseShowcase:
                             esquisseControllerSection
+                        case .jackAttackActive, .jackAttackWaveReveal:
+                            jackAttackControllerSection
                         case .finalPodium:
                             finalPodiumControllerSection
                         }
@@ -86,7 +91,10 @@ struct PlayerControllerView: View {
             lobbySettingsSheet
         }
         .onChange(of: snap.stage) { _, newStage in
-            if newStage == .questionReveal || newStage == .couciCoucaReveal {
+            if newStage == .justePifAnswering {
+                justePifInputString = ""
+            }
+            if newStage == .questionReveal || newStage == .couciCoucaReveal || newStage == .justePifReveal || newStage == .jackAttackWaveReveal {
                 let delta = me?.lastDeltaScore ?? 0
                 let generator = UINotificationFeedbackGenerator()
                 generator.notificationOccurred(delta > 0 ? .success : .error)
@@ -925,27 +933,324 @@ struct PlayerControllerView: View {
         }
     }
 
-    // MARK: - 3. Round Intro Controller Card
+    // MARK: - 3. Round Intro Controller Card (+ Sponsor Officiel du Jour)
 
     private var roundIntroControllerSection: some View {
-        PopArtCard(cornerRadius: 24, borderWidth: 4, backgroundColor: PopArt.yellow) {
-            VStack(spacing: 12) {
-                Text(snap.roundKind.badgeTitle)
-                    .font(.system(size: 24, weight: .black, design: .rounded))
-                    .foregroundStyle(PopArt.ink)
-                    .multilineTextAlignment(.center)
+        VStack(spacing: 12) {
+            PopArtCard(cornerRadius: 24, borderWidth: 4, backgroundColor: PopArt.yellow) {
+                VStack(spacing: 12) {
+                    Text(snap.roundKind.badgeTitle)
+                        .font(.system(size: 24, weight: .black, design: .rounded))
+                        .foregroundStyle(PopArt.ink)
+                        .multilineTextAlignment(.center)
 
-                Text(snap.roundKind.ruleSummary)
-                    .font(.system(size: 16, weight: .bold, design: .rounded))
-                    .foregroundStyle(PopArt.ink.opacity(0.85))
-                    .multilineTextAlignment(.center)
+                    Text(snap.roundKind.ruleSummary)
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .foregroundStyle(PopArt.ink.opacity(0.85))
+                        .multilineTextAlignment(.center)
 
-                Text("👀 Écoute Meemaw — démarrage auto dans \(max(1, Int(ceil(snap.timeRemainingSec))))s...")
-                    .font(.system(size: 14, weight: .black))
-                    .foregroundStyle(PopArt.orange)
+                    Text("👀 Écoute Meemaw — démarrage auto dans \(max(1, Int(ceil(snap.timeRemainingSec))))s...")
+                        .font(.system(size: 14, weight: .black))
+                        .foregroundStyle(PopArt.orange)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(24)
             }
-            .frame(maxWidth: .infinity)
-            .padding(24)
+
+            if snap.roundKind == .cashSpeed, let sponsor = snap.activeSponsor {
+                PopArtCard(cornerRadius: 20, borderWidth: 3.5, backgroundColor: PopArt.white) {
+                    VStack(spacing: 6) {
+                        Text("🪤 SPONSOR OFFICIEL DU JOUR (RÉPONSE CACHÉE)")
+                            .font(.system(size: 12, weight: .black, design: .rounded))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(PopArt.orange, in: Capsule())
+                        Text(sponsor.name)
+                            .font(.system(size: 17, weight: .black, design: .rounded))
+                            .foregroundStyle(PopArt.ink)
+                            .multilineTextAlignment(.center)
+                        Text(sponsor.slogan)
+                            .font(.system(size: 13, weight: .bold, design: .rounded))
+                            .foregroundStyle(PopArt.ink.opacity(0.75))
+                            .multilineTextAlignment(.center)
+                        Text("🎁 Si tu vois « \(sponsor.hintKeyword) » dans un QCM, clique dessus pour rafler +\(sponsor.jackpotReward) PTS !")
+                            .font(.system(size: 13, weight: .black, design: .rounded))
+                            .foregroundStyle(PopArt.greenSuccess)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(14)
+                }
+            }
+        }
+    }
+
+    // MARK: - 3A-Bis. Manche : 🔢 « Le Juste Pif » (Estimation Numérique au Plus Proche)
+
+    private var justePifControllerSection: some View {
+        VStack(spacing: 12) {
+            if let pif = snap.activeJustePif {
+                PopArtCard(cornerRadius: 22, borderWidth: 4, backgroundColor: PopArt.white) {
+                    VStack(spacing: 8) {
+                        HStack {
+                            Text("🔢 LE JUSTE PIF")
+                                .font(.system(size: 13, weight: .black, design: .rounded))
+                                .foregroundStyle(PopArt.ink)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 5)
+                                .background(PopArt.yellow, in: Capsule())
+                                .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
+                            Spacer()
+                            Text("Unité : \(pif.unitLabel)")
+                                .font(.system(size: 12, weight: .black, design: .rounded))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 4)
+                                .background(PopArt.orange, in: Capsule())
+                        }
+                        Text("« \(pif.funnyTitle) »")
+                            .font(.system(size: 15, weight: .black, design: .rounded))
+                            .foregroundStyle(PopArt.orange)
+                        Text(pif.prompt)
+                            .font(.system(size: 18, weight: .black, design: .rounded))
+                            .foregroundStyle(PopArt.ink)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(16)
+                }
+
+                if snap.stage == .justePifReveal {
+                    PopArtCard(cornerRadius: 22, borderWidth: 4, backgroundColor: PopArt.yellow) {
+                        VStack(spacing: 10) {
+                            Text("🎯 VRAIE VALEUR : \(pif.correctValue) \(pif.unitLabel.uppercased())")
+                                .font(.system(size: 22, weight: .black, design: .rounded))
+                                .foregroundStyle(PopArt.ink)
+                                .multilineTextAlignment(.center)
+
+                            Text(pif.meemawComment)
+                                .font(.system(size: 14, weight: .bold, design: .rounded))
+                                .foregroundStyle(PopArt.ink.opacity(0.85))
+                                .multilineTextAlignment(.center)
+
+                            VStack(spacing: 6) {
+                                let ranked = snap.players.sorted {
+                                    let d0 = abs(($0.lockedNumericEstimate ?? 999999) - pif.correctValue)
+                                    let d1 = abs(($1.lockedNumericEstimate ?? 999999) - pif.correctValue)
+                                    return d0 < d1
+                                }
+                                ForEach(ranked) { p in
+                                    HStack {
+                                        Text("\(p.avatarEmoji) \(p.name)")
+                                            .font(.system(size: 15, weight: .black, design: .rounded))
+                                            .foregroundStyle(PopArt.ink)
+                                        Spacer()
+                                        if let est = p.lockedNumericEstimate {
+                                            Text("\(est) \(pif.unitLabel)")
+                                                .font(.system(size: 15, weight: .black, design: .monospaced))
+                                                .foregroundStyle(PopArt.ink)
+                                        } else {
+                                            Text("Pas répondu")
+                                                .font(.system(size: 13, weight: .bold))
+                                                .foregroundStyle(PopArt.ink.opacity(0.5))
+                                        }
+                                        if let delta = p.lastDeltaScore {
+                                            Text(delta >= 0 ? "+\(delta)" : "\(delta)")
+                                                .font(.system(size: 14, weight: .black, design: .rounded))
+                                                .foregroundStyle(.white)
+                                                .padding(.horizontal, 8)
+                                                .padding(.vertical, 3)
+                                                .background(delta >= 0 ? PopArt.greenSuccess : PopArt.redError, in: Capsule())
+                                        }
+                                    }
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 8)
+                                    .background(PopArt.white, in: RoundedRectangle(cornerRadius: 12))
+                                    .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(PopArt.ink, lineWidth: 2))
+                                }
+                            }
+                        }
+                        .padding(16)
+                    }
+                } else if let lockedVal = me?.lockedNumericEstimate {
+                    let count = snap.players.filter { $0.lockedNumericEstimate != nil }.count
+                    PopArtCard(cornerRadius: 20, borderWidth: 3.5, backgroundColor: PopArt.yellow) {
+                        VStack(spacing: 6) {
+                            Text("🔒 TON PIF VERROUILLÉ : \(lockedVal) \(pif.unitLabel)")
+                                .font(.system(size: 19, weight: .black, design: .rounded))
+                                .foregroundStyle(PopArt.ink)
+                            Text("⏳ En attente des autres joueurs (\(count)/\(snap.players.count))...")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundStyle(PopArt.ink.opacity(0.8))
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(16)
+                    }
+                } else {
+                    PopArtCard(cornerRadius: 22, borderWidth: 4, backgroundColor: PopArt.cream) {
+                        VStack(spacing: 10) {
+                            HStack {
+                                Text(justePifInputString.isEmpty ? "—" : justePifInputString)
+                                    .font(.system(size: 32, weight: .black, design: .monospaced))
+                                    .foregroundStyle(PopArt.ink)
+                                Text(pif.unitLabel)
+                                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                                    .foregroundStyle(PopArt.ink.opacity(0.65))
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                            .background(PopArt.white, in: RoundedRectangle(cornerRadius: 14))
+                            .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(PopArt.ink, lineWidth: 3))
+
+                            let rows = [
+                                ["1", "2", "3"],
+                                ["4", "5", "6"],
+                                ["7", "8", "9"],
+                                ["⌫", "0", "OK"]
+                            ]
+                            ForEach(rows, id: \.self) { row in
+                                HStack(spacing: 10) {
+                                    ForEach(row, id: \.self) { key in
+                                        Button {
+                                            if key == "⌫" {
+                                                if !justePifInputString.isEmpty {
+                                                    justePifInputString.removeLast()
+                                                }
+                                            } else if key == "OK" {
+                                                if let val = Int(justePifInputString) {
+                                                    session.submitNumericEstimate(val)
+                                                }
+                                            } else if justePifInputString.count < 7 {
+                                                if justePifInputString == "0" {
+                                                    justePifInputString = key
+                                                } else {
+                                                    justePifInputString.append(key)
+                                                }
+                                            }
+                                        } label: {
+                                            Text(key == "OK" ? "✅ VALIDER" : key)
+                                                .font(.system(size: key == "OK" ? 16 : 24, weight: .black, design: .rounded))
+                                                .frame(maxWidth: .infinity)
+                                                .padding(.vertical, 13)
+                                        }
+                                        .buttonStyle(
+                                            PopArtActionButtonStyle(
+                                                backgroundColor: key == "OK" ? PopArt.greenSuccess : (key == "⌫" ? PopArt.orange : PopArt.white),
+                                                foregroundColor: (key == "OK" || key == "⌫") ? .white : PopArt.ink,
+                                                cornerRadius: 14
+                                            )
+                                        )
+                                        .disabled(key == "OK" && Int(justePifInputString) == nil)
+                                    }
+                                }
+                            }
+                        }
+                        .padding(14)
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - 3A-Ter. Grande Finale : ⚡ « Le Jack Attack de Meemaw » (Buzzer Ultra-Rapide)
+
+    private var jackAttackControllerSection: some View {
+        VStack(spacing: 14) {
+            if let round = snap.activeJackAttack,
+               let wIdx = snap.activeJackAttackWaveIndex,
+               round.waves.indices.contains(wIdx) {
+                let wave = round.waves[wIdx]
+                let optIdx = snap.activeJackAttackOptionIndex ?? 0
+                let currentOption = wave.options.indices.contains(optIdx) ? wave.options[optIdx] : "..."
+                let isFrozen = me?.isJackAttackFrozen ?? false
+
+                PopArtCard(cornerRadius: 22, borderWidth: 4, backgroundColor: PopArt.white) {
+                    VStack(spacing: 8) {
+                        HStack {
+                            Text("⚡ JACK ATTACK • VAGUE \(wIdx + 1)/\(round.waves.count)")
+                                .font(.system(size: 13, weight: .black, design: .rounded))
+                                .foregroundStyle(PopArt.ink)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 5)
+                                .background(PopArt.yellow, in: Capsule())
+                                .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
+                            Spacer()
+                            Text("+3 000 / -1 500")
+                                .font(.system(size: 12, weight: .black, design: .monospaced))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 4)
+                                .background(PopArt.orange, in: Capsule())
+                        }
+                        Text(wave.clueTitle)
+                            .font(.system(size: 13, weight: .black, design: .rounded))
+                            .foregroundStyle(PopArt.orange)
+                            .multilineTextAlignment(.center)
+                        Text(wave.anchorText)
+                            .font(.system(size: 24, weight: .black, design: .rounded))
+                            .foregroundStyle(PopArt.ink)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(16)
+                }
+
+                if snap.stage == .jackAttackWaveReveal {
+                    PopArtCard(cornerRadius: 22, borderWidth: 4, backgroundColor: PopArt.yellow) {
+                        VStack(spacing: 8) {
+                            if let winner = snap.jackAttackWinnerName {
+                                Text("⚡ \(winner.uppercased()) A BUZZÉ EN 1ER (+3 000 PTS) !")
+                                    .font(.system(size: 18, weight: .black, design: .rounded))
+                                    .foregroundStyle(PopArt.ink)
+                                    .multilineTextAlignment(.center)
+                            } else {
+                                Text("⏰ PERSONNE N'A BUZZÉ À TEMPS !")
+                                    .font(.system(size: 18, weight: .black, design: .rounded))
+                                    .foregroundStyle(PopArt.redError)
+                            }
+                            Text("\(wave.anchorText) ➜ \(wave.options[wave.correctOptionIndex])")
+                                .font(.system(size: 20, weight: .black, design: .rounded))
+                                .foregroundStyle(PopArt.ink)
+                                .multilineTextAlignment(.center)
+                            Text(wave.explanation)
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundStyle(PopArt.ink.opacity(0.8))
+                                .multilineTextAlignment(.center)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(18)
+                    }
+                } else {
+                    Button {
+                        session.submitJackAttackBuzz()
+                    } label: {
+                        VStack(spacing: 10) {
+                            Text(isFrozen ? "🧊 BUZZER GELÉ (-1 500 PTS)" : "🚨 BUZZER MAINTENANT !")
+                                .font(.system(size: 15, weight: .black, design: .rounded))
+                                .foregroundStyle(isFrozen ? .white.opacity(0.85) : PopArt.yellow)
+                            Text(currentOption)
+                                .font(.system(size: 28, weight: .black, design: .rounded))
+                                .foregroundStyle(.white)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 8)
+                            Text(isFrozen ? "Tu as buzzé sur un piège pendant cette vague !" : "Tape dès que la BONNE association s'affiche !")
+                                .font(.system(size: 13, weight: .bold, design: .rounded))
+                                .foregroundStyle(.white.opacity(0.9))
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 34)
+                    }
+                    .buttonStyle(
+                        PopArtActionButtonStyle(
+                            backgroundColor: isFrozen ? Color.gray : PopArt.redError,
+                            foregroundColor: .white,
+                            cornerRadius: 26
+                        )
+                    )
+                    .disabled(isFrozen)
+                }
+            }
         }
     }
 

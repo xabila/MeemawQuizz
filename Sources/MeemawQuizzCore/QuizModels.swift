@@ -80,6 +80,8 @@ public struct QuizPlayer: Codable, Equatable, Identifiable, Sendable {
     public var lockedSide: String?
     public var lockedBetStars: Int?
     public var lockedDrawGuess: String?
+    public var lockedNumericEstimate: Int?
+    public var isJackAttackFrozen: Bool
     public var drawHintsUsedCount: Int
     public var hasSubmittedEsquisseStep: Bool
     public var reactionTimeMs: Int?
@@ -106,6 +108,8 @@ public struct QuizPlayer: Codable, Equatable, Identifiable, Sendable {
         lockedSide: String? = nil,
         lockedBetStars: Int? = nil,
         lockedDrawGuess: String? = nil,
+        lockedNumericEstimate: Int? = nil,
+        isJackAttackFrozen: Bool = false,
         drawHintsUsedCount: Int = 0,
         hasSubmittedEsquisseStep: Bool = false,
         reactionTimeMs: Int? = nil,
@@ -131,6 +135,8 @@ public struct QuizPlayer: Codable, Equatable, Identifiable, Sendable {
         self.lockedSide = lockedSide
         self.lockedBetStars = lockedBetStars
         self.lockedDrawGuess = lockedDrawGuess
+        self.lockedNumericEstimate = lockedNumericEstimate
+        self.isJackAttackFrozen = isJackAttackFrozen
         self.drawHintsUsedCount = drawHintsUsedCount
         self.hasSubmittedEsquisseStep = hasSubmittedEsquisseStep
         self.reactionTimeMs = reactionTimeMs
@@ -221,6 +227,8 @@ public struct PlayerLobbyRegistry: Sendable {
             players[idx].lockedSide = nil
             players[idx].lockedBetStars = nil
             players[idx].lockedDrawGuess = nil
+            players[idx].lockedNumericEstimate = nil
+            players[idx].isJackAttackFrozen = false
             players[idx].drawHintsUsedCount = 0
             players[idx].hasSubmittedEsquisseStep = false
             players[idx].reactionTimeMs = nil
@@ -242,6 +250,8 @@ public struct PlayerLobbyRegistry: Sendable {
             players[idx].lockedSide = nil
             players[idx].lockedBetStars = nil
             players[idx].lockedDrawGuess = nil
+            players[idx].lockedNumericEstimate = nil
+            players[idx].isJackAttackFrozen = false
             players[idx].drawHintsUsedCount = 0
             players[idx].hasSubmittedEsquisseStep = false
             players[idx].reactionTimeMs = nil
@@ -363,24 +373,28 @@ public enum QuizRoundKind: String, Codable, Sendable {
     case cashSpeed = "cash_speed"
     case tuTeMetsCombien = "tu_te_mets_combien"
     case jukeboxExpress = "jukebox_express"
+    case leJustePif = "le_juste_pif"
     case drawSomething = "draw_something"
     case leSolo = "le_solo"
     case couciCouca = "couci_couca"
     case quoizziQuoissa = "quoizzi_quoissa"
     case esquisseTeleArabe = "esquisse_tele_arabe"
     case finaleDouble = "finale_double"
+    case jackAttack = "jack_attack"
 
     public var badgeTitle: String {
         switch self {
         case .cashSpeed: "⚡ MANCHE 1 • CASH RAPIDE"
         case .tuTeMetsCombien: "🎯 MANCHE 2 • TU TE METS COMBIEN ?"
         case .jukeboxExpress: "🎧 MANCHE 3 • LE JUKEBOX EXPRESS"
+        case .leJustePif: "🔢 MANCHE • LE JUSTE PIF"
         case .drawSomething: "🎨 MANCHE • PINCEAU DRAW SOMETHING"
         case .leSolo: "🚨 MANCHE • LE SOLO (1er QUI DÉGAINE)"
         case .couciCouca: "🧀 MANCHE • LA RACLETTE QUIZZ"
         case .quoizziQuoissa: "🤪 MANCHE • QUOIZZI-QUOISSA"
         case .esquisseTeleArabe: "📞 SOIRÉE • ESQUISSÉ ! (TÉLÉPHONE ARABE)"
         case .finaleDouble: "🔥 MANCHE FINALE • RAFALE POINTS ×2"
+        case .jackAttack: "⚡ GRANDE FINALE • LE JACK ATTACK DE MEEMAW"
         }
     }
 
@@ -389,17 +403,113 @@ public enum QuizRoundKind: String, Codable, Sendable {
         case .cashSpeed: "Tout le monde répond sur son tel ! Le plus rapide rafle le jackpot !"
         case .tuTeMetsCombien: "Avant de voir la question, mise de ⭐ (1 000 pts) à ⭐⭐⭐⭐ (5 000 pts) sur le sujet annoncé par Meemaw !"
         case .jukeboxExpress: "N'oubliez pas les paroles de Meemaw : complète le refrain exact au moment où la musique coupe !"
+        case .leJustePif: "Pas de QCM : tape ton estimation chiffrée sur le pavé numérique ! Le plus proche rafle +3 000 pts (et +5 000 pts en Tout Pile) !"
         case .drawSomething: "1 joueur dessine en direct sur la TV, les autres tapent les lettres façon Draw Something pour trouver le mot !"
         case .leSolo: "Pas besoin de buzzer : le 1er qui tape sa réponse coupe l'herbe sous le pied des autres (Double ou Gamelle) !"
         case .couciCouca: "Façon Burger Quiz version Savoie : tape Option A, Option B, ou 🧀 LES DEUX !"
         case .quoizziQuoissa: "6 jeux de mots et calembours tordus de Meemaw : réponds dès que ça s'affiche !"
         case .esquisseTeleArabe: "1 seul mot ultra-simple à dessiner au doigt -> Le voisin devine 1 mot -> Dessin suivant & Grand Défilé BD sur la TV !"
         case .finaleDouble: "Dernière ligne droite : tous les points et pénalités sont DOUBLÉS !"
+        case .jackAttack: "Les propositions défilent à toute allure : BUZZE uniquement quand la bonne association s'affiche (+3 000 pts, ou -1 500 pts si piège) !"
         }
     }
 }
 
-// MARK: - Question & Couci-Couça Models
+// MARK: - Question, Sponsor, Juste Pif, Jack Attack & Couci-Couça Models
+
+public struct MeemawSponsor: Codable, Equatable, Identifiable, Sendable {
+    public var id: String
+    public var name: String
+    public var slogan: String
+    public var hintKeyword: String
+    public var trapChoiceText: String
+    public var jackpotReward: Int
+
+    public init(
+        id: String,
+        name: String,
+        slogan: String,
+        hintKeyword: String,
+        trapChoiceText: String,
+        jackpotReward: Int = 3500
+    ) {
+        self.id = id
+        self.name = name
+        self.slogan = slogan
+        self.hintKeyword = hintKeyword
+        self.trapChoiceText = trapChoiceText
+        self.jackpotReward = jackpotReward
+    }
+}
+
+public struct QuizJustePifQuestion: Codable, Equatable, Identifiable, Sendable {
+    public var id: String
+    public var theme: QuizThemePack
+    public var funnyTitle: String
+    public var prompt: String
+    public var unitLabel: String
+    public var correctValue: Int
+    public var meemawComment: String
+
+    public init(
+        id: String,
+        theme: QuizThemePack,
+        funnyTitle: String,
+        prompt: String,
+        unitLabel: String,
+        correctValue: Int,
+        meemawComment: String
+    ) {
+        self.id = id
+        self.theme = theme
+        self.funnyTitle = funnyTitle
+        self.prompt = prompt
+        self.unitLabel = unitLabel
+        self.correctValue = correctValue
+        self.meemawComment = meemawComment
+    }
+}
+
+public struct QuizJackAttackWave: Codable, Equatable, Identifiable, Sendable {
+    public var id: String
+    public var clueTitle: String
+    public var anchorText: String
+    public var options: [String]
+    public var correctOptionIndex: Int
+    public var explanation: String
+
+    public init(
+        id: String,
+        clueTitle: String,
+        anchorText: String,
+        options: [String],
+        correctOptionIndex: Int,
+        explanation: String
+    ) {
+        self.id = id
+        self.clueTitle = clueTitle
+        self.anchorText = anchorText
+        self.options = options
+        self.correctOptionIndex = correctOptionIndex
+        self.explanation = explanation
+    }
+}
+
+public struct QuizJackAttackRound: Codable, Equatable, Identifiable, Sendable {
+    public var id: String
+    public var funnyTitle: String
+    public var waves: [QuizJackAttackWave]
+
+    public init(
+        id: String,
+        funnyTitle: String,
+        waves: [QuizJackAttackWave]
+    ) {
+        self.id = id
+        self.funnyTitle = funnyTitle
+        self.waves = waves
+    }
+}
 
 public struct QuizMCQQuestion: Codable, Equatable, Identifiable, Sendable {
     public var id: String
@@ -409,6 +519,7 @@ public struct QuizMCQQuestion: Codable, Equatable, Identifiable, Sendable {
     public var prompt: String
     public var choices: [String]
     public var correctIndex: Int
+    public var sponsoredChoiceIndex: Int?
     public var baseValue: Int
     public var meemawRoastOnWrong: String
     public var explanation: String
@@ -422,6 +533,7 @@ public struct QuizMCQQuestion: Codable, Equatable, Identifiable, Sendable {
         prompt: String,
         choices: [String],
         correctIndex: Int,
+        sponsoredChoiceIndex: Int? = nil,
         baseValue: Int = 2000,
         meemawRoastOnWrong: String,
         explanation: String,
@@ -434,6 +546,7 @@ public struct QuizMCQQuestion: Codable, Equatable, Identifiable, Sendable {
         self.prompt = prompt
         self.choices = choices
         self.correctIndex = correctIndex
+        self.sponsoredChoiceIndex = sponsoredChoiceIndex
         self.baseValue = baseValue
         self.meemawRoastOnWrong = meemawRoastOnWrong
         self.explanation = explanation
@@ -694,6 +807,8 @@ public enum ShowStageState: String, Codable, Sendable {
     case soloBuzzOpen = "solo_buzz_open"
     case soloPlayerAnswering = "solo_player_answering"
     case questionReveal = "question_reveal"
+    case justePifAnswering = "juste_pif_answering"
+    case justePifReveal = "juste_pif_reveal"
     case couciCoucaIntro = "couci_couca_intro"
     case couciCoucaItem = "couci_couca_item"
     case couciCoucaReveal = "couci_couca_reveal"
@@ -705,6 +820,8 @@ public enum ShowStageState: String, Codable, Sendable {
     case esquisseDrawing = "esquisse_drawing"
     case esquisseGuessing = "esquisse_guessing"
     case esquisseShowcase = "esquisse_showcase"
+    case jackAttackActive = "jack_attack_active"
+    case jackAttackWaveReveal = "jack_attack_wave_reveal"
     case finalPodium = "final_podium"
 }
 
@@ -715,6 +832,8 @@ public struct ClientToHostMessage: Codable, Equatable, Sendable {
         case selectBetStars = "select_bet_stars"
         case buzzSolo = "buzz_solo"
         case selectBinarySide = "select_binary"
+        case submitNumericEstimate = "submit_numeric_estimate"
+        case buzzJackAttack = "buzz_jack_attack"
         case sendBisouTrap = "send_bisou"
         case screwOpponent = "screw_opponent"
         case wipeBisouScreen = "wipe_bisou"
@@ -739,6 +858,7 @@ public struct ClientToHostMessage: Codable, Equatable, Sendable {
     public var choiceIndex: Int?
     public var betStars: Int?
     public var binarySide: String?
+    public var numericEstimate: Int?
     public var targetPlayerID: String?
     public var textPayload: String?
     public var drawingCanvas: DrawingCanvasData?
@@ -753,6 +873,7 @@ public struct ClientToHostMessage: Codable, Equatable, Sendable {
         choiceIndex: Int? = nil,
         betStars: Int? = nil,
         binarySide: String? = nil,
+        numericEstimate: Int? = nil,
         targetPlayerID: String? = nil,
         textPayload: String? = nil,
         drawingCanvas: DrawingCanvasData? = nil
@@ -766,6 +887,7 @@ public struct ClientToHostMessage: Codable, Equatable, Sendable {
         self.choiceIndex = choiceIndex
         self.betStars = betStars
         self.binarySide = binarySide
+        self.numericEstimate = numericEstimate
         self.targetPlayerID = targetPlayerID
         self.textPayload = textPayload
         self.drawingCanvas = drawingCanvas
@@ -819,16 +941,23 @@ public struct HostToClientStateSnapshot: Codable, Equatable, Sendable {
     public var totalTimerSec: Double
     public var players: [QuizPlayer]
     public var availableColors: [PlayerColor]
+    public var activeSponsor: MeemawSponsor?
+    public var sponsorWinnerName: String?
     public var activeQuestion: QuizMCQQuestion?
     public var revealedCorrectIndex: Int?
     public var soloBuzzerPlayerID: String?
     public var soloBuzzerPlayerName: String?
     public var screwAttackerName: String?
+    public var activeJustePif: QuizJustePifQuestion?
     public var activeDisOrDat: QuizDisOrDatRound?
     public var activeDisOrDatItemIndex: Int?
     public var revealedBinarySide: String?
     public var activeDrawRound: DrawRoundState?
     public var activeEsquisseRound: EsquisseRoundState?
+    public var activeJackAttack: QuizJackAttackRound?
+    public var activeJackAttackWaveIndex: Int?
+    public var activeJackAttackOptionIndex: Int?
+    public var jackAttackWinnerName: String?
     public var podiumAwards: [PodiumAward]
 
     public init(
@@ -846,16 +975,23 @@ public struct HostToClientStateSnapshot: Codable, Equatable, Sendable {
         totalTimerSec: Double,
         players: [QuizPlayer],
         availableColors: [PlayerColor],
+        activeSponsor: MeemawSponsor? = nil,
+        sponsorWinnerName: String? = nil,
         activeQuestion: QuizMCQQuestion? = nil,
         revealedCorrectIndex: Int? = nil,
         soloBuzzerPlayerID: String? = nil,
         soloBuzzerPlayerName: String? = nil,
         screwAttackerName: String? = nil,
+        activeJustePif: QuizJustePifQuestion? = nil,
         activeDisOrDat: QuizDisOrDatRound? = nil,
         activeDisOrDatItemIndex: Int? = nil,
         revealedBinarySide: String? = nil,
         activeDrawRound: DrawRoundState? = nil,
         activeEsquisseRound: EsquisseRoundState? = nil,
+        activeJackAttack: QuizJackAttackRound? = nil,
+        activeJackAttackWaveIndex: Int? = nil,
+        activeJackAttackOptionIndex: Int? = nil,
+        jackAttackWinnerName: String? = nil,
         podiumAwards: [PodiumAward] = []
     ) {
         self.roomCode = roomCode
@@ -872,16 +1008,23 @@ public struct HostToClientStateSnapshot: Codable, Equatable, Sendable {
         self.totalTimerSec = totalTimerSec
         self.players = players
         self.availableColors = availableColors
+        self.activeSponsor = activeSponsor
+        self.sponsorWinnerName = sponsorWinnerName
         self.activeQuestion = activeQuestion
         self.revealedCorrectIndex = revealedCorrectIndex
         self.soloBuzzerPlayerID = soloBuzzerPlayerID
         self.soloBuzzerPlayerName = soloBuzzerPlayerName
         self.screwAttackerName = screwAttackerName
+        self.activeJustePif = activeJustePif
         self.activeDisOrDat = activeDisOrDat
         self.activeDisOrDatItemIndex = activeDisOrDatItemIndex
         self.revealedBinarySide = revealedBinarySide
         self.activeDrawRound = activeDrawRound
         self.activeEsquisseRound = activeEsquisseRound
+        self.activeJackAttack = activeJackAttack
+        self.activeJackAttackWaveIndex = activeJackAttackWaveIndex
+        self.activeJackAttackOptionIndex = activeJackAttackOptionIndex
+        self.jackAttackWinnerName = jackAttackWinnerName
         self.podiumAwards = podiumAwards
     }
 }

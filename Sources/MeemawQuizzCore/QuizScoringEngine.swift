@@ -137,6 +137,53 @@ public enum QuizScoringEngine {
         return (wordPoints / 2) + (foundCount * 500)
     }
 
+    /// Jackpot attribué à un joueur qui repère et sélectionne la « Réponse Sponsorisée de Mamie » (façon YDKJ Wrong Answer of the Game).
+    public static let sponsorJackpotPoints: Int = 3500
+
+    /// Calcule les points pour tous les joueurs ayant soumis une estimation dans « Le Juste Pif » :
+    /// - Tout Pile Exact (`abs(estimate - correctValue) == 0`) : +5 000 pts
+    /// - 1er plus proche : +3 000 pts
+    /// - 2e plus proche (si >= 2 joueurs) : +1 500 pts
+    /// - Le plus loin (« Le Pif Cassé », si >= 2 joueurs et pas ex-aequo avec le 1er) : -500 pts
+    public static func scoreJustePifEstimates(
+        correctValue: Int,
+        estimatesByPlayerID: [String: Int]
+    ) -> [String: Int] {
+        guard !estimatesByPlayerID.isEmpty else { return [:] }
+
+        let distances: [(playerID: String, dist: Int)] = estimatesByPlayerID.map { (id, val) in
+            (playerID: id, dist: abs(val - correctValue))
+        }.sorted { $0.dist < $1.dist }
+
+        let minDist = distances.first!.dist
+        let maxDist = distances.last!.dist
+        let uniqueSortedDists = Array(Set(distances.map(\.dist))).sorted()
+        let secondDist: Int? = uniqueSortedDists.count >= 2 ? uniqueSortedDists[1] : nil
+
+        var deltas: [String: Int] = [:]
+        for item in distances {
+            if item.dist == 0 {
+                deltas[item.playerID] = 5000
+            } else if item.dist == minDist {
+                deltas[item.playerID] = 3000
+            } else if distances.count >= 2 && item.dist == maxDist && maxDist > minDist {
+                deltas[item.playerID] = -500
+            } else if let sec = secondDist, item.dist == sec {
+                deltas[item.playerID] = 1500
+            } else {
+                deltas[item.playerID] = 500
+            }
+        }
+        return deltas
+    }
+
+    /// Calcule les points d'un coup de buzzer dans la Finale « Le Jack Attack de Meemaw » :
+    /// - Bonne association affichée : +3 000 pts
+    /// - Leurre (piège) : -1 500 pts
+    public static func scoreJackAttackBuzz(isCorrect: Bool) -> Int {
+        isCorrect ? 3000 : -1500
+    }
+
     /// Génère le Podium Final avec des titres humoristiques décernés par Meemaw.
     public static func buildPodiumAwards(from players: [QuizPlayer]) -> [PodiumAward] {
         let sorted = players.sorted {

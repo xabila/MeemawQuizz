@@ -85,23 +85,32 @@ final class GameSessionController {
     private var currentStepIndex: Int = -1
     private var cachedHostSnapshot: HostToClientStateSnapshot?
 
+    var activeSponsor: MeemawSponsor? = QuestionBank.allSponsors.first
+    var sponsorWinnerName: String?
     var activeQuestion: QuizMCQQuestion?
     var revealedCorrectIndex: Int?
     var soloBuzzerPlayerID: String?
     var soloBuzzerPlayerName: String?
     var screwAttackerID: String?
     var screwAttackerName: String?
+    var activeJustePif: QuizJustePifQuestion?
     var activeDisOrDat: QuizDisOrDatRound?
     var activeDisOrDatItemIndex: Int?
     var revealedBinarySide: String?
     var activeDrawRound: DrawRoundState?
     var activeEsquisseRound: EsquisseRoundState?
+    var activeJackAttack: QuizJackAttackRound?
+    var activeJackAttackWaveIndex: Int?
+    var activeJackAttackOptionIndex: Int?
+    var jackAttackWinnerName: String?
     var podiumAwards: [PodiumAward] = []
 
     private var usedDrawWords: Set<String> = []
     private var usedEsquissePrompts: Set<String> = []
     private var drawTurnCursor: Int = 0
     private var drawBotStrokeTask: Task<Void, Never>?
+    private var jackAttackCycleTimer: Timer?
+    private var jackAttackCyclesRemaining: Int = 0
 
     // Remote state when acting as a Bonjour Client
     var clientSnapshot: HostToClientStateSnapshot?
@@ -117,9 +126,11 @@ final class GameSessionController {
         case cashQuestion(QuizMCQQuestion, isDoubleFinale: Bool)
         case ttmcQuestion(QuizMCQQuestion)
         case jukeboxQuestion(QuizMCQQuestion)
+        case justePifQuestion(QuizJustePifQuestion)
         case drawSomethingTurn
         case soloQuestion(QuizMCQQuestion)
         case couciCouca(QuizDisOrDatRound, QuizRoundKind)
+        case jackAttackRound(QuizJackAttackRound)
         case esquisseStep(Int)
         case esquisseShowcase
         case podium
@@ -343,6 +354,23 @@ final class GameSessionController {
         ))
     }
 
+    func submitNumericEstimate(_ estimate: Int) {
+        audio.triggerControllerHaptic(style: .heavy)
+        dispatchAction(ClientToHostMessage(
+            playerID: localPlayerID,
+            action: .submitNumericEstimate,
+            numericEstimate: estimate
+        ))
+    }
+
+    func submitJackAttackBuzz() {
+        audio.triggerControllerHaptic(style: .heavy)
+        dispatchAction(ClientToHostMessage(
+            playerID: localPlayerID,
+            action: .buzzJackAttack
+        ))
+    }
+
     func sendBisouTrap(to targetPlayerID: String) {
         audio.triggerControllerHaptic(style: .rigid)
         dispatchAction(ClientToHostMessage(
@@ -480,6 +508,13 @@ final class GameSessionController {
             guard let side = msg.binarySide else { return }
             handlePlayerBinarySide(playerID: msg.playerID, side: side)
 
+        case .submitNumericEstimate:
+            guard let estimate = msg.numericEstimate else { return }
+            handleSubmitNumericEstimate(playerID: msg.playerID, estimate: estimate)
+
+        case .buzzJackAttack:
+            handleBuzzJackAttack(playerID: msg.playerID)
+
         case .sendBisouTrap:
             guard let targetID = msg.targetPlayerID else { return }
             handleBisouTrap(fromPlayerID: msg.playerID, toPlayerID: targetID)
@@ -574,6 +609,12 @@ final class GameSessionController {
         registry.resetForNewShow()
         activeDrawRound = nil
         activeEsquisseRound = nil
+        activeJustePif = nil
+        activeJackAttack = nil
+        activeJackAttackWaveIndex = nil
+        activeJackAttackOptionIndex = nil
+        jackAttackWinnerName = nil
+        sponsorWinnerName = nil
         drawTurnCursor = 0
 
         switch selectedGameMode {
@@ -641,11 +682,14 @@ final class GameSessionController {
             excludingQuestionIDs: usedQuestionIDs,
             excludingDisOrDatIDs: usedDisOrDatIDs
         )
+        activeSponsor = activeDeck.sponsor
         usedQuestionIDs.formUnion(activeDeck.allExtendedMCQIDs)
+        usedQuestionIDs.formUnion(activeDeck.justePifQuestions.map(\.id))
         usedDisOrDatIDs.insert(activeDeck.couciCoucaRound.id)
+        usedDisOrDatIDs.insert(activeDeck.jackAttackRound.id)
 
         phaseQueue = [
-            // Manche 1 : 3 questions Cash Rapide
+            // Manche 1 : 3 questions Cash Rapide (+ Sponsor caché !)
             .roundIntro(.cashSpeed),
             .cashQuestion(activeDeck.cashQuestions[0], isDoubleFinale: false),
             .cashQuestion(activeDeck.cashQuestions[1], isDoubleFinale: false),
@@ -660,26 +704,29 @@ final class GameSessionController {
             .jukeboxQuestion(activeDeck.jukeboxQuestions[0]),
             .jukeboxQuestion(activeDeck.jukeboxQuestions[1]),
             .jukeboxQuestion(activeDeck.jukeboxQuestions[2]),
-            // Manche 4 : 2 tours de Draw Something (au lieu d'un seul)
+            // Manche 4 : 3 questions Le Juste Pif (Estimation numérique au plus proche)
+            .roundIntro(.leJustePif),
+            .justePifQuestion(activeDeck.justePifQuestions[0]),
+            .justePifQuestion(activeDeck.justePifQuestions[1]),
+            .justePifQuestion(activeDeck.justePifQuestions[2]),
+            // Manche 5 : 2 tours de Draw Something
             .roundIntro(.drawSomething),
             .drawSomethingTurn,
             .drawSomethingTurn,
-            // Manche 5 : 3 questions LE SOLO (au lieu d'une seule)
+            // Manche 6 : 3 questions LE SOLO
             .roundIntro(.leSolo),
             .soloQuestion(activeDeck.soloQuestions[0]),
             .soloQuestion(activeDeck.soloQuestions[1]),
             .soloQuestion(activeDeck.soloQuestions[2]),
-            // Manche 6 : La Raclette Quizz (6 questions rapides Gauche / Droite / Les Deux)
+            // Manche 7 : La Raclette Quizz (6 questions rapides Gauche / Droite / Les Deux)
             .roundIntro(.couciCouca),
             .couciCouca(activeDeck.couciCoucaRound, .couciCouca),
-            // Manche 7 : 3 questions La Rafale Finale (points doublés)
-            .roundIntro(.finaleDouble),
-            .cashQuestion(activeDeck.finaleDoubleQuestions[0], isDoubleFinale: true),
-            .cashQuestion(activeDeck.finaleDoubleQuestions[1], isDoubleFinale: true),
-            .cashQuestion(activeDeck.finaleDoubleQuestions[2], isDoubleFinale: true),
+            // Grande Finale : Le Jack Attack de Meemaw (5 vagues d'associations au buzzer)
+            .roundIntro(.jackAttack),
+            .jackAttackRound(activeDeck.jackAttackRound),
             .podium
         ]
-        totalQuestions = 18
+        totalQuestions = 19
         questionNumber = 0
         currentStepIndex = -1
 
@@ -695,9 +742,15 @@ final class GameSessionController {
         registry.resetRoundLocks()
         stage = .lobby
         activeQuestion = nil
+        activeJustePif = nil
         activeDisOrDat = nil
         activeDrawRound = nil
         activeEsquisseRound = nil
+        activeJackAttack = nil
+        activeJackAttackWaveIndex = nil
+        activeJackAttackOptionIndex = nil
+        jackAttackWinnerName = nil
+        sponsorWinnerName = nil
         revealedCorrectIndex = nil
         revealedBinarySide = nil
         soloBuzzerPlayerID = nil
@@ -722,6 +775,18 @@ final class GameSessionController {
         stopTimers()
         if stage == .ttmcBetting, let q = activeQuestion {
             openTTMCAnsweringPhase(q)
+            return
+        }
+        if stage == .justePifAnswering, let pif = activeJustePif {
+            revealJustePifResult(pif)
+            return
+        }
+        if stage == .jackAttackActive, let wIdx = activeJackAttackWaveIndex {
+            revealJackAttackWave(at: wIdx, winnerName: nil)
+            return
+        }
+        if stage == .jackAttackWaveReveal, let wIdx = activeJackAttackWaveIndex {
+            startJackAttackWave(at: wIdx + 1)
             return
         }
         if stage == .drawWordChoice, let firstOpt = activeDrawRound?.wordOptions.first {
@@ -772,6 +837,9 @@ final class GameSessionController {
         case .jukeboxQuestion(let q):
             questionNumber += 1
             enterJukeboxQuestion(q)
+        case .justePifQuestion(let pif):
+            questionNumber += 1
+            enterJustePifQuestion(pif)
         case .drawSomethingTurn:
             questionNumber += 1
             enterDrawSomethingTurn()
@@ -781,6 +849,9 @@ final class GameSessionController {
         case .couciCouca(let round, let kind):
             questionNumber += 1
             enterCouciCoucaRound(round, kind: kind)
+        case .jackAttackRound(let round):
+            questionNumber += 1
+            enterJackAttackRound(round)
         case .esquisseStep(let stepIdx):
             questionNumber = max(1, stepIdx)
             enterEsquisseStep(stepIdx)
@@ -797,8 +868,13 @@ final class GameSessionController {
         roundKind = kind
         stage = .roundIntro
         activeQuestion = nil
+        activeJustePif = nil
         activeDisOrDat = nil
         activeDrawRound = nil
+        activeJackAttack = nil
+        activeJackAttackWaveIndex = nil
+        activeJackAttackOptionIndex = nil
+        jackAttackWinnerName = nil
         revealedCorrectIndex = nil
         revealedBinarySide = nil
         soloBuzzerPlayerID = nil
@@ -812,7 +888,8 @@ final class GameSessionController {
         case .cashSpeed:
             audio.setMusicMood(.chillLobby)
             studioFile = "mq_round1_cash.m4a"
-            text = "Manche 1 : Cash Rapide ! Tout le monde répond sur son téléphone, et vous avez 1 VIS « Clouer le Bec » façon Jack pour piéger un adversaire !"
+            let sponsorNote = activeSponsor.map { " 🪤 SPONSOR DU JOUR : « \($0.name) » (+3 500 pts si vous osez cliquer sur sa réponse cachée) !" } ?? ""
+            text = "Manche 1 : Cash Rapide ! Tout le monde répond sur son téléphone, et vous avez 1 VIS « Clouer le Bec » !\(sponsorNote)"
             meemawPose = "meemaw_vitesse"
             audio.playJingle("jingle_intro.wav")
         case .tuTeMetsCombien:
@@ -827,6 +904,12 @@ final class GameSessionController {
             text = "Manche 3 : Le Jukebox Express de Meemaw ! Complétez les paroles exactes au moment où la musique coupe !"
             meemawPose = "meemaw_fun"
             audio.playJingle("jingle_intro.wav")
+        case .leJustePif:
+            audio.setMusicMood(.chillLobby)
+            studioFile = "mq_round_ttmc.m4a"
+            text = "🔢 Manche : Le Juste Pif ! Tapez votre estimation chiffrée sur le clavier numérique : +3 000 pts au plus proche, et +5 000 pts en Tout Pile !"
+            meemawPose = "meemaw_duel_challenge"
+            audio.playJingle("jingle_couci.wav")
         case .drawSomething:
             audio.setMusicMood(.chillLobby)
             studioFile = "mq_round_draw.m4a"
@@ -855,6 +938,12 @@ final class GameSessionController {
             audio.setMusicMood(.fastAction)
             studioFile = "mq_round4_finale.m4a"
             text = "La Rafale Finale ! Tous les points sont DOUBLÉS, tout peut encore basculer !"
+        case .jackAttack:
+            audio.setMusicMood(.fastAction)
+            studioFile = "mq_round4_finale.m4a"
+            text = "⚡ GRANDE FINALE : LE JACK ATTACK DE MEEMAW ! 5 vagues d'associations : buzzez UNIQUEMENT quand la bonne réponse s'affiche (+3 000 pts, ou -1 500 pts si piège) !"
+            meemawPose = "meemaw_duel_challenge"
+            audio.playJingle("jingle_solo_siren.wav")
             meemawPose = "meemaw_duel_challenge"
             audio.playJingle("jingle_solo_siren.wav")
         }
@@ -1071,6 +1160,7 @@ final class GameSessionController {
             .map(\.id)
 
         var fastestWinner: (name: String, delta: Int, ms: Int)?
+        var triggeredSponsorWinner: String?
 
         for player in registry.players {
             guard let chosen = player.lockedChoiceIndex else {
@@ -1084,6 +1174,21 @@ final class GameSessionController {
                 }
                 continue
             }
+
+            // Check if the player clicked the hidden YDKJ Sponsor Trap ("Wrong Answer of the Game")!
+            if let sponsorIdx = question.sponsoredChoiceIndex, chosen == sponsorIdx {
+                let jackpot = activeSponsor?.jackpotReward ?? QuizScoringEngine.sponsorJackpotPoints
+                triggeredSponsorWinner = player.name
+                sponsorWinnerName = player.name
+                registry.updatePlayer(id: player.id) { p in
+                    p.score += jackpot
+                    p.lastDeltaScore = jackpot
+                    p.streak += 1
+                    p.correctAnswersCount += 1
+                }
+                continue
+            }
+
             let isCorrect = (chosen == question.correctIndex)
             let rankIdx = correctPlayerIDs.firstIndex(of: player.id)
             let ms = player.reactionTimeMs ?? 25000
@@ -1125,7 +1230,16 @@ final class GameSessionController {
             self?.advanceToNextPhaseStep()
         }
 
-        if let winner = fastestWinner {
+        if let spWinner = triggeredSponsorWinner, let sp = activeSponsor {
+            audio.playJingle("jingle_victory.wav")
+            meemawPose = "meemaw_celebrate"
+            meemawSpeech = "🎁 JACKPOT SPONSOR DE MAMIE ! \(spWinner) a osé cliquer sur la réponse sponsorisée « \(sp.name) » et rafle +\(sp.jackpotReward) PTS !\n\(question.explanation)"
+            broadcastState()
+            audio.playMeemawStudioOrFallback(
+                studioFilename: "mq_react_all_correct.m4a",
+                fallbackText: meemawSpeech
+            )
+        } else if let winner = fastestWinner {
             audio.playJingle("sfx_correct.wav")
             let praise = MeemawPunchlines.dynamicFastestPraise(
                 playerName: winner.name,
@@ -1152,6 +1266,269 @@ final class GameSessionController {
                 studioFilename: roastFile,
                 fallbackText: question.meemawRoastOnWrong
             )
+        }
+    }
+
+    // MARK: - Manche 4 : 🔢 « Le Juste Pif » (Estimation Numérique au Plus Proche)
+
+    private func enterJustePifQuestion(_ pif: QuizJustePifQuestion) {
+        registry.resetRoundLocks()
+        roundKind = .leJustePif
+        activeQuestion = nil
+        activeJustePif = pif
+        revealedCorrectIndex = nil
+        stage = .justePifAnswering
+        totalTimerSec = 18.0
+        timeRemainingSec = 18.0
+        questionOpenedAt = Date()
+        meemawPose = "meemaw_duel_challenge"
+        meemawSpeech = "🔢 LE JUSTE PIF : « \(pif.funnyTitle) » — \(pif.prompt) (\(pif.unitLabel))"
+        broadcastState()
+
+        audio.playMeemawStudioOrFallback(
+            studioFilename: nil,
+            fallbackText: "\(pif.funnyTitle). \(pif.prompt)"
+        )
+
+        // Schedule bots to submit plausible estimates
+        let bots = registry.players.filter { $0.id.hasPrefix("bot_") }
+        if !bots.isEmpty {
+            botActionTask?.cancel()
+            botActionTask = Task { @MainActor [weak self] in
+                for bot in bots {
+                    let delayMs = Int.random(in: 3500...9500)
+                    try? await Task.sleep(for: .milliseconds(delayMs))
+                    guard let self, !Task.isCancelled, self.stage == .justePifAnswering else { return }
+                    let spread = max(5, Int(Double(pif.correctValue) * 0.35))
+                    let estimate = max(1, pif.correctValue + Int.random(in: -spread...spread))
+                    self.handleSubmitNumericEstimate(playerID: bot.id, estimate: estimate)
+                }
+            }
+        }
+
+        startCountdown(duration: 18.0) { [weak self] in
+            self?.revealJustePifResult(pif)
+        }
+    }
+
+    private func handleSubmitNumericEstimate(playerID: String, estimate: Int) {
+        guard stage == .justePifAnswering, let pif = activeJustePif else { return }
+        guard let player = registry.players.first(where: { $0.id == playerID }),
+              player.lockedNumericEstimate == nil else { return }
+
+        let elapsedMs = max(150, Int(Date().timeIntervalSince(questionOpenedAt) * 1000))
+        registry.updatePlayer(id: playerID) { p in
+            p.lockedNumericEstimate = estimate
+            p.reactionTimeMs = elapsedMs
+        }
+        broadcastState()
+
+        if registry.players.allSatisfy({ $0.lockedNumericEstimate != nil }) {
+            stopTimers()
+            revealJustePifResult(pif)
+        }
+    }
+
+    private func revealJustePifResult(_ pif: QuizJustePifQuestion) {
+        stopTimers()
+        stage = .justePifReveal
+
+        var estimates: [String: Int] = [:]
+        for p in registry.players {
+            if let est = p.lockedNumericEstimate {
+                estimates[p.id] = est
+            }
+        }
+
+        let deltas = QuizScoringEngine.scoreJustePifEstimates(
+            correctValue: pif.correctValue,
+            estimatesByPlayerID: estimates
+        )
+
+        var bestPlayerName: String?
+        var bestDelta: Int = -99999
+        var bestEstimate: Int = 0
+
+        for p in registry.players {
+            let delta = deltas[p.id] ?? 0
+            registry.updatePlayer(id: p.id) { player in
+                player.score += delta
+                player.lastDeltaScore = delta
+                if delta > 0 {
+                    player.correctAnswersCount += 1
+                    player.streak += 1
+                } else {
+                    player.streak = 0
+                }
+            }
+            if delta > bestDelta, let est = p.lockedNumericEstimate {
+                bestDelta = delta
+                bestPlayerName = p.name
+                bestEstimate = est
+            }
+        }
+
+        audio.playJingle("sfx_correct.wav")
+        meemawPose = "meemaw_celebrate"
+        if let winner = bestPlayerName {
+            let exactBadge = (bestEstimate == pif.correctValue) ? "🎯 TOUT PILE EXACT !" : "👏 Plus proche : \(winner) (\(bestEstimate) \(pif.unitLabel), +\(bestDelta) pts) !"
+            meemawSpeech = "La vraie réponse est \(pif.correctValue) \(pif.unitLabel) ! \(exactBadge)\n\(pif.meemawComment)"
+        } else {
+            meemawSpeech = "La vraie réponse est \(pif.correctValue) \(pif.unitLabel) !\n\(pif.meemawComment)"
+        }
+        broadcastState()
+
+        audio.playMeemawStudioOrFallback(
+            studioFilename: nil,
+            fallbackText: meemawSpeech
+        )
+
+        startCountdown(duration: 9.0) { [weak self] in
+            self?.advanceToNextPhaseStep()
+        }
+    }
+
+    // MARK: - Grande Finale : ⚡ « Le Jack Attack de Meemaw » (5 Vagues au Buzzer)
+
+    private func enterJackAttackRound(_ round: QuizJackAttackRound) {
+        roundKind = .jackAttack
+        activeJackAttack = round
+        activeJackAttackWaveIndex = 0
+        activeJackAttackOptionIndex = 0
+        jackAttackWinnerName = nil
+        startJackAttackWave(at: 0)
+    }
+
+    private func startJackAttackWave(at waveIndex: Int) {
+        stopTimers()
+        guard let round = activeJackAttack, round.waves.indices.contains(waveIndex) else {
+            advanceToNextPhaseStep()
+            return
+        }
+        registry.resetRoundLocks()
+        let wave = round.waves[waveIndex]
+        activeJackAttackWaveIndex = waveIndex
+        activeJackAttackOptionIndex = 0
+        jackAttackWinnerName = nil
+        stage = .jackAttackActive
+        totalTimerSec = 13.0
+        timeRemainingSec = 13.0
+        meemawPose = "meemaw_vitesse"
+        meemawSpeech = "⚡ VAGUE \(waveIndex + 1)/\(round.waves.count) • \(wave.clueTitle) : « \(wave.anchorText) »"
+        broadcastState()
+
+        // Cycle through the 4 options every 1.6s (8 cycles max = 12.8s)
+        jackAttackCyclesRemaining = 8
+        jackAttackCycleTimer?.invalidate()
+        jackAttackCycleTimer = Timer.scheduledTimer(withTimeInterval: 1.6, repeats: true) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self, self.stage == .jackAttackActive else { return }
+                self.jackAttackCyclesRemaining -= 1
+                if self.jackAttackCyclesRemaining <= 0 {
+                    self.revealJackAttackWave(at: waveIndex, winnerName: nil)
+                    return
+                }
+                let nextOpt = ((self.activeJackAttackOptionIndex ?? 0) + 1) % max(1, wave.options.count)
+                self.activeJackAttackOptionIndex = nextOpt
+                self.broadcastState()
+
+                // Bots have a chance to buzz when the correct option appears
+                if nextOpt == wave.correctOptionIndex {
+                    let bots = self.registry.players.filter { $0.id.hasPrefix("bot_") && !$0.isJackAttackFrozen }
+                    if let randomBot = bots.randomElement(), Int.random(in: 0..<100) < 55 {
+                        try? await Task.sleep(for: .milliseconds(Int.random(in: 550...1150)))
+                        guard self.stage == .jackAttackActive,
+                              self.activeJackAttackWaveIndex == waveIndex,
+                              self.activeJackAttackOptionIndex == nextOpt else { return }
+                        self.handleBuzzJackAttack(playerID: randomBot.id)
+                    }
+                }
+            }
+        }
+
+        startCountdown(duration: 13.0) { [weak self] in
+            self?.revealJackAttackWave(at: waveIndex, winnerName: nil)
+        }
+    }
+
+    private func handleBuzzJackAttack(playerID: String) {
+        guard stage == .jackAttackActive,
+              let round = activeJackAttack,
+              let wIdx = activeJackAttackWaveIndex,
+              round.waves.indices.contains(wIdx),
+              let optIdx = activeJackAttackOptionIndex else { return }
+
+        guard let player = registry.players.first(where: { $0.id == playerID }),
+              !player.isJackAttackFrozen,
+              player.activeBisouWipesRemaining == 0 else { return }
+
+        let wave = round.waves[wIdx]
+        let isCorrect = (optIdx == wave.correctOptionIndex)
+        let delta = QuizScoringEngine.scoreJackAttackBuzz(isCorrect: isCorrect)
+
+        if isCorrect {
+            audio.playJingle("sfx_correct.wav")
+            for p in registry.players {
+                registry.updatePlayer(id: p.id) {
+                    if $0.id == playerID {
+                        $0.score += delta
+                        $0.lastDeltaScore = delta
+                        $0.correctAnswersCount += 1
+                        $0.soloWinsCount += 1
+                    } else if $0.lastDeltaScore == nil {
+                        $0.lastDeltaScore = 0
+                    }
+                }
+            }
+            revealJackAttackWave(at: wIdx, winnerName: player.name)
+        } else {
+            // Wrong buzz! Freeze this player's buzzer for the rest of this wave and deduct 1500 pts!
+            audio.playJingle("sfx_wrong.wav")
+            registry.updatePlayer(id: playerID) { p in
+                p.score += delta
+                p.lastDeltaScore = delta
+                p.isJackAttackFrozen = true
+                p.streak = 0
+            }
+            let wrongText = wave.options.indices.contains(optIdx) ? wave.options[optIdx] : "Piège"
+            meemawSpeech = "💥 AÏE ! \(player.name) a buzzé trop tôt sur « \(wrongText) » (-1 500 pts) ! Aux autres de jouer !"
+            broadcastState()
+
+            // If all players are now frozen, reveal the wave immediately
+            if registry.players.allSatisfy(\.isJackAttackFrozen) {
+                revealJackAttackWave(at: wIdx, winnerName: nil)
+            }
+        }
+    }
+
+    private func revealJackAttackWave(at waveIndex: Int, winnerName: String?) {
+        stopTimers()
+        guard let round = activeJackAttack, round.waves.indices.contains(waveIndex) else {
+            advanceToNextPhaseStep()
+            return
+        }
+        let wave = round.waves[waveIndex]
+        stage = .jackAttackWaveReveal
+        activeJackAttackOptionIndex = wave.correctOptionIndex
+        jackAttackWinnerName = winnerName
+        let correctText = wave.options[wave.correctOptionIndex]
+
+        if let winnerName {
+            meemawPose = "meemaw_celebrate"
+            meemawSpeech = "⚡ \(winnerName.uppercased()) RAFLE +3 000 PTS ! « \(wave.anchorText) \(correctText) » — \(wave.explanation)"
+        } else {
+            meemawPose = "meemaw_worried"
+            meemawSpeech = "⏰ Personne n'a attrapé « \(wave.anchorText) \(correctText) » ! \(wave.explanation)"
+        }
+        broadcastState()
+
+        startCountdown(duration: 4.5) { [weak self] in
+            guard let self else { return }
+            if waveIndex + 1 < round.waves.count {
+                self.startJackAttackWave(at: waveIndex + 1)
+            } else {
+                self.advanceToNextPhaseStep()
+            }
         }
     }
 
@@ -2241,6 +2618,8 @@ final class GameSessionController {
     private func stopTimers() {
         countdownTimer?.invalidate()
         countdownTimer = nil
+        jackAttackCycleTimer?.invalidate()
+        jackAttackCycleTimer = nil
         stageAdvanceTask?.cancel()
         stageAdvanceTask = nil
         botActionTask?.cancel()
@@ -2265,16 +2644,23 @@ final class GameSessionController {
             totalTimerSec: totalTimerSec,
             players: registry.players,
             availableColors: registry.availableColors(excludingPlayerID: nil),
+            activeSponsor: activeSponsor,
+            sponsorWinnerName: sponsorWinnerName,
             activeQuestion: activeQuestion,
             revealedCorrectIndex: revealedCorrectIndex,
             soloBuzzerPlayerID: soloBuzzerPlayerID,
             soloBuzzerPlayerName: soloBuzzerPlayerName,
             screwAttackerName: screwAttackerName,
+            activeJustePif: activeJustePif,
             activeDisOrDat: activeDisOrDat,
             activeDisOrDatItemIndex: activeDisOrDatItemIndex,
             revealedBinarySide: revealedBinarySide,
             activeDrawRound: activeDrawRound,
             activeEsquisseRound: activeEsquisseRound,
+            activeJackAttack: activeJackAttack,
+            activeJackAttackWaveIndex: activeJackAttackWaveIndex,
+            activeJackAttackOptionIndex: activeJackAttackOptionIndex,
+            jackAttackWinnerName: jackAttackWinnerName,
             podiumAwards: podiumAwards
         )
     }

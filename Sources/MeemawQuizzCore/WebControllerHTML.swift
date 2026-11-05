@@ -333,6 +333,10 @@ public enum WebControllerHTML {
                 me ? me.hasUsedScrew : false,
                 me ? me.hasUsedBisouTrap : false,
                 me ? me.hasSubmittedEsquisseStep : false,
+                me ? me.lockedNumericEstimate : null,
+                me ? me.isJackAttackFrozen : false,
+                st.activeJackAttackWaveIndex,
+                st.activeJackAttackOptionIndex,
                 drawFoundKey,
                 esqStep
               ].join('|');
@@ -362,6 +366,50 @@ public enum WebControllerHTML {
               if (st.stage === 'lobby') {
                 titleEl.innerText = '📺 Regarde la TV AirPlay ! La partie va commencer...';
                 contentEl.innerHTML = `<div style="text-align:center;font-weight:700;opacity:0.75;">Thème choisi : ${st.selectedPack}</div>`;
+                return;
+              }
+
+              if ((st.stage === 'juste_pif_answering' || st.stage === 'juste_pif_reveal') && st.activeJustePif) {
+                const pif = st.activeJustePif;
+                titleEl.innerText = `🔢 LE JUSTE PIF : « ${pif.funnyTitle} » — ${pif.prompt}`;
+                if (st.stage === 'juste_pif_reveal') {
+                  contentEl.innerHTML = `<div style="background:#FFD700;color:#1A1A1A;padding:16px;border-radius:16px;border:3px solid #1A1A1A;font-weight:900;text-align:center;">
+                    🎯 VRAIE VALEUR : ${pif.correctValue} ${pif.unitLabel}<br>
+                    <span style="font-size:13px;font-weight:700;">${pif.meemawComment}</span>
+                  </div>`;
+                } else if (me && me.lockedNumericEstimate !== null && me.lockedNumericEstimate !== undefined) {
+                  contentEl.innerHTML = `<div style="background:#FFD700;color:#1A1A1A;padding:16px;border-radius:16px;border:3px solid #1A1A1A;font-weight:900;text-align:center;">
+                    🔒 TON PIF VERROUILLÉ : ${me.lockedNumericEstimate} ${pif.unitLabel}
+                  </div>`;
+                } else {
+                  contentEl.innerHTML = `<div style="display:flex;flex-direction:column;gap:10px;">
+                    <input id="pifNumInput" type="number" inputmode="numeric" placeholder="Ton estimation (${pif.unitLabel})" style="font-size:22px;font-weight:900;padding:12px;border-radius:12px;border:3px solid #1A1A1A;text-align:center;" />
+                    <button class="choice-btn" style="background:#10B981;color:#fff;justify-content:center;font-size:18px;" onclick="const v=parseInt(document.getElementById('pifNumInput').value,10);if(!isNaN(v)){beep(760,70);sendMsg({action:'submit_numeric_estimate',numericEstimate:v});}">✅ VALIDER MON PIF</button>
+                  </div>`;
+                }
+                return;
+              }
+
+              if ((st.stage === 'jack_attack_active' || st.stage === 'jack_attack_wave_reveal') && st.activeJackAttack) {
+                const round = st.activeJackAttack;
+                const wIdx = st.activeJackAttackWaveIndex || 0;
+                const wave = round.waves[wIdx] || round.waves[0];
+                const optIdx = st.activeJackAttackOptionIndex || 0;
+                const optText = wave.options[optIdx] || '...';
+                const frozen = me && me.isJackAttackFrozen;
+                titleEl.innerText = `⚡ JACK ATTACK (${wIdx + 1}/${round.waves.length}) • ${wave.clueTitle} : ${wave.anchorText}`;
+                if (st.stage === 'jack_attack_wave_reveal') {
+                  contentEl.innerHTML = `<div style="background:#FFD700;color:#1A1A1A;padding:16px;border-radius:16px;border:3px solid #1A1A1A;font-weight:900;text-align:center;">
+                    ${st.jackAttackWinnerName ? '⚡ ' + st.jackAttackWinnerName.toUpperCase() + ' RAFLE +3 000 PTS !<br>' : ''}
+                    ${wave.anchorText} ➜ ${wave.options[wave.correctOptionIndex]}<br>
+                    <span style="font-size:13px;font-weight:700;">${wave.explanation}</span>
+                  </div>`;
+                } else {
+                  contentEl.innerHTML = `<button class="choice-btn" style="background:${frozen ? '#6B7280' : '#E11D48'};color:#fff;flex-direction:column;padding:28px 14px;text-align:center;" ${frozen ? 'disabled' : ''} onclick="beep(880,90);sendMsg({action:'buzz_jack_attack'})">
+                    <div style="font-size:14px;color:#FFD700;font-weight:900;">${frozen ? '🧊 BUZZER GELÉ (-1 500 PTS)' : '🚨 BUZZER MAINTENANT !'}</div>
+                    <div style="font-size:26px;font-weight:900;margin:6px 0;">${optText}</div>
+                  </button>`;
+                }
                 return;
               }
 
