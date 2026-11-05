@@ -55,10 +55,10 @@ extension QuestionBank {
             id: "EN_FR_02",
             theme: .francaisMeemaw,
             preferredRound: .tuTeMetsCombien,
-            funnyTitle: "Definitely NOT Defiantly",
+            funnyTitle: "The Most Misspelled Word on the Internet",
             prompt: "What is the ONLY correct spelling of the word meaning 'without a doubt' (which half the internet spells 'defiantly')?",
             choices: [
-                "DEFINITELY (with 'finite' right in the middle!)",
+                "DEFINITELY",
                 "DEFINATELY",
                 "DEFINITLY",
                 "DEFIANTLY"
@@ -127,10 +127,10 @@ extension QuestionBank {
             id: "EN_FR_06",
             theme: .francaisMeemaw,
             preferredRound: .finaleDouble,
-            funnyTitle: "I Could Care Less vs. I Couldn't Care Less",
+            funnyTitle: "Zero Interest in Your Cousin's Cat Slideshow",
             prompt: "If you have ZERO interest in your cousin's 45-minute slideshow of his cat, which phrase is logically correct?",
             choices: [
-                "I COULDN'T care less (because my care level is already at rock-bottom zero!)",
+                "I COULDN'T care less",
                 "I COULD care less",
                 "I care more or less",
                 "I might care on Tuesdays"
@@ -166,7 +166,7 @@ extension QuestionBank {
             funnyTitle: "You're vs. Your: The Text Message Crime",
             prompt: "When someone texts you 'Your welcome!', what grammar crime did they just commit?",
             choices: [
-                "It should be 'You're welcome!' (short for 'You are welcome!')",
+                "It should be 'You're welcome!'",
                 "It should be 'Yore welcome!'",
                 "It should be 'Ur welcomes!'",
                 "Nothing, 'welcome' is a pet dog you own"
@@ -189,10 +189,10 @@ extension QuestionBank {
             funnyTitle: "The $1.10 Bat and Ball Trap",
             prompt: "A baseball bat and a ball cost $1.10 in total. The bat costs $1.00 MORE than the ball. How much does the ball cost?",
             choices: [
-                "5 cents ($0.05) — because $1.05 + $0.05 = $1.10!",
-                "10 cents ($0.10)",
-                "1 cent ($0.01)",
-                "50 cents ($0.50)"
+                "5 cents",
+                "10 cents",
+                "1 cent",
+                "50 cents"
             ],
             correctIndex: 0,
             baseValue: 2200,
@@ -207,7 +207,7 @@ extension QuestionBank {
             funnyTitle: "Meemaw's Oven Timer Riddle",
             prompt: "If it takes 5 machines 5 minutes to make 5 cookies, how long does it take 100 machines to make 100 cookies?",
             choices: [
-                "Still 5 minutes! (Each machine makes 1 cookie in 5 minutes!)",
+                "Still 5 minutes!",
                 "100 minutes",
                 "500 minutes",
                 "1 minute"
@@ -225,7 +225,7 @@ extension QuestionBank {
             funnyTitle: "Passing Second Place in the Marathon",
             prompt: "You are running a race and you overtake the person in 2nd place. What place are you in right now?",
             choices: [
-                "2nd place! (You took THEIR spot, you didn't pass 1st place yet!)",
+                "2nd place!",
                 "1st place!",
                 "3rd place",
                 "Disqualified for speeding"
@@ -243,7 +243,7 @@ extension QuestionBank {
             funnyTitle: "Order of Operations Showdown",
             prompt: "Without a calculator, what is the result of: 8 + 2 × 5 ?",
             choices: [
-                "18 (multiply 2 × 5 = 10 first, then add 8!)",
+                "18",
                 "50",
                 "25",
                 "15"
@@ -261,7 +261,7 @@ extension QuestionBank {
             funnyTitle: "Rooster on the Barn Roof",
             prompt: "A rooster lays an egg right on the sharp peak of a barn roof. The wind is blowing from East to West. Which way does the egg roll?",
             choices: [
-                "Nowhere — ROOSTERS DON'T LAY EGGS!",
+                "Nowhere",
                 "To the West",
                 "To the East",
                 "Straight into the frying pan"
@@ -279,7 +279,7 @@ extension QuestionBank {
             funnyTitle: "The Lily Pad Double-Up",
             prompt: "A patch of lily pads on a pond doubles in size every single day. If it takes 48 days to cover the entire pond, how many days did it take to cover HALF the pond?",
             choices: [
-                "47 days! (Since it doubles on day 48 to cover the whole pond!)",
+                "47 days!",
                 "24 days",
                 "12 days",
                 "46 days"
@@ -297,8 +297,8 @@ extension QuestionBank {
             funnyTitle: "How Many Months Have 28 Days?",
             prompt: "Quick! How many months of the year have 28 days?",
             choices: [
-                "All 12 of them! (Every single month has at least 28 days!)",
-                "Only 1 (February)",
+                "All 12 of them!",
+                "Only 1",
                 "Only in leap years",
                 "6 months"
             ],
@@ -315,8 +315,8 @@ extension QuestionBank {
             funnyTitle: "Grandpa's Pill Schedule",
             prompt: "The doctor gives Grandpa 3 pills and tells him to take one every 30 minutes. How long until all 3 pills are taken?",
             choices: [
-                "60 minutes (1 hour: Pill #1 at 0 min, Pill #2 at 30 min, Pill #3 at 60 min!)",
-                "90 minutes (1.5 hours)",
+                "60 minutes",
+                "90 minutes",
                 "30 minutes",
                 "3 hours"
             ],
@@ -338,7 +338,7 @@ extension QuestionBank {
             funnyTitle: "The Most Misquoted Line in Galaxy History",
             prompt: "In 'Star Wars: The Empire Strikes Back', what does Darth Vader ACTUALLY say to Luke Skywalker?",
             choices: [
-                "“No, I am your father.” (He never says 'Luke, I am your father'!)",
+                "“No, I am your father.”",
                 "“Luke, I am your father.”",
                 "“Luke, ask your mother.”",
                 "“Luke, clean your room.”"
@@ -356,7 +356,7 @@ extension QuestionBank {
             funnyTitle: "Movie Explained Badly by Meemaw #1",
             prompt: "Which blockbuster is Meemaw describing: 'A billionaire orphan dresses up as a nocturnal rodent to beat up a clown instead of going to therapy'?",
             choices: [
-                "The Dark Knight (Batman)",
+                "The Dark Knight",
                 "Ratatouille",
                 "Spider-Man",
                 "Stuart Little"
@@ -389,7 +389,7 @@ extension QuestionBank {
             id: "EN_CINE_04",
             theme: .seriesCinema,
             preferredRound: .cashSpeed,
-            funnyTitle: "Kevin's Chili Disaster in The Office",
+            funnyTitle: "Kevin Malone's Carpet Disaster in The Office",
             prompt: "In the legendary cold open of 'The Office' (US), what prized family recipe does Kevin Malone spill all over the Dunder Mifflin carpet?",
             choices: [
                 "A giant pot of his famous homemade Chili!",
@@ -464,7 +464,7 @@ extension QuestionBank {
             funnyTitle: "Young Sheldon's Favorite Grandma",
             prompt: "In 'Young Sheldon' and 'The Big Bang Theory', what is the real first name of Sheldon Cooper's sassy Texas grandmother, 'Meemaw'?",
             choices: [
-                "Constance ('Connie') Tucker!",
+                "Constance Tucker!",
                 "Mary Cooper",
                 "Betty White",
                 "Dorothy Zbornak"
@@ -487,7 +487,7 @@ extension QuestionBank {
             funnyTitle: "🎤 Don't Forget the Lyrics — Queen",
             prompt: "Complete the legendary 'Bohemian Rhapsody' lyrics: “Scaramouche, Scaramouche, will you do the ___ ?”",
             choices: [
-                "Fandango! (Thunderbolt and lightning, very, very frightening me!)",
+                "Fandango!",
                 "Macarena!",
                 "Cha-Cha-Cha!",
                 "Flamingo!"
@@ -508,7 +508,7 @@ extension QuestionBank {
                 "Seventeen!",
                 "Nineteen!",
                 "Twenty-three!",
-                "Seventy-three (like Meemaw)!"
+                "Seventy-three!"
             ],
             correctIndex: 0,
             baseValue: 2000,
@@ -523,7 +523,7 @@ extension QuestionBank {
             funnyTitle: "🎤 Don't Forget the Lyrics — Spice Girls",
             prompt: "Complete the 1996 Spice Girls mega-hit 'Wannabe': “If you wanna be my lover, you gotta ___ !”",
             choices: [
-                "Get with my friends! (Make it last forever, friendship never ends!)",
+                "Get with my friends!",
                 "Wash all the dishes!",
                 "Pay my rent!",
                 "Ask my grandma!"
@@ -541,7 +541,7 @@ extension QuestionBank {
             funnyTitle: "🎤 Don't Forget the Lyrics — Journey",
             prompt: "Complete the ultimate karaoke opening line of Journey's 'Don't Stop Believin'': “Just a small town girl, livin' in a ___ !”",
             choices: [
-                "Lonely world! (She took the midnight train goin' anywhere!)",
+                "Lonely world!",
                 "Material world!",
                 "Barbie world!",
                 "Crazy world!"
@@ -575,9 +575,9 @@ extension QuestionBank {
             theme: .musiqueTubes,
             preferredRound: .jukeboxExpress,
             funnyTitle: "🎤 Don't Forget the Lyrics — Bon Jovi",
-            prompt: "Complete the chorus of Bon Jovi's 'Livin' on a Prayer': “Whoa, we're half way there, whoa-oh, ___ !”",
+            prompt: "Complete the famous 1986 Bon Jovi rock chorus: “Whoa, we're half way there, whoa-oh, ___ !”",
             choices: [
-                "Livin' on a prayer! (Take my hand, we'll make it I swear!)",
+                "Livin' on a prayer!",
                 "Squidward on a chair!",
                 "Lemon and a pear!",
                 "Lizard on the stair!"
@@ -595,7 +595,7 @@ extension QuestionBank {
             funnyTitle: "🎤 Don't Forget the Lyrics — Michael Jackson",
             prompt: "In Michael Jackson's 'Billie Jean', finish the famous chorus: “Billie Jean is not my lover, she's just a girl who claims that ___ !”",
             choices: [
-                "I am the one! (But the kid is not my son!)",
+                "I am the one!",
                 "I stole her car!",
                 "I ate her pie!",
                 "I can't moonwalk!"
@@ -613,7 +613,7 @@ extension QuestionBank {
             funnyTitle: "🎤 Don't Forget the Lyrics — Smash Mouth",
             prompt: "Complete the opening line of 'All Star' (the Shrek anthem!): “Somebody once told me the world is gonna ___ !”",
             choices: [
-                "Roll me! (I ain't the sharpest tool in the shed!)",
+                "Roll me!",
                 "Hold me!",
                 "Scold me!",
                 "Fold me!"
@@ -636,7 +636,7 @@ extension QuestionBank {
             funnyTitle: "Australia's Great Feather War of 1932",
             prompt: "In 1932, the Australian military deployed soldiers with machine guns against which bird... and officially LOST the war?",
             choices: [
-                "Emus (The Great Emu War!)",
+                "Emus",
                 "Seagulls",
                 "Penguins",
                 "Ostriches"
@@ -651,10 +651,10 @@ extension QuestionBank {
             id: "EN_CUL_02",
             theme: .cultureGInsolite,
             preferredRound: .tuTeMetsCombien,
-            funnyTitle: "The Sweetest Dentist in History",
+            funnyTitle: "The Surprising Day Job of Cotton Candy's Inventor",
             prompt: "What was the day job of William Morrison, the man who co-invented the Cotton Candy machine in 1897?",
             choices: [
-                "He was a DENTIST! (Inventing cavities on Sunday to drill teeth on Monday!)",
+                "He was a DENTIST!",
                 "He was a firefighter",
                 "He was a barber",
                 "He was a mattress maker"
@@ -672,7 +672,7 @@ extension QuestionBank {
             funnyTitle: "Wombat Poop Geometry",
             prompt: "What geometric shape is the poop of an Australian wombat (so it doesn't roll off rocks when marking its territory)?",
             choices: [
-                "Cube-shaped (like little dice!)",
+                "Cube-shaped",
                 "Pyramid-shaped",
                 "Heart-shaped",
                 "Star-shaped"
@@ -690,7 +690,7 @@ extension QuestionBank {
             funnyTitle: "The True Color of an Airplane's Black Box",
             prompt: "What color is an airplane's 'Black Box' flight recorder actually painted?",
             choices: [
-                "Bright Neon Orange (so divers can spot it in wreckage!)",
+                "Bright Neon Orange",
                 "Matte Black",
                 "Camouflage Green",
                 "Clear Glass"
@@ -708,7 +708,7 @@ extension QuestionBank {
             funnyTitle: "Cleopatra's Time Machine",
             prompt: "Chronologically, Queen Cleopatra (who died in 30 BC) lived closer in time to which of these events?",
             choices: [
-                "The 1969 Moon Landing and the iPhone (rather than the building of the Great Pyramid of Giza!)",
+                "The 1969 Moon Landing and the iPhone",
                 "The building of the Great Pyramid of Giza",
                 "The extinction of T-Rex",
                 "The Ice Age"
@@ -728,7 +728,7 @@ extension QuestionBank {
             choices: [
                 "3 hearts and blue blood!",
                 "1 heart and red blood",
-                "8 hearts (one per tentacle!)",
+                "8 hearts",
                 "2 hearts and green blood"
             ],
             correctIndex: 0,
@@ -800,10 +800,10 @@ extension QuestionBank {
             id: "EN_ECO_04",
             theme: .ecoCash,
             preferredRound: .finaleDouble,
-            funnyTitle: "The Supermarket Eye-Level Trap",
+            funnyTitle: "The Supermarket Shelf Placement Trick",
             prompt: "In supermarkets, where are the MOST expensive brand-name products strategically placed on the shelves?",
             choices: [
-                "Right at eye level ('Eye level is buy level'!), while cheaper store brands are on the bottom shelf",
+                "Right at eye level",
                 "Hidden behind the milk",
                 "On the very bottom shelf",
                 "In the parking lot"
@@ -832,7 +832,7 @@ extension QuestionBank {
                 QuizDisOrDatItem(index: 0, text: "A Tomato", correctSide: "both"),
                 QuizDisOrDatItem(index: 1, text: "A Carrot", correctSide: "right"),
                 QuizDisOrDatItem(index: 2, text: "An Avocado", correctSide: "both"),
-                QuizDisOrDatItem(index: 3, text: "Rhubarb (a tart plant stem we bake into sweet pies!)", correctSide: "right"),
+                QuizDisOrDatItem(index: 3, text: "Rhubarb", correctSide: "right"),
                 QuizDisOrDatItem(index: 4, text: "A Bell Pepper", correctSide: "both"),
                 QuizDisOrDatItem(index: 5, text: "A Strawberry", correctSide: "left")
             ],
@@ -849,12 +849,12 @@ extension QuestionBank {
             optionBoth: "🧀 BOTH!",
             valuePerItem: 1000,
             items: [
-                QuizDisOrDatItem(index: 0, text: "“Bumbershoot” (slang for an umbrella!)", correctSide: "left"),
-                QuizDisOrDatItem(index: 1, text: "“Petrichor” (the earthy smell after summer rain)", correctSide: "left"),
+                QuizDisOrDatItem(index: 0, text: "“Bumbershoot”", correctSide: "left"),
+                QuizDisOrDatItem(index: 1, text: "“Petrichor”", correctSide: "left"),
                 QuizDisOrDatItem(index: 2, text: "“Snore-o-meter”", correctSide: "right"),
-                QuizDisOrDatItem(index: 3, text: "“Discombobulate” (to confuse or disconcert)", correctSide: "left"),
+                QuizDisOrDatItem(index: 3, text: "“Discombobulate”", correctSide: "left"),
                 QuizDisOrDatItem(index: 4, text: "“Couch-potatery”", correctSide: "right"),
-                QuizDisOrDatItem(index: 5, text: "“Hangry” (hungry + angry — officially added to the Oxford Dictionary!)", correctSide: "both")
+                QuizDisOrDatItem(index: 5, text: "“Hangry”", correctSide: "both")
             ],
             audioCueID: "en_q_RAC_02",
             isPunRound: false
@@ -869,11 +869,11 @@ extension QuestionBank {
             optionBoth: "🧀 BOTH!",
             valuePerItem: 1000,
             items: [
-                QuizDisOrDatItem(index: 0, text: "Mr. Spock and the Vulcan salute (“Live long and prosper”)", correctSide: "right"),
+                QuizDisOrDatItem(index: 0, text: "Mr. Spock and the Vulcan salute", correctSide: "right"),
                 QuizDisOrDatItem(index: 1, text: "Chewbacca and the Millennium Falcon", correctSide: "left"),
                 QuizDisOrDatItem(index: 2, text: "The USS Enterprise", correctSide: "right"),
                 QuizDisOrDatItem(index: 3, text: "Directed by J.J. Abrams in the 2000s/2010s!", correctSide: "both"),
-                QuizDisOrDatItem(index: 4, text: "Baby Yoda (Grogu)", correctSide: "left"),
+                QuizDisOrDatItem(index: 4, text: "Baby Yoda", correctSide: "left"),
                 QuizDisOrDatItem(index: 5, text: "“Beam me up, Scotty!”", correctSide: "right")
             ],
             audioCueID: "en_q_RAC_03",
@@ -889,12 +889,12 @@ extension QuestionBank {
             optionBoth: "🧀 BOTH (CHARTED IN BOTH)!",
             valuePerItem: 1000,
             items: [
-                QuizDisOrDatItem(index: 0, text: "“Billie Jean” — Michael Jackson (1983)", correctSide: "left"),
-                QuizDisOrDatItem(index: 1, text: "“...Baby One More Time” — Britney Spears (1998)", correctSide: "right"),
-                QuizDisOrDatItem(index: 2, text: "“Bohemian Rhapsody” — Queen (hit #2 in 1992 after Wayne's World + 70s/80s classic!)", correctSide: "both"),
-                QuizDisOrDatItem(index: 3, text: "“Take On Me” — a-ha (1985)", correctSide: "left"),
-                QuizDisOrDatItem(index: 4, text: "“Smells Like Teen Spirit” — Nirvana (1991)", correctSide: "right"),
-                QuizDisOrDatItem(index: 5, text: "“Eye of the Tiger” — Survivor (1982)", correctSide: "left")
+                QuizDisOrDatItem(index: 0, text: "“Billie Jean”", correctSide: "left"),
+                QuizDisOrDatItem(index: 1, text: "“...Baby One More Time”", correctSide: "right"),
+                QuizDisOrDatItem(index: 2, text: "“Bohemian Rhapsody”", correctSide: "both"),
+                QuizDisOrDatItem(index: 3, text: "“Take On Me”", correctSide: "left"),
+                QuizDisOrDatItem(index: 4, text: "“Smells Like Teen Spirit”", correctSide: "right"),
+                QuizDisOrDatItem(index: 5, text: "“Eye of the Tiger”", correctSide: "left")
             ],
             audioCueID: "en_q_RAC_04",
             isPunRound: false

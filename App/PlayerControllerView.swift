@@ -974,7 +974,9 @@ struct PlayerControllerView: View {
                             .font(.system(size: 13, weight: .bold, design: .rounded))
                             .foregroundStyle(PopArt.ink.opacity(0.75))
                             .multilineTextAlignment(.center)
-                        Text("🎁 Si tu vois « \(sponsor.hintKeyword) » dans un QCM, clique dessus pour rafler +\(sponsor.jackpotReward) PTS !")
+                        Text(AppLanguage.isEnglish
+                             ? "🎁 Spot our sponsor's product hidden in a multiple-choice question to win +\(sponsor.jackpotReward) PTS!"
+                             : "🎁 Repère le produit de ce sponsor caché dans un QCM pour rafler +\(sponsor.jackpotReward) PTS !")
                             .font(.system(size: 13, weight: .black, design: .rounded))
                             .foregroundStyle(PopArt.greenSuccess)
                             .multilineTextAlignment(.center)

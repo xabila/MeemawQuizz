@@ -27,13 +27,13 @@ extension QuestionBank {
             id: "FR_22",
             theme: .francaisMeemaw,
             preferredRound: .tuTeMetsCombien,
-            funnyTitle: "Au temps pour moi ou Autant pour moi ?",
+            funnyTitle: "S'excuser sans fâcher l'Académie française",
             prompt: "Tu viens de renverser le plat de gratin dauphinois sur les pantoufles de Pépé. Quelle graphie est recommandée par l'Académie française pour t'excuser ?",
             choices: [
-                "Au temps pour moi (comme à l'armée ou à la musique !)",
-                "Autant pour moi (comme à la cantine)",
-                "Otan pour moi (intervention diplomatique)",
-                "Oh tant pis pour toi (version sincère mais risquée)"
+                "Au temps pour moi",
+                "Autant pour moi",
+                "Otan pour moi",
+                "Oh tant pis pour toi"
             ],
             correctIndex: 0,
             baseValue: 2000,
@@ -49,7 +49,7 @@ extension QuestionBank {
             prompt: "Meemaw adore les robes « orange » et « marron ». Comment écrit-on : « Des pulls marron et des chaussettes orange » ?",
             choices: [
                 "Des pulls marrons et des chaussettes oranges",
-                "Des pulls marron et des chaussettes orange (invariables, ce sont des fruits !)",
+                "Des pulls marron et des chaussettes orange",
                 "Des pulls marron et des chaussettes oranges",
                 "On dit « beige foncé » comme ça on ne se trompe pas"
             ],
@@ -84,10 +84,10 @@ extension QuestionBank {
             funnyTitle: "Le subjonctif qui pique les yeux",
             prompt: "Complète cette phrase de Meemaw sans faire pleurer ton prof de français : « Bien qu'il ___ très tard, Tonton redemande du fromage. »",
             choices: [
-                "soit (subjonctif présent tout propre)",
-                "est (indicatif de fin de soirée)",
-                "soie (comme le foulard du dimanche)",
-                "serait (conditionnel de la sieste)"
+                "soit",
+                "est",
+                "soie",
+                "serait"
             ],
             correctIndex: 0,
             baseValue: 2000,
@@ -102,7 +102,7 @@ extension QuestionBank {
             funnyTitle: "Passer du coq à l'âne",
             prompt: "À l'origine, au Moyen Âge, de quel deuxième animal parlait-on dans l'expression « passer du coq à l'âne » ?",
             choices: [
-                "Du coq à la cane (la femelle du canard !)",
+                "Du coq à la cane",
                 "Du coq au chameau",
                 "Du coq au boudin",
                 "Du coq au lama"
@@ -117,11 +117,11 @@ extension QuestionBank {
             id: "FR_27",
             theme: .francaisMeemaw,
             preferredRound: .leSolo,
-            funnyTitle: "Avoir un poil dans la main",
+            funnyTitle: "L'anatomie secrète du grand paresseux",
             prompt: "Selon l'expression française, quand ton cousin met 4 heures à débarrasser trois petites cuillères, qu'a-t-il au creux de la paume ?",
             choices: [
                 "Un hérisson en RTT",
-                "Un poil dans la main (voire une canne à pêche)",
+                "Un poil dans la main",
                 "Une crampe diplomatique",
                 "Une allergie à l'éponge Spontex"
             ],
@@ -156,7 +156,7 @@ extension QuestionBank {
             funnyTitle: "Se mettre sur son 31",
             prompt: "Quand Pépé sort son costume trois-pièces qui sent la naphtaline, on dit qu'il « se met sur son 31 ». Quelle est l'origine la plus citée ?",
             choices: [
-                "Une déformation du « trente-et-ain », un drap de laine de luxe à 3 100 fils",
+                "D'un drap de luxe du Moyen Âge appelé le « trentain »",
                 "Le numéro du bus qui allait au bal de l'Opéra",
                 "Parce qu'on ne s'habille bien que le 31 décembre",
                 "Le tour de taille de Pépé en 1968"
@@ -171,10 +171,10 @@ extension QuestionBank {
             id: "FR_30",
             theme: .francaisMeemaw,
             preferredRound: .tuTeMetsCombien,
-            funnyTitle: "Appeler un chat un chat (et Rollet un fripon)",
+            funnyTitle: "Appeler un chat un chat chez Nicolas Boileau",
             prompt: "Dans le célèbre vers de Boileau « J'appelle un chat un chat, et Rollet un ___ », quel mot rime avec chat ou complète la phrase ?",
             choices: [
-                "un fripon (c'était un procureur véreux de l'époque !)",
+                "un fripon",
                 "un matou",
                 "un cornichon",
                 "un glouton"
@@ -189,11 +189,11 @@ extension QuestionBank {
             id: "FR_31",
             theme: .francaisMeemaw,
             preferredRound: .leSolo,
-            funnyTitle: "Les chevaux de bataille et les chacals",
+            funnyTitle: "Le grand piège des pluriels en -AL",
             prompt: "Quel est le pluriel exact des mots « un chacal », « un festival » et « un bal » ?",
             choices: [
                 "Des chacaux, des festivaux et des baux",
-                "Des chacals, des festivals et des bals (tous les trois avec un S !)",
+                "Des chacals, des festivals et des bals",
                 "Des chacaux, des festivals et des bals",
                 "On dit « une meute de bestioles qui font la fête »"
             ],
@@ -207,13 +207,13 @@ extension QuestionBank {
             id: "FR_32",
             theme: .francaisMeemaw,
             preferredRound: .finaleDouble,
-            funnyTitle: "Sens dessus dessous ou Sans dessus dessous ?",
+            funnyTitle: "Quand le salon est complètement retourné",
             prompt: "Après le passage des petits-enfants dans le salon, tout est retourné ! Comment écrit-on correctement cette expression ?",
             choices: [
-                "Sens dessus dessous (S-E-N-S, le côté du dessus est passé en dessous !)",
-                "Sans dessus dessous (S-A-N-S)",
-                "Cent dessus dessous (C-E-N-T)",
-                "Sang dessus dessous (version film d'horreur)"
+                "Sens dessus dessous",
+                "Sans dessus dessous",
+                "Cent dessus dessous",
+                "Sang dessus dessous"
             ],
             correctIndex: 0,
             baseValue: 2500,
@@ -233,8 +233,8 @@ extension QuestionBank {
             funnyTitle: "Le piège classique de la boulangerie",
             prompt: "Un éclair au chocolat et un café coûtent 1,10 € en tout. L'éclair coûte 1,00 € de PLUS que le café. Combien coûte le café ?",
             choices: [
-                "0,10 € (réponse réflexe de Tonton)",
-                "0,05 € (5 centimes ! Car 1,05 € + 0,05 € = 1,10 € !)",
+                "0,10 €",
+                "0,05 €",
                 "0,50 €",
                 "Gratuit si on sourit à la boulangère"
             ],
@@ -251,8 +251,8 @@ extension QuestionBank {
             funnyTitle: "Les nénuphars du bassin de Pépé",
             prompt: "Un nénuphar double de taille tous les jours dans le bassin. Il met 30 jours à recouvrir TOUT le bassin. En combien de jours recouvre-t-il la MOITIÉ du bassin ?",
             choices: [
-                "15 jours (la moitié de 30, logique de comptoir)",
-                "29 jours (puisqu'il double le lendemain pour tout recouvrir le 30e jour !)",
+                "15 jours",
+                "29 jours",
                 "20 jours",
                 "Ça dépend s'il pleut en Bretagne"
             ],
@@ -270,7 +270,7 @@ extension QuestionBank {
             prompt: "Tu participes au Tour du Village à vélo et tu dépasses le 2e de la course juste avant la ligne. À quelle place termines-tu ?",
             choices: [
                 "1er, champion du monde !",
-                "2e (tu as doublé le 2e, pas le 1er !)",
+                "2e",
                 "3e",
                 "Dans le fossé avec les orties"
             ],
@@ -306,7 +306,7 @@ extension QuestionBank {
             prompt: "Dans le tiroir de Meemaw, il y a 10 chaussettes bleues et 10 chaussettes rouges en vrac. Dans le noir complet, combien faut-il en tirer AU MINIMUM pour être 100 % sûr d'avoir une paire de la même couleur ?",
             choices: [
                 "11 chaussettes",
-                "3 chaussettes (avec 2 couleurs possibles, la 3e fait forcément une paire !)",
+                "3 chaussettes",
                 "2 chaussettes",
                 "20 chaussettes"
             ],
@@ -323,8 +323,8 @@ extension QuestionBank {
             funnyTitle: "La promo trompeuse du supermarché",
             prompt: "Un pull coûte 100 €. Il augmente d'abord de +20 %, puis la semaine suivante il baisse de -20 %. Quel est son nouveau prix ?",
             choices: [
-                "100 € (ça s'annule tout pile !)",
-                "96 € (100 € -> 120 €, puis -20 % de 120 € = -24 € !)",
+                "100 €",
+                "96 €",
                 "104 €",
                 "80 €"
             ],
@@ -342,7 +342,7 @@ extension QuestionBank {
             prompt: "En coupant un clafoutis bien rond avec 3 coups de couteau droits (sans empiler les parts), quel est le nombre MAXIMUM de parts qu'on peut obtenir ?",
             choices: [
                 "6 parts",
-                "7 parts (en croisant les 3 droites sans passer par le même point central !)",
+                "7 parts",
                 "8 parts",
                 "1 seule grosse part pour Tonton"
             ],
@@ -360,7 +360,7 @@ extension QuestionBank {
             prompt: "Combien font exactement : 5 + 5 × 5 - 5 ?",
             choices: [
                 "45",
-                "25 (la multiplication d'abord : 5 + 25 - 5 = 25 !)",
+                "25",
                 "0",
                 "50"
             ],
@@ -382,7 +382,7 @@ extension QuestionBank {
             funnyTitle: "Le dîner de cons du mercredi soir",
             prompt: "Dans « Le Dîner de cons », quelle est la grande passion de François Pignon (Jacques Villeret) qu'il veut absolument montrer à Pierre Brochant ?",
             choices: [
-                "Les maquettes géantes en allumettes (dont le pont de Tancarville !)",
+                "Les maquettes géantes en allumettes",
                 "La collection de capsules de bière tiède",
                 "L'élevage de hamsters acrobates",
                 "Les boomerangs en carton-pâte"
@@ -400,7 +400,7 @@ extension QuestionBank {
             funnyTitle: "Les Bronzés font du ski : la liqueur du chalet",
             prompt: "Dans « Les Bronzés font du ski », quel animal bien baveux flotte au fond de la bouteille d'alcool fort (« la fougère ») servie par les montagnards ?",
             choices: [
-                "Un crapaud (le fameux crapaud dans l'eau-de-vie !)",
+                "Un crapaud",
                 "Un écureuil des Alpes",
                 "Une truite arc-en-ciel",
                 "Un vieux chausson de ski"
@@ -436,7 +436,7 @@ extension QuestionBank {
             funnyTitle: "La Cité de la Peur : le goûter d'Odile",
             prompt: "Dans « La Cité de la peur » des Nuls, que faut-il prendre d'abord quand on vous attaque (« Vous voulez un whisky ? ») ?",
             choices: [
-                "Juste un doigt... Vous ne voulez pas un whisky d'abord ?",
+                "Juste un doigt",
                 "Une tisane verveine-menthe",
                 "Un chewing-gum Émile",
                 "Une gencive de porc"
@@ -472,9 +472,9 @@ extension QuestionBank {
             funnyTitle: "Retour vers le Futur : la vitesse de la DeLorean",
             prompt: "Dans « Retour vers le futur », quelle vitesse exacte (en miles par heure) la DeLorean de Doc Brown doit-elle atteindre pour voyager dans le temps ?",
             choices: [
-                "88 miles par heure (88 mph, soit ~141,6 km/h !)",
+                "88 miles par heure",
                 "100 miles par heure",
-                "50 km/h (en zone résidentielle)",
+                "50 km/h",
                 "2,21 gigowatts par heure"
             ],
             correctIndex: 0,
@@ -531,7 +531,7 @@ extension QuestionBank {
             funnyTitle: "🎧 Jukebox : Les Lacs du Connemara au mariage",
             prompt: "Complète les paroles de Michel Sardou avant que tout le monde ne fasse tourner les serviettes : « Terre brûlée au vent, des landes de ___ »",
             choices: [
-                "pierres (Autour des lacs, c'est pour les vivants !)",
+                "pierres",
                 "bières",
                 "bruyères",
                 "pommes de terre"
@@ -549,7 +549,7 @@ extension QuestionBank {
             funnyTitle: "🎧 Jukebox : Les Démons de minuit",
             prompt: "Complète le refrain du groupe Images (1986) : « Ils m'entraînent au bout de la nuit, les démons de minuit, m'entraînent jusqu'à ___ »",
             choices: [
-                "l'insomnie (Les fantômes de l'ennui !)",
+                "l'insomnie",
                 "la boulangerie",
                 "la mairie",
                 "l'Italie"
@@ -567,9 +567,9 @@ extension QuestionBank {
             funnyTitle: "🎧 Jukebox : Céline Dion dans le salon",
             prompt: "Complète le cri du cœur de Céline Dion dans « J'irai où tu iras » (écrit par Goldman) : « J'irai où tu iras, mon pays sera ___ »",
             choices: [
-                "toi (J'irai où tu iras, qu'importe la place !)",
-                "froid (comme à Montréal en janvier)",
-                "plat (comme la Belgique)",
+                "toi",
+                "froid",
+                "plat",
                 "chez moi"
             ],
             correctIndex: 0,
@@ -582,7 +582,7 @@ extension QuestionBank {
             id: "JUK_16",
             theme: .musiqueTubes,
             preferredRound: .jukeboxExpress,
-            funnyTitle: "🎧 Jukebox : Stromae sur la piste",
+            funnyTitle: "🎧 Jukebox : Le tube planétaire de Stromae (2009)",
             prompt: "Dans le tube planétaire de Stromae (2009), que fait-on après une grosse journée de galère : « Alors on ___ » ?",
             choices: [
                 "danse !",
@@ -603,7 +603,7 @@ extension QuestionBank {
             funnyTitle: "🎧 Jukebox : La Tribu de Dana",
             prompt: "Complète le premier vers mythique du groupe Manau (1998) : « Le vent souffle sur les plaines de la Bretagne ___ »",
             choices: [
-                "armoricaine (Je jette un dernier regard sur ma femme, mon fils et mon domaine !)",
+                "armoricaine",
                 "américaine",
                 "au beurre demi-sel",
                 "sous la pluie"
@@ -621,7 +621,7 @@ extension QuestionBank {
             funnyTitle: "🎧 Jukebox : Gilbert Montagné sous les tropiques",
             prompt: "Complète le refrain solaire de Gilbert Montagné : « Sous les sunlights des tropiques, l'amour se raconte en ___ »",
             choices: [
-                "musique (On a toute la nuit pour s'aimer !)",
+                "musique",
                 "tunique",
                 "boutique",
                 "Martinique"
@@ -639,7 +639,7 @@ extension QuestionBank {
             funnyTitle: "🎧 Jukebox : Indochine et l'Aventurier",
             prompt: "Dans « L'Aventurier » d'Indochine (1982), comment s'appelle le héros qui est « le roi de tous les vauriens » ?",
             choices: [
-                "Bob Morane (contre tout chacal, l'aventurier contre tout guerrier !)",
+                "Bob Morane",
                 "Jean-Claude Van Damme",
                 "Rahan fils des âges farouches",
                 "Inspecteur Gadget"
@@ -654,7 +654,7 @@ extension QuestionBank {
             id: "JUK_20",
             theme: .musiqueTubes,
             preferredRound: .jukeboxExpress,
-            funnyTitle: "🎧 Jukebox : Johnny Hallyday met le feu",
+            funnyTitle: "🎧 Jukebox : L'entrée de scène de Johnny Hallyday",
             prompt: "Complète l'entrée fracassante de Johnny Hallyday : « Il suffira d'une étincelle, d'un rien, d'un geste, il suffira d'une étincelle, et d'un mot d'amour pour ___ »",
             choices: [
                 "allumer le feu !",
@@ -693,7 +693,7 @@ extension QuestionBank {
             funnyTitle: "🎧 Jukebox : Claude François et le téléphone",
             prompt: "Dans « Le Téléphone pleure » de Claude François (1974), quel âge a la petite fille au bout du fil (« Dis à ta mère que je suis en voyage... ») ?",
             choices: [
-                "Elle a 6 ans (« Écoute-moi bien, tu es une grande fille maintenant... »)",
+                "Elle a 6 ans",
                 "Elle a 18 ans et passe son permis",
                 "Elle a 2 mois et parle déjà trois langues",
                 "C'est le démarcheur pour l'isolation à 1 €"
@@ -747,7 +747,7 @@ extension QuestionBank {
             funnyTitle: "🎧 Jukebox : Queen et le karaoké de minuit",
             prompt: "Dans « Bohemian Rhapsody » de Queen (1975), quel nom d'astronome célèbre est répété dans la partie opéra après « Scaramouche, Scaramouche, will you do the Fandango » ?",
             choices: [
-                "Galileo ! (Galileo, Galileo, Figaro, Magnifico !)",
+                "Galileo !",
                 "Copernic !",
                 "Thomas Pesquet !",
                 "Nostradamus !"
@@ -788,7 +788,7 @@ extension QuestionBank {
             funnyTitle: "Les crottes géométriques de la nature",
             prompt: "Quel animal australien est le seul au monde à faire des crottes en forme de CUBE parfait (pour ne pas qu'elles roulent en bas des collines) ?",
             choices: [
-                "Le wombat (le maçon de la savane !)",
+                "Le wombat",
                 "Le kangourou",
                 "L'ornithorynque",
                 "Le koala après trois cafés"
@@ -806,7 +806,7 @@ extension QuestionBank {
             funnyTitle: "La Grande Guerre contre les oiseaux",
             prompt: "En 1932, l'armée australienne a déployé des soldats armés de mitrailleuses contre quel animal... et a officiellement PERDU la guerre ?",
             choices: [
-                "Les émeus (la fameuse « Guerre des Émeus » !)",
+                "Les émeus",
                 "Les kangourous boxeurs",
                 "Les mouettes voleuses de frites",
                 "Les lapins géants"
@@ -824,7 +824,7 @@ extension QuestionBank {
             funnyTitle: "Le pays le plus proche de la France (attention piège !)",
             prompt: "Avec quel pays la France partage-t-elle sa plus LONGUE frontière terrestre (730 kilomètres) ?",
             choices: [
-                "Le Brésil (grâce à la Guyane française !)",
+                "Le Brésil",
                 "L'Espagne",
                 "L'Allemagne",
                 "La Belgique"
@@ -842,7 +842,7 @@ extension QuestionBank {
             funnyTitle: "La boîte noire de l'avion",
             prompt: "De quelle couleur est réellement la « boîte noire » d'un avion de ligne (pour qu'on la retrouve facilement au fond de l'océan ou dans les débris) ?",
             choices: [
-                "Orange fluo vif (avec des bandes réfléchissantes !)",
+                "Orange fluo vif",
                 "Noir mat",
                 "Jaune canari à pois bleus",
                 "Transparente"
@@ -862,7 +862,7 @@ extension QuestionBank {
             choices: [
                 "3 cœurs et le sang bleu !",
                 "1 cœur et le sang rouge",
-                "8 cœurs (un par tentacule !)",
+                "8 cœurs",
                 "2 cœurs et le sang vert fluo"
             ],
             correctIndex: 0,
@@ -878,7 +878,7 @@ extension QuestionBank {
             funnyTitle: "Cléopâtre et la machine à remonter le temps",
             prompt: "De quel événement historique la reine Cléopâtre (morte en 30 av. J.-C.) était-elle chronologiquement la PLUS PROCHE ?",
             choices: [
-                "Du premier pas sur la Lune (1969) et de l'iPhone plutôt que de la construction de la grande pyramide de Khéops !",
+                "Du premier pas sur la Lune et de l'iPhone",
                 "De la construction de la pyramide de Khéops",
                 "De l'extinction des dinosaures",
                 "De la naissance de Meemaw"
@@ -896,7 +896,7 @@ extension QuestionBank {
             funnyTitle: "L'inventeur de la barbe à papa",
             prompt: "Quel était le vrai métier de William Morrison, l'homme qui a co-inventé la machine à barbe à papa en 1897 ?",
             choices: [
-                "Il était DENTISTE (le sens des affaires absolu : créer des caries pour avoir des clients !)",
+                "Il était DENTISTE",
                 "Il était coiffeur pour caniches",
                 "Il était fabricant de matelas en laine",
                 "Il était pompier"
@@ -914,9 +914,9 @@ extension QuestionBank {
             funnyTitle: "La vitesse d'un éternuement de Pépé",
             prompt: "Quand Pépé éternue à plein poumons au milieu du repas de famille, à quelle vitesse approximative l'air sort-il de son nez ?",
             choices: [
-                "Environ 160 km/h (plus vite que sur l'autoroute A6 !)",
-                "Environ 12 km/h (comme un footing du dimanche)",
-                "Environ 1 200 km/h (il passe le mur du son)",
+                "Environ 160 km/h",
+                "Environ 12 km/h",
+                "Environ 1 200 km/h",
                 "2 km/h"
             ],
             correctIndex: 0,
@@ -937,7 +937,7 @@ extension QuestionBank {
             funnyTitle: "La « réduflation » au rayon gâteaux",
             prompt: "Comment appelle-t-on la technique marketing qui consiste à réduire le poids d'un paquet de biscuits (ex: de 250 g à 210 g) tout en gardant le MÊME prix ?",
             choices: [
-                "La « shrinkflation » (ou réduflation : le paquet rétrécit mais pas l'addition !)",
+                "La « shrinkflation »",
                 "La déflation chocolatée",
                 "Le régime forcé de Meemaw",
                 "Le cashback inversé"
@@ -955,7 +955,7 @@ extension QuestionBank {
             funnyTitle: "Les pièces rouges dans le cochon de Meemaw",
             prompt: "Lors d'un paiement en espèces chez un commerçant en France, quel est le nombre MAXIMUM de pièces de monnaie qu'il est légalement obligé d'accepter d'un coup ?",
             choices: [
-                "50 pièces maximum (au-delà, il a le droit de refuser ton seau de centimes !)",
+                "50 pièces maximum",
                 "Illimité, même une brouette de 10 000 pièces de 1 centime",
                 "10 pièces maximum",
                 "Uniquement les pièces qui brillent"
@@ -973,7 +973,7 @@ extension QuestionBank {
             funnyTitle: "Le code secret à 3 chiffres de la Carte Bleue",
             prompt: "Comment s'appelle officiellement le code de sécurité à 3 chiffres inscrit au dos de ta carte bancaire (que les escrocs au téléphone essaient toujours de gratter) ?",
             choices: [
-                "Le cryptogramme visuel (CVV / CVC)",
+                "Le cryptogramme visuel",
                 "Le code IBAN de secours",
                 "Le numéro de Sécu du banquier",
                 "L'identifiant RIB"
@@ -991,7 +991,7 @@ extension QuestionBank {
             funnyTitle: "Les billets d'euros et leurs monuments",
             prompt: "De quel pays d'Europe proviennent les ponts et les fenêtres dessinés sur les billets de 5 €, 10 €, 20 €, 50 € et 100 € ?",
             choices: [
-                "D'aucun pays ! Ce sont des ponts 100 % fictifs pour ne rendre jaloux personne (sauf que les Pays-Bas les ont construits en vrai depuis !)",
+                "D'aucun pays : ce sont des ponts 100 % fictifs",
                 "Uniquement des ponts français et allemands",
                 "Tous les ponts sont à Rome",
                 "C'est le viaduc de Millau sous 7 angles différents"
@@ -1009,7 +1009,7 @@ extension QuestionBank {
             funnyTitle: "Le délai de rétractation après un achat impulsif",
             prompt: "Tu as commandé sur Internet à 2h du matin une machine à gaufres en forme de dinosaure. De combien de jours disposes-tu légalement en France pour changer d'avis après réception ?",
             choices: [
-                "14 jours (le droit de rétractation légal pour la vente à distance !)",
+                "14 jours",
                 "24 heures chrono",
                 "365 jours si les gaufres sont brûlées",
                 "Aucun, il faut assumer le tyrannosaure au Nutella"
@@ -1027,7 +1027,7 @@ extension QuestionBank {
             funnyTitle: "L'heure creuse du lave-vaisselle",
             prompt: "Dans un foyer français moyen (hors chauffage et eau chaude), quel appareil électroménager tourne 24h/24 et représente l'un des plus gros postes sur la facture d'électricité ?",
             choices: [
-                "Le combiné réfrigérateur-congélateur (surtout quand il y a 3 cm de givre dedans !)",
+                "Le combiné réfrigérateur-congélateur",
                 "Le grille-pain du matin",
                 "Le réveil-matin électrique",
                 "La brosse à dents rechargeable"
@@ -1053,12 +1053,12 @@ extension QuestionBank {
             optionBoth: "🧀 LES DEUX !",
             valuePerItem: 1000,
             items: [
-                QuizDisOrDatItem(index: 0, text: "« Callipyge » (qui a de très belles fesses)", correctSide: "left"),
-                QuizDisOrDatItem(index: 1, text: "« Pétrichor » (l'odeur de la terre après la pluie d'été)", correctSide: "left"),
+                QuizDisOrDatItem(index: 0, text: "« Callipyge »", correctSide: "left"),
+                QuizDisOrDatItem(index: 1, text: "« Pétrichor »", correctSide: "left"),
                 QuizDisOrDatItem(index: 2, text: "« Ronflomètre à soupape »", correctSide: "right"),
-                QuizDisOrDatItem(index: 3, text: "« Tintinnabuler » (produire le son d'une clochette)", correctSide: "left"),
-                QuizDisOrDatItem(index: 4, text: "« Dorlotarium » (centre officiel de sieste post-raclette)", correctSide: "right"),
-                QuizDisOrDatItem(index: 5, text: "« Boustifaille » (repas copieux ET argot familier entré au dictionnaire)", correctSide: "both")
+                QuizDisOrDatItem(index: 3, text: "« Tintinnabuler »", correctSide: "left"),
+                QuizDisOrDatItem(index: 4, text: "« Dorlotarium »", correctSide: "right"),
+                QuizDisOrDatItem(index: 5, text: "« Boustifaille »", correctSide: "both")
             ],
             audioCueID: "q_RAC_09",
             isPunRound: false
@@ -1073,12 +1073,12 @@ extension QuestionBank {
             optionBoth: "🧀 LES DEUX !",
             valuePerItem: 1000,
             items: [
-                QuizDisOrDatItem(index: 0, text: "« La Grande Vadrouille » (1966)", correctSide: "both"),
-                QuizDisOrDatItem(index: 1, text: "« Le Corniaud » (1965) et sa 2CV qui tombe en miettes", correctSide: "both"),
-                QuizDisOrDatItem(index: 2, text: "« Rabbi Jacob » (1973) et l'usine de chewing-gum", correctSide: "left"),
-                QuizDisOrDatItem(index: 3, text: "« La Traversée de Paris » (1956) avec Jean Gabin (« Jambier ! »)", correctSide: "both"),
-                QuizDisOrDatItem(index: 4, text: "« Le Cerveau » (1969) de Gérard Oury avec Jean-Paul Belmondo", correctSide: "right"),
-                QuizDisOrDatItem(index: 5, text: "« L'Aile ou la Cuisse » (1976) avec Coluche", correctSide: "left")
+                QuizDisOrDatItem(index: 0, text: "« La Grande Vadrouille »", correctSide: "both"),
+                QuizDisOrDatItem(index: 1, text: "« Le Corniaud »", correctSide: "both"),
+                QuizDisOrDatItem(index: 2, text: "« Rabbi Jacob »", correctSide: "left"),
+                QuizDisOrDatItem(index: 3, text: "« La Traversée de Paris »", correctSide: "both"),
+                QuizDisOrDatItem(index: 4, text: "« Le Cerveau »", correctSide: "right"),
+                QuizDisOrDatItem(index: 5, text: "« L'Aile ou la Cuisse »", correctSide: "left")
             ],
             audioCueID: "q_RAC_10",
             isPunRound: false
@@ -1093,9 +1093,9 @@ extension QuestionBank {
             optionBoth: "🧀 LES DEUX !",
             valuePerItem: 1000,
             items: [
-                QuizDisOrDatItem(index: 0, text: "La tomate (et l'aubergine ou la courgette !)", correctSide: "both"),
+                QuizDisOrDatItem(index: 0, text: "La tomate", correctSide: "both"),
                 QuizDisOrDatItem(index: 1, text: "La carotte", correctSide: "right"),
-                QuizDisOrDatItem(index: 2, text: "La rhubarbe (tige potagère qu'on met pourtant dans les tartes sucrées !)", correctSide: "right"),
+                QuizDisOrDatItem(index: 2, text: "La rhubarbe", correctSide: "right"),
                 QuizDisOrDatItem(index: 3, text: "Le poivron", correctSide: "both"),
                 QuizDisOrDatItem(index: 4, text: "Le poireau", correctSide: "right"),
                 QuizDisOrDatItem(index: 5, text: "L'avocat", correctSide: "both")
@@ -1113,12 +1113,12 @@ extension QuestionBank {
             optionBoth: "🧀 LES DEUX (REPRISE / HYMNE) !",
             valuePerItem: 1000,
             items: [
-                QuizDisOrDatItem(index: 0, text: "« Les Démons de minuit » — Images", correctSide: "left"),
-                QuizDisOrDatItem(index: 1, text: "« La Tribu de Dana » — Manau", correctSide: "right"),
-                QuizDisOrDatItem(index: 2, text: "« I Will Survive » (Gloria Gaynor & Hermes House Band « Lalala » en 1998 !)", correctSide: "both"),
-                QuizDisOrDatItem(index: 3, text: "« Foule sentimentale » — Alain Souchon", correctSide: "right"),
-                QuizDisOrDatItem(index: 4, text: "« L'Aventurier » — Indochine", correctSide: "left"),
-                QuizDisOrDatItem(index: 5, text: "« Pour que tu m'aimes encore » — Céline Dion", correctSide: "right")
+                QuizDisOrDatItem(index: 0, text: "« Les Démons de minuit »", correctSide: "left"),
+                QuizDisOrDatItem(index: 1, text: "« La Tribu de Dana »", correctSide: "right"),
+                QuizDisOrDatItem(index: 2, text: "« I Will Survive »", correctSide: "both"),
+                QuizDisOrDatItem(index: 3, text: "« Foule sentimentale »", correctSide: "right"),
+                QuizDisOrDatItem(index: 4, text: "« L'Aventurier »", correctSide: "left"),
+                QuizDisOrDatItem(index: 5, text: "« Pour que tu m'aimes encore »", correctSide: "right")
             ],
             audioCueID: "q_RAC_12",
             isPunRound: false
@@ -1136,8 +1136,8 @@ extension QuestionBank {
                 QuizDisOrDatItem(index: 0, text: "9 × 11", correctSide: "left"),
                 QuizDisOrDatItem(index: 1, text: "25 × 4", correctSide: "both"),
                 QuizDisOrDatItem(index: 2, text: "12 × 9", correctSide: "right"),
-                QuizDisOrDatItem(index: 3, text: "Le nombre de départements français en tout (métropole + outre-mer)", correctSide: "right"),
-                QuizDisOrDatItem(index: 4, text: "La température d'ébullition de l'eau pure (°C) au niveau de la mer", correctSide: "both"),
+                QuizDisOrDatItem(index: 3, text: "Le nombre de départements français en tout", correctSide: "right"),
+                QuizDisOrDatItem(index: 4, text: "La température d'ébullition de l'eau pure au niveau de la mer", correctSide: "both"),
                 QuizDisOrDatItem(index: 5, text: "7 × 14", correctSide: "left")
             ],
             audioCueID: "q_RAC_13",
@@ -1157,7 +1157,7 @@ extension QuestionBank {
                 QuizDisOrDatItem(index: 1, text: "L'accès aux toilettes dans un restaurant pour les clients attablés", correctSide: "left"),
                 QuizDisOrDatItem(index: 2, text: "Les sacs plastiques ou papier à la caisse du supermarché", correctSide: "right"),
                 QuizDisOrDatItem(index: 3, text: "Le gonflage des pneus en station-service", correctSide: "both"),
-                QuizDisOrDatItem(index: 4, text: "L'appel aux numéros d'urgence (15, 17, 18, 112)", correctSide: "left"),
+                QuizDisOrDatItem(index: 4, text: "L'appel aux numéros d'urgence", correctSide: "left"),
                 QuizDisOrDatItem(index: 5, text: "Le remplacement d'une carte bancaire perdue avant sa date d'expiration", correctSide: "both")
             ],
             audioCueID: "q_RAC_14",

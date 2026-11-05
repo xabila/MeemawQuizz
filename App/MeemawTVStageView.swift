@@ -322,7 +322,9 @@ struct MeemawTVStageView: View {
                             .padding(.horizontal, 18 * scale)
                             .padding(.vertical, 6 * scale)
                             .background(PopArt.orange, in: Capsule())
-                        Text("\(sponsor.slogan) — Clique sur la réponse liée à « \(sponsor.hintKeyword) » pour rafler +\(sponsor.jackpotReward) PTS !")
+                        Text(AppLanguage.isEnglish
+                             ? "“\(sponsor.slogan)” — Dare to tap our sponsor's hidden answer during the round (+\(sponsor.jackpotReward) PTS)!"
+                             : "« \(sponsor.slogan) » — Osez cliquer sur la réponse cachée du sponsor pendant la manche (+\(sponsor.jackpotReward) PTS) !")
                             .font(.system(size: 16 * scale, weight: .bold, design: .rounded))
                             .foregroundStyle(PopArt.ink)
                             .multilineTextAlignment(.center)

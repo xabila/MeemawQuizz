@@ -45,6 +45,23 @@ public struct ShowGameDeck: Sendable {
     }
 }
 
+extension QuizMCQQuestion {
+    /// Mélange aléatoirement l'ordre des 4 réponses A/B/C/D en conservant `correctIndex` et `sponsoredChoiceIndex`.
+    public func withShuffledChoices() -> QuizMCQQuestion {
+        var copy = self
+        let indexed = Array(choices.enumerated()).shuffled()
+        copy.choices = indexed.map(\.element)
+        if let newCorrect = indexed.firstIndex(where: { $0.offset == self.correctIndex }) {
+            copy.correctIndex = newCorrect
+        }
+        if let oldSponsor = self.sponsoredChoiceIndex,
+           let newSponsor = indexed.firstIndex(where: { $0.offset == oldSponsor }) {
+            copy.sponsoredChoiceIndex = newSponsor
+        }
+        return copy
+    }
+}
+
 public enum QuestionBank {
 
     public static var allMusiqueAndJukeboxQuestions: [QuizMCQQuestion] {
@@ -221,14 +238,14 @@ public enum QuestionBank {
 
         return ShowGameDeck(
             sponsor: sponsor,
-            cashQuestions: cash,
-            ttmcQuestions: ttmc.count == 3 ? ttmc : Array(freshPool.prefix(3)),
-            jukeboxQuestions: jukebox,
+            cashQuestions: cash.map { $0.withShuffledChoices() },
+            ttmcQuestions: (ttmc.count == 3 ? ttmc : Array(freshPool.prefix(3))).map { $0.withShuffledChoices() },
+            jukeboxQuestions: jukebox.map { $0.withShuffledChoices() },
             justePifQuestions: uniquePif,
-            soloQuestions: solo.count == 3 ? solo : Array(freshPool.suffix(3)),
+            soloQuestions: (solo.count == 3 ? solo : Array(freshPool.suffix(3))).map { $0.withShuffledChoices() },
             couciCoucaRound: couci,
             quoizziPunRound: punRound,
-            finaleDoubleQuestions: finale.count == 3 ? finale : Array(freshPool.prefix(3)),
+            finaleDoubleQuestions: (finale.count == 3 ? finale : Array(freshPool.prefix(3))).map { $0.withShuffledChoices() },
             jackAttackRound: jackRound
         )
     }
@@ -243,10 +260,10 @@ public enum QuestionBank {
             funnyTitle: "Cent soucis, mais combien de « S » dans le tiroir ?",
             prompt: "Quand Meemaw écrit sur ton chèque d'anniversaire « Deux ___ quatre-vingts euros », comment s'écrit le mot CENT sans fâcher l'Académie française ?",
             choices: [
-                "cents (avec un S, on est généreux)",
-                "cent (sans S, car suivi d'un autre nombre !)",
-                "sang (comme le boudin du boucher)",
-                "sans (parce que le compte est vide)"
+                "cents",
+                "cent",
+                "sang",
+                "sans"
             ],
             correctIndex: 1,
             baseValue: 2000,
@@ -279,10 +296,10 @@ public enum QuestionBank {
             funnyTitle: "Les poules ont couvé, mais qui s'accorde ?",
             prompt: "Complète cette phrase digne d'une dictée de Mérimée : « Les tartes aux pommes que Meemaw a ___ préparer étaient délicieuses. »",
             choices: [
-                "fait (invariable devant un infinitif !)",
-                "faites (parce que les tartes sont féminines)",
-                "faits (un compromis diplomatique)",
-                "fais (au pifomètre)"
+                "fait",
+                "faites",
+                "faits",
+                "fais"
             ],
             correctIndex: 0,
             baseValue: 2500,
@@ -298,7 +315,7 @@ public enum QuestionBank {
             prompt: "Que veut VRAIMENT dire le mot « demeure » dans l'expression « Il y a péril en la demeure » ?",
             choices: [
                 "La maison familiale",
-                "Le retard ou le délai (du latin mora : attendre)",
+                "Le retard ou le délai",
                 "La cave à fromage",
                 "La chambre d'amis"
             ],
@@ -334,7 +351,7 @@ public enum QuestionBank {
             prompt: "D'où vient la célèbre expression « Revenons à nos moutons » utilisée quand quelqu'un change de sujet ?",
             choices: [
                 "D'une recette de gigot d'Henri IV",
-                "De la Farce de Maître Pathelin au Moyen Âge, où un marchand mélange un vol de drap et un vol de moutons au tribunal",
+                "De la pièce « La Farce de Maître Pathelin » au Moyen Âge",
                 "D'une fable perdue de La Fontaine",
                 "Du premier bulletin météo de la télé"
             ],
@@ -351,7 +368,7 @@ public enum QuestionBank {
             funnyTitle: "Faire ripaille sans manger des cailloux",
             prompt: "D'où vient le verbe « faire ripaille » qui veut dire faire un énorme festin bien arrosé ?",
             choices: [
-                "Du château de Ripaille au bord du lac Léman, où le duc Amédée VIII menait la belle vie",
+                "Du château de Ripaille au bord du lac Léman",
                 "Du bruit que fait une fourchette sur une assiette",
                 "D'une vieille soupe aux choux normande",
                 "Des miettes de pain rassis"
@@ -369,8 +386,8 @@ public enum QuestionBank {
             funnyTitle: "Des oranges orange et des pulls marron",
             prompt: "Comment écrit-on correctement les adjectifs de couleur dans : « Meemaw porte des chaussures ___ et des gants ___ » ?",
             choices: [
-                "marrons / oranges (avec des S partout)",
-                "marron / orange (invariables car ce sont des noms de fruits !)",
+                "marrons / oranges",
+                "marron / orange",
                 "marronnes / orangés",
                 "marrons / orange"
             ],
@@ -384,11 +401,11 @@ public enum QuestionBank {
             id: "FR_09",
             theme: .francaisMeemaw,
             preferredRound: .cashSpeed,
-            funnyTitle: "Passer l'arme à gauche sans fusil",
+            funnyTitle: "Passer l'arme à gauche : l'origine militaire",
             prompt: "À l'origine, pourquoi l'expression militaire « passer l'arme à gauche » signifiait-elle mourir ?",
             choices: [
                 "Parce que les gauchers étaient dispensés de corvée de patates",
-                "Parce que le soldat passait son fusil dans sa main gauche pour recharger, offrant sa poitrine sans défense à l'ennemi",
+                "Parce que le soldat passait son fusil à gauche pour recharger",
                 "Parce que le cimetière était toujours à gauche de la caserne",
                 "Parce que l'épée rouillait du côté gauche"
             ],
@@ -406,7 +423,7 @@ public enum QuestionBank {
             prompt: "Quelle phrase est grammaticalement IRRÉPROCHABLE aux yeux de Meemaw et du dictionnaire ?",
             choices: [
                 "Après qu'il ait mangé la tarte",
-                "Après qu'il a mangé la tarte (l'indicatif après « après que » !)",
+                "Après qu'il a mangé la tarte",
                 "Après qu'il eût mangé la tarte demain",
                 "Après qu'il soit manger"
             ],
@@ -423,7 +440,7 @@ public enum QuestionBank {
             funnyTitle: "Se mettre sur son 31 (et pas sur son 28)",
             prompt: "Quelle est l'origine la plus célèbre de l'expression « se mettre sur son trente-et-un » pour dire qu'on s'habille très chic ?",
             choices: [
-                "Un tissu de luxe très fin du Moyen Âge appelé le « trentain » (tissé avec trente fois cent fils)",
+                "Un tissu de luxe très fin du Moyen Âge appelé le « trentain »",
                 "Le numéro du bus qui allait à l'Opéra Garnier",
                 "L'âge auquel Louis XIV a acheté sa première perruque",
                 "Le 31 décembre"
@@ -438,11 +455,11 @@ public enum QuestionBank {
             id: "FR_12",
             theme: .francaisMeemaw,
             preferredRound: .cashSpeed,
-            funnyTitle: "Les chacals du salon",
+            funnyTitle: "Le pluriel piège des animaux sauvages",
             prompt: "Quel est le VRAI pluriel du nom « un chacal » en français ?",
             choices: [
-                "Des chacaux (comme des chevaux)",
-                "Des chacals (avec un S !)",
+                "Des chacaux",
+                "Des chacals",
                 "Des chacaux-vapoteurs",
                 "C'est invariable"
             ],
@@ -460,7 +477,7 @@ public enum QuestionBank {
             prompt: "Dans l'expression « Fier comme Artaban », qui était donc ce fameux Artaban ?",
             choices: [
                 "Le boulanger personnel de Napoléon",
-                "Un héros de roman à succès du XVIIe siècle (Cléopâtre de La Calprenède), inspiré d'un roi des Parthes",
+                "Un héros d'un roman à succès du XVIIe siècle",
                 "Le cheval blanc d'Henri IV",
                 "L'inventeur de la moustache cirée"
             ],
@@ -492,11 +509,11 @@ public enum QuestionBank {
             id: "FR_15",
             theme: .francaisMeemaw,
             preferredRound: .cashSpeed,
-            funnyTitle: "Les rois se sont succédé sur le canapé",
+            funnyTitle: "La succession royale sur le canapé",
             prompt: "Comment s'écrit le participe passé dans : « Les invités qui se sont ___ au buffet ont tout mangé » ?",
             choices: [
-                "succédés (avec un S)",
-                "succédé (invariable, car on succède À quelqu'un : COI !)",
+                "succédés",
+                "succédé",
                 "succédées",
                 "succéder"
             ],
@@ -513,7 +530,7 @@ public enum QuestionBank {
             funnyTitle: "Manger sur le pouce sans se mordre les doigts",
             prompt: "D'où vient l'expression « manger sur le pouce » pour dire qu'on avale un repas vite fait debout ?",
             choices: [
-                "De l'habitude des ouvriers et paysans qui coupaient leur pain et leur saucisson au couteau directement appuyés sur leur pouce, sans assiette",
+                "Des paysans qui coupaient leur saucisson sur le pouce",
                 "De Tom Pouce qui mangeait très vite",
                 "Des empereurs romains au Colisée",
                 "Du premier sandwich vendu dans le métro"
@@ -531,7 +548,7 @@ public enum QuestionBank {
             funnyTitle: "Avoir un poil dans la main (et pas une moustache)",
             prompt: "Que signifie l'expression « avoir un poil dans la main » que Meemaw utilise quand tu traînes pour débarrasser la table ?",
             choices: [
-                "Être extrêmement paresseux (tellement qu'un poil aurait eu le temps de pousser dans la paume !)",
+                "Être extrêmement paresseux",
                 "Avoir beaucoup de chance aux cartes",
                 "Être très habile en bricolage",
                 "Avoir besoin de gants en hiver"
@@ -567,7 +584,7 @@ public enum QuestionBank {
             funnyTitle: "Poser un lapin au coin de la rue",
             prompt: "D'où vient l'expression « poser un lapin » (ne pas venir à un rendez-vous sans prévenir) ?",
             choices: [
-                "De l'argot étudiant du XIXe siècle où « laisser un lapin » signifiait partir sans payer (donc laisser l'autre sans rien)",
+                "De l'argot du XIXe siècle voulant dire partir sans payer",
                 "D'Alice au Pays des Merveilles",
                 "Des chasseurs bredouilles du dimanche",
                 "D'un magicien qui avait oublié son chapeau"
@@ -582,10 +599,10 @@ public enum QuestionBank {
             id: "FR_20",
             theme: .francaisMeemaw,
             preferredRound: .finaleDouble,
-            funnyTitle: "Les chevaux, les pneus et les landaus",
+            funnyTitle: "Le piège des pluriels en -AU et -EU",
             prompt: "Parmi ces quatre mots en « -AU » ou « -EU », lequel prend un « S » au pluriel au lieu d'un « X » ?",
             choices: [
-                "Un pneu -> Des pneus (et un landau -> des landaus !)",
+                "Un pneu -> Des pneus",
                 "Un tuyau -> Des tuyaus",
                 "Un cheveu -> Des cheveus",
                 "Un noyau -> Des noyaus"
@@ -608,8 +625,8 @@ public enum QuestionBank {
             funnyTitle: "La tarte aux prunes à 1 € 10 qui rend fou",
             prompt: "Une tartelette et sa boîte coûtent 1,10 € en tout. La tartelette coûte 1,00 € DE PLUS que la boîte. Combien coûte la boîte toute seule ?",
             choices: [
-                "0,10 € (10 centimes, fastoche !)",
-                "0,05 € (5 centimes !)",
+                "0,10 €",
+                "0,05 €",
                 "0,15 €",
                 "Rien du tout, Meemaw offre le carton"
             ],
@@ -627,7 +644,7 @@ public enum QuestionBank {
             prompt: "Un pull baisse de 50 % pendant les soldes, puis le vendeur remonte son nouveau prix de 50 % la semaine suivante. Par rapport au prix de départ de 100 €, combien coûte-t-il maintenant ?",
             choices: [
                 "Toujours 100 €, -50 % et +50 % ça s'annule !",
-                "75 € (tu as quand même gagné 25 % !)",
+                "75 €",
                 "125 €",
                 "50 €"
             ],
@@ -644,8 +661,8 @@ public enum QuestionBank {
             funnyTitle: "Les nénuphars envahissent la mare aux canards",
             prompt: "Un nénuphar double de taille tous les jours dans le bassin de Meemaw. Il met 30 jours pour recouvrir TOUT le bassin. En combien de jours avait-il recouvert la MOITIÉ du bassin ?",
             choices: [
-                "15 jours (la moitié de 30, logique !)",
-                "29 jours (la veille du 30e jour !)",
+                "15 jours",
+                "29 jours",
                 "7 jours et demi",
                 "20 jours"
             ],
@@ -663,7 +680,7 @@ public enum QuestionBank {
             prompt: "Si la micheline de Meemaw roule à 120 km/h de moyenne, quelle distance parcourt-elle en 45 minutes ?",
             choices: [
                 "80 km",
-                "90 km (trois quarts d'heure × 120)",
+                "90 km",
                 "100 km",
                 "60 km"
             ],
@@ -680,9 +697,9 @@ public enum QuestionBank {
             funnyTitle: "Priorité aux multiplications avant le dessert",
             prompt: "Sans calculatrice et sans tricher sur le voisin, combien font : 10 + 10 × 0 + 10 ?",
             choices: [
-                "0 (tout ce qui touche zéro meurt)",
+                "0",
                 "10",
-                "20 (car 10 × 0 = 0, donc 10 + 0 + 10 = 20 !)",
+                "20",
                 "30"
             ],
             correctIndex: 2,
@@ -717,7 +734,7 @@ public enum QuestionBank {
             prompt: "Un escargot est au fond d'un puits de 10 mètres. Chaque jour il monte de 3 mètres, mais chaque nuit il glisse de 2 mètres en dormant. Quel jour touche-t-il enfin le bord du puits ?",
             choices: [
                 "Le 10e jour",
-                "Le 8e jour (sans glisser la 8e nuit car il est déjà sorti !)",
+                "Le 8e jour",
                 "Le 5e jour",
                 "Jamais, il finit en persillade"
             ],
@@ -734,8 +751,8 @@ public enum QuestionBank {
             funnyTitle: "La course à pied où l'on double le deuxième",
             prompt: "Tu participes au marathon des tartes de Meemaw. Juste avant la ligne d'arrivée, tu doubles le DEUXIÈME de la course. À quelle place termines-tu ?",
             choices: [
-                "Premier (médaille d'or !)",
-                "Deuxième (tu prends la place de celui que tu viens de doubler !)",
+                "Premier",
+                "Deuxième",
                 "Troisième",
                 "Dernier"
             ],
@@ -753,7 +770,7 @@ public enum QuestionBank {
             prompt: "Dans le tiroir de Meemaw, il y a 10 chaussettes rouges et 10 chaussettes bleues en vrac. Il fait nuit noire. Combien de chaussettes dois-tu prendre AU MINIMUM pour être sûr à 100 % d'avoir une paire de la même couleur ?",
             choices: [
                 "2 chaussettes",
-                "3 chaussettes (principe des tiroirs !)",
+                "3 chaussettes",
                 "11 chaussettes",
                 "6 chaussettes"
             ],
@@ -770,8 +787,8 @@ public enum QuestionBank {
             funnyTitle: "Combien de mois ont 28 jours ?",
             prompt: "Question piège en 3 secondes : dans une année normale, combien de mois ont 28 jours ?",
             choices: [
-                "Un seul (février, voyons !)",
-                "Les 12 mois de l'année (ils ont tous au moins 28 jours !)",
+                "Un seul",
+                "Les 12 mois de l'année",
                 "Aucun les années bissextiles",
                 "Deux mois"
             ],
@@ -788,8 +805,8 @@ public enum QuestionBank {
             funnyTitle: "Diviser par un demi, ce n'est pas couper en deux",
             prompt: "Combien font : 30 divisé par 0,5 (la moitié), plus 10 ?",
             choices: [
-                "25 (car 30 ÷ 2 = 15, + 10 = 25)",
-                "70 (car diviser par 0,5 revient à multiplier par 2 : 60 + 10 = 70 !)",
+                "25",
+                "70",
                 "40",
                 "15"
             ],
@@ -824,8 +841,8 @@ public enum QuestionBank {
             funnyTitle: "Les comprimés du docteur toutes les demi-heures",
             prompt: "Le médecin donne 3 comprimés à Meemaw en lui disant d'en prendre un toutes les 30 minutes. En combien de temps aura-t-elle avalé les 3 comprimés ?",
             choices: [
-                "1 heure 30 (3 × 30 minutes)",
-                "1 heure exactement (0 min, 30 min, et 60 min !)",
+                "1 heure 30",
+                "1 heure exactement",
                 "45 minutes",
                 "2 heures"
             ],
@@ -843,7 +860,7 @@ public enum QuestionBank {
             prompt: "Calcul mental ultra-rapide façon Meemaw Math : combien font 11 × 45 ?",
             choices: [
                 "450",
-                "495 (on écarte le 4 et le 5, et on met 4+5=9 au milieu !)",
+                "495",
                 "505",
                 "485"
             ],
@@ -861,7 +878,7 @@ public enum QuestionBank {
             prompt: "Sans poser l'opération, combien font 35 × 35 ?",
             choices: [
                 "1 025",
-                "1 225 (3 × 4 = 12 devant 25 !)",
+                "1 225",
                 "1 125",
                 "925"
             ],
@@ -875,11 +892,11 @@ public enum QuestionBank {
             id: "MATH_16",
             theme: .mathMeemaw,
             preferredRound: .finaleDouble,
-            funnyTitle: "Le pliage de feuille qui touche la Lune",
+            funnyTitle: "Le pliage de feuille de papier 42 fois",
             prompt: "Si tu pouvais plier une simple feuille de papier (0,1 mm d'épaisseur) 42 fois sur elle-même en doublant son épaisseur à chaque pli, quelle hauteur atteindrait-elle ?",
             choices: [
-                "La hauteur d'un dictionnaire Larousse (8 cm)",
-                "La hauteur de la Tour Eiffel (330 m)",
+                "La hauteur d'un dictionnaire Larousse",
+                "La hauteur de la Tour Eiffel",
                 "Plus de 400 000 kilomètres : elle dépasserait la Lune !",
                 "Environ 12 mètres"
             ],
@@ -914,9 +931,9 @@ public enum QuestionBank {
             funnyTitle: "Le paradoxe des anniversaires au repas de famille",
             prompt: "Dans une pièce de 23 personnes réunies au hasard, quelle est la probabilité qu'au moins DEUX personnes fêtent leur anniversaire le même jour de l'année ?",
             choices: [
-                "Plus de 50 % (1 chance sur 2 !)",
+                "Plus de 50 %",
                 "Moins de 5 %",
-                "Exactement 23 sur 365 (environ 6 %)",
+                "Exactement 23 sur 365",
                 "Zéro, sauf si ce sont des jumeaux"
             ],
             correctIndex: 0,
@@ -933,7 +950,7 @@ public enum QuestionBank {
             prompt: "Le berger du village a 17 moutons dans son pré. Tous, sauf 9, s'échappent par la barrière ouverte. Combien lui reste-t-il de moutons dans le pré ?",
             choices: [
                 "9 moutons !",
-                "8 moutons (17 moins 9)",
+                "8 moutons",
                 "Aucun mouton",
                 "26 moutons"
             ],
@@ -950,7 +967,7 @@ public enum QuestionBank {
             funnyTitle: "La somme éclair du petit Carl Friedrich Gauss",
             prompt: "Quelle est la somme de tous les nombres entiers de 1 jusqu'à 100 (1 + 2 + 3 + ... + 99 + 100) ?",
             choices: [
-                "5 050 (50 paires qui valent toutes 101 !)",
+                "5 050",
                 "5 000 tout rond",
                 "10 000",
                 "4 950"
@@ -1010,7 +1027,7 @@ public enum QuestionBank {
             prompt: "Dans la comédie culte « Le Père Noël est une ordure », comment Thérèse appelle-t-elle affectueusement la spécialité roulée aux marrons de monsieur Preskovic ?",
             choices: [
                 "Les petits étouffe-chrétiens",
-                "Les Doubitchous de Sofia (roulés à la main sous les aisselles)",
+                "Les Doubitchous de Sofia",
                 "Les Kouglofs de Belgrade",
                 "Les Rochers de tante Sidonie"
             ],
@@ -1028,7 +1045,7 @@ public enum QuestionBank {
             prompt: "Dans « OSS 117 : Le Caire, nid d'espions », quelle couverture professionnelle Hubert Bonisseur de La Bath utilise-t-il en Égypte ?",
             choices: [
                 "Importateur de tapis persans",
-                "Directeur de la SCEP (Société Cairote d'Élevage de Poulets)",
+                "Directeur de la SCEP",
                 "Professeur de bilboquet",
                 "Critique gastronomique de blanquette"
             ],
@@ -1046,7 +1063,7 @@ public enum QuestionBank {
             prompt: "Dans « Retour vers le futur », quelle vitesse exacte la DeLorean du Doc Brown doit-elle atteindre pour voyager dans le temps ?",
             choices: [
                 "50 miles par heure",
-                "88 miles par heure (environ 141 km/h)",
+                "88 miles par heure",
                 "120 miles par heure",
                 "Mach 2"
             ],
@@ -1078,11 +1095,11 @@ public enum QuestionBank {
             id: "CINE_07",
             theme: .seriesCinema,
             preferredRound: .cashSpeed,
-            funnyTitle: "Le dîner du mercredi soir avec des allumettes",
+            funnyTitle: "Le dîner du mercredi soir avec François Pignon",
             prompt: "Dans « Le Dîner de cons » de Francis Veber, quelle est la grande passion de François Pignon (joué par Jacques Villeret) ?",
             choices: [
                 "Collectionner les bouchons de champagne",
-                "Construire des maquettes géantes en allumettes (dont le pont de Tancarville !)",
+                "Construire des maquettes géantes en allumettes",
                 "Imiter le cri de la mouette rieuse",
                 "Peindre des nains de jardin"
             ],
@@ -1096,7 +1113,7 @@ public enum QuestionBank {
             id: "CINE_08",
             theme: .seriesCinema,
             preferredRound: .leSolo,
-            funnyTitle: "C'est pas faux à la Table Ronde",
+            funnyTitle: "La botte secrète de Perceval à la Table Ronde",
             prompt: "Dans la série « Kaamelott » d'Alexandre Astier, quelle botte secrète Perceval utilise-t-il quand il ne comprend pas un mot dans une conversation ?",
             choices: [
                 "Il répond « C'est pas faux ! »",
@@ -1208,7 +1225,7 @@ public enum QuestionBank {
             prompt: "Dans « Les Bronzés font du ski » (1979), quelle boisson fortifiante contenant un crapaud les paysans savoyards servent-ils à la troupe égarée en montagne ?",
             choices: [
                 "Du génépi millésimé",
-                "De la liqueur d'échalote (« la fougne », relevée au crapaud !)",
+                "De la liqueur d'échalote",
                 "Du vin chaud à la cannelle",
                 "De la tisane de marmotte"
             ],
@@ -1222,11 +1239,11 @@ public enum QuestionBank {
             id: "CINE_15",
             theme: .seriesCinema,
             preferredRound: .cashSpeed,
-            funnyTitle: "La toupie qui tourne à la fin du rêve",
+            funnyTitle: "L'objet fétiche de Cobb dans Inception",
             prompt: "Dans le film « Inception » (2010) de Christopher Nolan, quel petit objet Cobb (Leonardo DiCaprio) fait-il tourner sur la table pour vérifier s'il rêve ou s'il est dans la réalité ?",
             choices: [
                 "Un dé pipé",
-                "Une petite toupie en métal (son totem)",
+                "Une petite toupie en métal",
                 "Une pièce de 2 francs",
                 "Un dé à coudre de Meemaw"
             ],
@@ -1261,7 +1278,7 @@ public enum QuestionBank {
             funnyTitle: "PIVOT ! PIVOT ! PIVOOOOOT !",
             prompt: "Dans la scène mythique de la série « Friends », quel meuble Ross Geller essaie-t-il désespérément de monter dans sa cage d'escalier en hurlant « PIVOT ! » à Rachel et Chandler ?",
             choices: [
-                "Un canapé neuf (qui finit coupé en deux !)",
+                "Un canapé neuf",
                 "Un piano à queue",
                 "Le frigo de Monica",
                 "Le baby-foot de Joey"
@@ -1280,7 +1297,7 @@ public enum QuestionBank {
             prompt: "Dans la série « The Rookie », comment les fans surnomment-ils le duo amoureux ultra-populaire formé par Lucy Chen et son ancien instructeur grincheux Tim Bradford ?",
             choices: [
                 "Bradchen",
-                "Chenford (Chen + Bradford !)",
+                "Chenford",
                 "Les Poulets Dorés",
                 "Timlucy"
             ],
@@ -1315,7 +1332,7 @@ public enum QuestionBank {
             funnyTitle: "Perfusion de caféine à Stars Hollow",
             prompt: "Dans la série culte « Gilmore Girls », quelle pancarte stricte est affichée derrière le comptoir du restaurant de Luke Danes (Luke's Diner) et que Lorelai ignore royalement tous les matins ?",
             choices: [
-                "Interdit aux téléphones portables (No Cell Phones)",
+                "Interdit aux téléphones portables",
                 "Un seul café par personne",
                 "Pas de blagues avant 10 heures",
                 "Port de la chemise à carreaux obligatoire"
@@ -1369,7 +1386,7 @@ public enum QuestionBank {
             funnyTitle: "Une main baladeuse très bien élevée",
             prompt: "Dans la série « Mercredi » (Wednesday) avec Jenna Ortega sur Netflix, comment s'appelle la main coupée vivante qui sert d'espionne et de meilleure amie à Mercredi Addams à l'académie Nevermore ?",
             choices: [
-                "La Chose (Thing)",
+                "La Chose",
                 "Cousin Machin",
                 "Cinq-Doigts",
                 "La Manucure"
@@ -1387,7 +1404,7 @@ public enum QuestionBank {
             funnyTitle: "Un baladeur cassette contre Vecna",
             prompt: "Dans la saison 4 de « Stranger Things », quelle chanson de 1985 de Kate Bush sauve Max de l'emprise de Vecna dans le Monde à l'Envers ?",
             choices: [
-                "Running Up That Hill (A Deal with God)",
+                "Running Up That Hill",
                 "Wuthering Heights",
                 "Sweet Dreams",
                 "Girls Just Want to Have Fun"
@@ -1501,7 +1518,7 @@ public enum QuestionBank {
             prompt: "Avant de devenir le duo casqué Daft Punk, comment s'appelait le tout premier groupe rock de Thomas Bangalter et Guy-Manuel de Homem-Christo — dont le nom venait d'une critique du journal Melody Maker ?",
             choices: [
                 "Les Croissants Bioniques",
-                "Darlin' (qualifié par le journal de « daft punky thrash » !)",
+                "Darlin'",
                 "Air Baguette",
                 "Téléphone Maison"
             ],
@@ -1536,7 +1553,7 @@ public enum QuestionBank {
             funnyTitle: "Alexandrie, ampoule et baignoire",
             prompt: "Dans le tube « Alexandrie Alexandra » (1978) de Claude François, que fait l'appétit du chanteur dans les paroles exactes ?",
             choices: [
-                "J'ai plus d'appétit qu'un barracuda (Barracuda !)",
+                "J'ai plus d'appétit qu'un barracuda",
                 "J'ai plus d'appétit qu'un piranha",
                 "J'ai plus d'appétit qu'un cachalot",
                 "J'ai mangé trois parts de clafoutis"
@@ -1554,9 +1571,9 @@ public enum QuestionBank {
             funnyTitle: "Marcher à reculons sur la Lune avec des chaussettes blanches",
             prompt: "Quel est l'album le plus vendu de toute l'histoire de la musique dans le monde (sorti en 1982 et produit par Quincy Jones) ?",
             choices: [
-                "Back in Black (AC/DC)",
-                "Thriller (Michael Jackson)",
-                "The Dark Side of the Moon (Pink Floyd)",
+                "Back in Black",
+                "Thriller",
+                "The Dark Side of the Moon",
                 "L'Intégrale d'accordéon d'Yvette Horner"
             ],
             correctIndex: 1,
@@ -1626,7 +1643,7 @@ public enum QuestionBank {
             funnyTitle: "Et dans 150 ans, on s'en souviendra pas",
             prompt: "Dans son tube « Djadja » (2018) écouté sur tous les continents, quelle expression popularisée par Aya Nakamura signifie « hors de question / même pas en rêve » ?",
             choices: [
-                "Y'a pas moyen Djadja (en catchana baby tu dead ça)",
+                "Y'a pas moyen Djadja",
                 "C'est la décadence",
                 "Saperlipopette",
                 "Zut de flûte"
@@ -1699,7 +1716,7 @@ public enum QuestionBank {
             prompt: "Qui a écrit les paroles de l'hymne « Allumer le feu » (1998) interprété par Johnny Hallyday ?",
             choices: [
                 "Michel Mallory",
-                "Zazie (et composé par Pascal Obispo et Pierre Jaconelli !)",
+                "Zazie",
                 "Jean-Jacques Goldman",
                 "Eddy Mitchell"
             ],
@@ -1713,10 +1730,10 @@ public enum QuestionBank {
             id: "MUS_14",
             theme: .musiqueTubes,
             preferredRound: .cashSpeed,
-            funnyTitle: "Quatre prénoms qui forment une légende suédoise",
+            funnyTitle: "Le secret du nom du groupe ABBA",
             prompt: "Que signifient les quatre lettres du groupe suédois « ABBA » (interprète de Dancing Queen et Mamma Mia) ?",
             choices: [
-                "Les initiales des prénoms des 4 membres : Agnetha, Björn, Benny et Anni-Frid",
+                "Les initiales des prénoms des 4 membres du groupe",
                 "« Amour, Bonheur, Beauté, Accordéon » en suédois",
                 "Le nom de leur rue à Stockholm",
                 "Un modèle d'étagère IKEA"
@@ -1803,7 +1820,7 @@ public enum QuestionBank {
             id: "MUS_19",
             theme: .musiqueTubes,
             preferredRound: .leSolo,
-            funnyTitle: "Les oiseaux qui volent ensemble jusqu'au bout",
+            funnyTitle: "Le record mondial de Billie Eilish en 2024",
             prompt: "Quel titre de Billie Eilish (issu de son album « Hit Me Hard and Soft » en 2024, co-écrit avec son frère Finneas) est devenu la chanson la plus écoutée de toute sa carrière ?",
             choices: [
                 "Birds of a Feather",
@@ -1839,10 +1856,10 @@ public enum QuestionBank {
             id: "MUS_21",
             theme: .musiqueTubes,
             preferredRound: .finaleDouble,
-            funnyTitle: "Les Swifties font littéralement trembler la Terre",
+            funnyTitle: "L'incroyable phénomène mesuré au concert de Taylor Swift",
             prompt: "Lors de la tournée historique « The Eras Tour » de Taylor Swift à Seattle, qu'ont enregistré les sismologues américains pendant que 70 000 fans sautaient sur « Shake It Off » ?",
             choices: [
-                "Une activité sismique équivalente à un tremblement de terre de magnitude 2,3 !",
+                "Une secousse sismique de magnitude 2,3",
                 "Une coupure d'eau dans tout l'État",
                 "Un envol de 10 000 pigeons",
                 "Une panne de paillettes"
@@ -2131,7 +2148,7 @@ public enum QuestionBank {
             funnyTitle: "🎧 Paroles Coupées : Sabrina Carpenter — « Espresso »",
             prompt: "Complète la phrase culte du refrain d'« Espresso » de Sabrina Carpenter : « Now he's thinkin' 'bout me every night, oh, is it that sweet? I guess so... ___ »",
             choices: [
-                "« Say you can't sleep, baby, I know — that's that me, espresso ! »",
+                "« Say you can't sleep, baby, I know »",
                 "« Drink your coffee with a croissant, espresso ! »",
                 "« Wake me up at seven o'clock, espresso ! »",
                 "« Put some sugar in the cup, espresso ! »"
@@ -2239,10 +2256,10 @@ public enum QuestionBank {
             funnyTitle: "🎧 Hitster de Meemaw : Qui est sorti EN PREMIER ?",
             prompt: "Parmi ces quatre énormes tubes francophones, lequel est sorti le PLUS TÔT (en premier dans le temps) ?",
             choices: [
-                "« Alors on danse » de Stromae (2009)",
-                "« Djadja » d'Aya Nakamura (2018)",
-                "« Balance ton quoi » d'Angèle (2018)",
-                "« Bande organisée » de Jul & Marseille (2020)"
+                "« Alors on danse » de Stromae",
+                "« Djadja » d'Aya Nakamura",
+                "« Balance ton quoi » d'Angèle",
+                "« Bande organisée » de Jul & Marseille"
             ],
             correctIndex: 0,
             baseValue: 2000,
@@ -2318,7 +2335,7 @@ public enum QuestionBank {
             choices: [
                 "1 cœur et du sang rouge comme nous",
                 "3 cœurs et du sang bleu !",
-                "8 cœurs (un dans chaque tentacule)",
+                "8 cœurs",
                 "Aucun cœur, elle fonctionne à l'eau salée"
             ],
             correctIndex: 1,
@@ -2331,7 +2348,7 @@ public enum QuestionBank {
             id: "CUL_02",
             theme: .cultureGInsolite,
             preferredRound: .leSolo,
-            funnyTitle: "La Tour Eiffel prend des centimètres l'été",
+            funnyTitle: "La Tour Eiffel sous la canicule d'été",
             prompt: "En plein été, sous l'effet de la chaleur et de la dilatation du fer puddlé, de combien la Tour Eiffel peut-elle grandir par rapport à l'hiver ?",
             choices: [
                 "Elle ne bouge pas d'un millimètre",
@@ -2367,11 +2384,11 @@ public enum QuestionBank {
             id: "CUL_04",
             theme: .cultureGInsolite,
             preferredRound: .cashSpeed,
-            funnyTitle: "Cléopâtre, plus proche d'Apollo 11 que de Khéops",
+            funnyTitle: "La machine à remonter le temps de Cléopâtre",
             prompt: "Laquelle de ces deux affirmations historiques sur la reine Cléopâtre VII (née en 69 av. J.-C.) est rigoureusement vraie ?",
             choices: [
                 "Elle a supervisé la pose de la dernière pierre de la Grande Pyramide",
-                "Elle a vécu plus près dans le temps du premier pas sur la Lune (1969) que de la construction de la Grande Pyramide de Khéops !",
+                "Elle a vécu plus près d'Apollo 11 que de la pyramide de Khéops",
                 "Elle parlait uniquement le latin",
                 "Elle a inventé le grille-pain solaire"
             ],
@@ -2385,7 +2402,7 @@ public enum QuestionBank {
             id: "CUL_05",
             theme: .cultureGInsolite,
             preferredRound: .finaleDouble,
-            funnyTitle: "Le pot de miel oublié au fond du placard de Toutânkhamon",
+            funnyTitle: "Le trésor comestible du placard de Toutânkhamon",
             prompt: "Quel aliment naturel trouvé dans des tombes égyptiennes de 3 000 ans est toujours parfaitement comestible car il ne périme jamais ?",
             choices: [
                 "Le beurre demi-sel",
@@ -2425,7 +2442,7 @@ public enum QuestionBank {
             prompt: "Avec quel pays la France partage-t-elle sa plus longue frontière terrestre (730 kilomètres) ?",
             choices: [
                 "L'Espagne",
-                "Le Brésil (via la Guyane française !)",
+                "Le Brésil",
                 "La Belgique",
                 "L'Allemagne"
             ],
@@ -2443,7 +2460,7 @@ public enum QuestionBank {
             prompt: "En botanique pure, où se trouvent les VRAIS fruits de la fraise ?",
             choices: [
                 "Dans la chair rouge juteuse",
-                "Ce sont les petits grains jaunes croquants à la surface (les akènes) !",
+                "Ce sont les petits grains jaunes croquants à la surface !",
                 "Dans la feuille verte sur le dessus",
                 "Sous la terre comme une patate"
             ],
@@ -2497,7 +2514,7 @@ public enum QuestionBank {
             prompt: "En 1889 (il y a plus de 135 ans !), que fabriquait l'entreprise japonaise Nintendo lors de sa création à Kyoto ?",
             choices: [
                 "Des sabres de samouraï en bois",
-                "Des cartes à jouer traditionnelles peintes à la main (les Hanafuda)",
+                "Des cartes à jouer traditionnelles peintes à la main",
                 "Des théières en fonte",
                 "Des vélos à trois roues"
             ],
@@ -2514,7 +2531,7 @@ public enum QuestionBank {
             funnyTitle: "Le cri du canard dans la salle de bain",
             prompt: "Quelle légende urbaine sur le « coin-coin » du canard a été formellement démentie par des acousticiens en laboratoire ?",
             choices: [
-                "Qu'il ne produit jamais d'écho (c'est faux : le coin-coin a bien un écho comme tous les sons !)",
+                "Qu'il ne produit jamais d'écho",
                 "Qu'il fait bouillir l'eau",
                 "Qu'il s'entend depuis l'espace",
                 "Qu'il est en ré mineur"
@@ -2533,7 +2550,7 @@ public enum QuestionBank {
             prompt: "De quelle couleur sont peintes les « boîtes noires » (enregistreurs de vol) des avions de ligne modernes ?",
             choices: [
                 "Noir mat",
-                "Orange vif fluorescent (pour les repérer facilement dans les débris ou sous l'eau !)",
+                "Orange vif fluorescent",
                 "Blanc nacré",
                 "Bleu marine"
             ],
@@ -2547,10 +2564,10 @@ public enum QuestionBank {
             id: "CUL_14",
             theme: .cultureGInsolite,
             preferredRound: .cashSpeed,
-            funnyTitle: "La guerre éclair de 38 minutes chrono",
+            funnyTitle: "La guerre la plus courte de toute l'Histoire",
             prompt: "Combien de temps a duré la guerre la plus courte de toute l'Histoire (entre le Royaume-Uni et le sultanat de Zanzibar le 27 août 1896) ?",
             choices: [
-                "Entre 38 et 45 minutes (le temps de boire le thé !)",
+                "Entre 38 et 45 minutes",
                 "3 jours",
                 "12 heures",
                 "Une semaine"
@@ -2586,8 +2603,8 @@ public enum QuestionBank {
             funnyTitle: "L'os humain plus solide que le béton",
             prompt: "Quel est l'os le plus long, le plus lourd et le plus solide du corps humain ?",
             choices: [
-                "L'humérus (dans le bras)",
-                "Le fémur (dans la cuisse)",
+                "L'humérus",
+                "Le fémur",
                 "Le tibia",
                 "La mâchoire quand Meemaw croque du nougat dur"
             ],
@@ -2604,8 +2621,8 @@ public enum QuestionBank {
             funnyTitle: "L'animal qui retient son souffle mieux qu'un sous-marin",
             prompt: "Entre le grand dauphin et le paresseux à trois doigts, lequel peut retenir sa respiration le plus longtemps sous l'eau ?",
             choices: [
-                "Le paresseux (jusqu'à 40 minutes en ralentissant son cœur !)",
-                "Le dauphin (jusqu'à 3 heures)",
+                "Le paresseux",
+                "Le dauphin",
                 "Ils coulent tous les deux",
                 "Le caniche de Meemaw"
             ],
@@ -2622,7 +2639,7 @@ public enum QuestionBank {
             funnyTitle: "Le pays qui compte le plus de fuseaux horaires au monde",
             prompt: "Quel pays détient le record mondial du plus grand nombre de fuseaux horaires différents (12 fuseaux horaires) ?",
             choices: [
-                "La France (grâce à ses territoires d'outre-mer sur tous les océans !)",
+                "La France",
                 "La Russie",
                 "Les États-Unis",
                 "La Chine"
@@ -2640,7 +2657,7 @@ public enum QuestionBank {
             funnyTitle: "Pourquoi les flamants roses ne naissent pas roses",
             prompt: "De quelle couleur naissent les bébés flamants roses, et qu'est-ce qui leur donne leur plumage rose vif en grandissant ?",
             choices: [
-                "Ils naissent gris-blanc et deviennent roses grâce aux pigments (caroténoïdes) des petites crevettes et algues qu'ils mangent",
+                "Ils naissent gris et rosissent grâce aux crevettes",
                 "Ils naissent déjà rose fluo",
                 "Ils bronzent au soleil de Camargue",
                 "Leur maman les peint avec du sirop de grenadine"
@@ -2658,7 +2675,7 @@ public enum QuestionBank {
             funnyTitle: "La bêtise qui a donné naissance aux chips",
             prompt: "En 1853 à Saratoga Springs, pourquoi le chef George Crum a-t-il coupé ses pommes de terre en tranches fines comme du papier et les a frites jusqu'à les rendre ultra-croquantes ?",
             choices: [
-                "Pour se venger d'un client pénible qui avait renvoyé son assiette en trouvant ses frites « trop épaisses et trop molles » !",
+                "Pour se venger d'un client qui trouvait ses frites trop épaisses",
                 "Parce qu'il avait cassé son couteau",
                 "Pour nourrir son perroquet",
                 "Parce qu'il n'avait plus d'eau pour faire de la purée"
@@ -2673,10 +2690,10 @@ public enum QuestionBank {
             id: "CUL_21",
             theme: .cultureGInsolite,
             preferredRound: .leSolo,
-            funnyTitle: "Combien d'arbres sur Terre par rapport aux étoiles de la Voie lactée ?",
+            funnyTitle: "Les arbres de la Terre face aux étoiles de la galaxie",
             prompt: "Y a-t-il plus d'arbres sur la planète Terre ou plus d'étoiles dans toute notre galaxie (la Voie lactée) ?",
             choices: [
-                "Beaucoup plus d'arbres sur Terre (environ 3 000 milliards d'arbres contre 100 à 400 milliards d'étoiles !)",
+                "Beaucoup plus d'arbres sur Terre",
                 "Beaucoup plus d'étoiles dans la Voie lactée",
                 "Exactement le même nombre",
                 "Moins d'un million des deux"
@@ -2691,10 +2708,10 @@ public enum QuestionBank {
             id: "CUL_22",
             theme: .cultureGInsolite,
             preferredRound: .finaleDouble,
-            funnyTitle: "Le chocolat fondu dans la poche du radar",
+            funnyTitle: "L'invention accidentelle du four à micro-ondes",
             prompt: "Comment l'ingénieur américain Percy Spencer a-t-il découvert par hasard le principe du four à micro-ondes en 1945 ?",
             choices: [
-                "Une barre chocolatée a fondu toute seule dans sa poche alors qu'il travaillait devant un magnétron de radar militaire !",
+                "Une barre chocolatée a fondu dans sa poche devant un radar",
                 "Son chat s'est mis à briller dans le noir",
                 "Sa tasse de café s'est transformée en glaçon",
                 "Il voulait sécher ses chaussettes mouillées"
@@ -2718,7 +2735,7 @@ public enum QuestionBank {
             prompt: "Avec un rendement moyen de 8 % par an, combien d'années faut-il pour DOUBLER ton capital sans rien rajouter grâce à la fameuse « Règle de 72 » ?",
             choices: [
                 "4 ans chrono",
-                "9 ans (72 ÷ 8)",
+                "9 ans",
                 "18 ans",
                 "30 ans"
             ],
@@ -2736,7 +2753,7 @@ public enum QuestionBank {
             prompt: "Ton cousin refuse une prime de 1 000 € en disant : « Ça va me faire passer dans la tranche d'impôt à 30 %, je vais perdre des sous ! ». Pourquoi a-t-il tout faux ?",
             choices: [
                 "Il a raison, tout son salaire bascule à 30 %",
-                "Parce que seuls les euros qui dépassent le seuil de la tranche sont taxés à 30 %, jamais le reste !",
+                "Seuls les euros dépassant le seuil sont taxés à 30 %",
                 "Parce que les primes sont exonérées le mardi",
                 "Parce que la tranche à 30 % n'existe plus"
             ],
@@ -2754,7 +2771,7 @@ public enum QuestionBank {
             prompt: "Tu laisses 10 000 € dormir à 0 % sur ton compte courant pendant 5 ans avec 4 % d'inflation par an. Quel est ton vrai pouvoir d'achat au bout de 5 ans ?",
             choices: [
                 "Toujours 10 000 €",
-                "Environ 8 150 € (près de 1 850 € évaporés !)",
+                "Environ 8 150 €",
                 "9 800 €",
                 "5 000 €"
             ],
@@ -2790,7 +2807,7 @@ public enum QuestionBank {
             prompt: "Sur 15 ans, quelle proportion des fonds « actifs » à gros frais (~2 %/an) parvient à battre un simple ETF indiciel mondial à faibles frais (~0,2 %/an) ?",
             choices: [
                 "90 % des fonds actifs battent le marché",
-                "Moins de 15 % (près de 90 % font moins bien que l'indice !)",
+                "Moins de 15 %",
                 "Pile 50 %",
                 "Tous ceux qui portent des bretelles rouges"
             ],
@@ -2862,7 +2879,7 @@ public enum QuestionBank {
             prompt: "Quand tu achètes UNE SEULE part d'un ETF « MSCI World », dans combien de grandes entreprises mondiales investis-tu simultanément ?",
             choices: [
                 "Dans 3 entreprises du quartier",
-                "Dans environ 1 400 à 1 500 grandes entreprises de 23 pays développés !",
+                "Dans environ 1 500 entreprises de 23 pays",
                 "Dans 10 banques suisses",
                 "Uniquement dans la boulangerie du coin"
             ],
@@ -2879,7 +2896,7 @@ public enum QuestionBank {
             funnyTitle: "Le piège psychologique du film ennuyeux",
             prompt: "Tu as payé 12 € ta place de cinéma, le film est horrible au bout de 20 minutes, mais tu restes souffrir 2 heures « parce que j'ai payé ». Comment les économistes appellent-ils ce piège mental ?",
             choices: [
-                "Le biais des coûts irrécupérables (Sunk Cost Fallacy)",
+                "Le biais des coûts irrécupérables",
                 "L'effet pop-corn",
                 "Le théorème du fauteuil mou",
                 "L'inflation cinématographique"
@@ -2898,7 +2915,7 @@ public enum QuestionBank {
             prompt: "Si tu es à découvert tous les mois avec des agios et commissions d'intervention, à quel taux annuel effectif (TAEG) cela revient-il souvent ?",
             choices: [
                 "1 % par an",
-                "Entre 15 % et plus de 20 % par an (l'argent le plus cher de la banque !)",
+                "Entre 15 % et plus de 20 % par an",
                 "Gratuit le week-end",
                 "3 % par an"
             ],
@@ -2915,8 +2932,8 @@ public enum QuestionBank {
             funnyTitle: "Quand une action perd 50 %, combien doit-elle regagner ?",
             prompt: "Une action passe de 100 € à 50 € (elle perd 50 %). De quel pourcentage doit-elle remonter ensuite pour revenir à 100 € ?",
             choices: [
-                "+50 % (ça s'équilibre !)",
-                "+100 % (elle doit doubler pour repasser de 50 € à 100 € !)",
+                "+50 %",
+                "+100 %",
                 "+75 %",
                 "+25 %"
             ],
@@ -2934,7 +2951,7 @@ public enum QuestionBank {
             prompt: "Dépensé chaque jour ouvré, 5 € de café/viennoiserie à emporter représente environ 1 200 € par an. Investis à 7 % par an pendant 20 ans, quel capital cela forme-t-il ?",
             choices: [
                 "12 000 €",
-                "Près de 50 000 € grâce aux intérêts composés !",
+                "Près de 50 000 €",
                 "24 000 € tout rond",
                 "4 500 €"
             ],
@@ -2969,7 +2986,7 @@ public enum QuestionBank {
             funnyTitle: "L'inflation du train de vie",
             prompt: "Comment appelle-t-on le phénomène où, à chaque augmentation de salaire, on augmente aussitôt ses dépenses si bien qu'on n'épargne pas un euro de plus ?",
             choices: [
-                "L'inflation du style de vie (Lifestyle Creep)",
+                "L'inflation du style de vie",
                 "La déflation du frigo",
                 "Le syndrome de l'écureuil",
                 "La règle d'or"
@@ -2984,11 +3001,11 @@ public enum QuestionBank {
             id: "ECO_16",
             theme: .ecoCash,
             preferredRound: .finaleDouble,
-            funnyTitle: "La tulipe qui valait le prix d'un manoir",
+            funnyTitle: "La toute première bulle spéculative de l'Histoire (1637)",
             prompt: "En 1637 aux Pays-Bas, quelle fleur a provoqué la toute première grande bulle spéculative de l'Histoire (où un seul bulbe se vendait au prix d'une maison à Amsterdam) ?",
             choices: [
                 "Le géranium de balcon",
-                "La tulipe (la « Tulipomanie » !)",
+                "La tulipe",
                 "Le pissenlit doré",
                 "La marguerite"
             ],
@@ -3005,7 +3022,7 @@ public enum QuestionBank {
             funnyTitle: "Le paquet de gâteaux qui rétrécit sans baisser de prix",
             prompt: "Comment appelle-t-on la technique des supermarchés qui consiste à réduire le poids d'un produit (passer de 500 g à 420 g) tout en gardant exactement le même prix et la même boîte ?",
             choices: [
-                "La « Shrinkflation » (ou réduflation)",
+                "La « Shrinkflation »",
                 "La déflation magique",
                 "Le régime forcé de Meemaw",
                 "L'effet parachute"
@@ -3023,7 +3040,7 @@ public enum QuestionBank {
             funnyTitle: "La pizza la plus chère de toute l'histoire de l'humanité",
             prompt: "Le 22 mai 2010, le programmeur Laszlo Hanyecz a payé le tout premier achat réel en Bitcoin : combien de Bitcoins a-t-il donnés pour se faire livrer DEUX pizzas ?",
             choices: [
-                "10 000 Bitcoins (soit des centaines de millions d'euros aujourd'hui !)",
+                "10 000 Bitcoins",
                 "2 Bitcoins",
                 "100 Bitcoins",
                 "0,5 Bitcoin"
@@ -3041,7 +3058,7 @@ public enum QuestionBank {
             funnyTitle: "Le prix qui finit par 9,99 €",
             prompt: "Pourquoi les commerçants affichent-ils un prix à 19,99 € au lieu de 20,00 € alors qu'il n'y a qu'un seul centime d'écart ?",
             choices: [
-                "À cause du « biais du chiffre de gauche » : notre cerveau retient le 1 de 19 et classe l'objet dans la dizaine inférieure !",
+                "Notre cerveau ne retient que le premier chiffre à gauche",
                 "Pour écouler les pièces de 1 centime",
                 "Parce que le chiffre 9 porte bonheur aux caissiers",
                 "Pour payer moins de TVA"
@@ -3059,7 +3076,7 @@ public enum QuestionBank {
             funnyTitle: "La règle des 4 % pour vivre de ses rentes",
             prompt: "Selon la célèbre « Règle des 4 % » (étude Trinity), de quel capital investi as-tu besoin pour retirer 1 000 € par mois (12 000 € par an) sans épuiser ton patrimoine sur 30 ans ?",
             choices: [
-                "300 000 € (soit 25 fois tes dépenses annuelles : 12 000 × 25 !)",
+                "300 000 €",
                 "48 000 €",
                 "1 000 000 €",
                 "120 000 €"
@@ -3102,12 +3119,12 @@ public enum QuestionBank {
             optionRight: "FÉMININ (UNE) 👒",
             valuePerItem: 500,
             items: [
-                QuizDisOrDatItem(index: 0, text: "___ tentacule (de pieuvre)", correctSide: "left"),
+                QuizDisOrDatItem(index: 0, text: "___ tentacule", correctSide: "left"),
                 QuizDisOrDatItem(index: 1, text: "___ écritoire", correctSide: "right"),
-                QuizDisOrDatItem(index: 2, text: "___ pétale (de rose)", correctSide: "left"),
+                QuizDisOrDatItem(index: 2, text: "___ pétale", correctSide: "left"),
                 QuizDisOrDatItem(index: 3, text: "___ anagramme", correctSide: "right"),
-                QuizDisOrDatItem(index: 4, text: "___ haltère (de musculation)", correctSide: "left"),
-                QuizDisOrDatItem(index: 5, text: "___ oasis (dans le désert)", correctSide: "right")
+                QuizDisOrDatItem(index: 4, text: "___ haltère", correctSide: "left"),
+                QuizDisOrDatItem(index: 5, text: "___ oasis", correctSide: "right")
             ],
             audioCueID: "dod_FR_2"
         ),
@@ -3139,11 +3156,11 @@ public enum QuestionBank {
             valuePerItem: 500,
             items: [
                 QuizDisOrDatItem(index: 0, text: "17", correctSide: "left"),
-                QuizDisOrDatItem(index: 1, text: "21 (indice : 3 × 7)", correctSide: "right"),
+                QuizDisOrDatItem(index: 1, text: "21", correctSide: "right"),
                 QuizDisOrDatItem(index: 2, text: "29", correctSide: "left"),
-                QuizDisOrDatItem(index: 3, text: "51 (indice : 3 × 17 !)", correctSide: "right"),
+                QuizDisOrDatItem(index: 3, text: "51", correctSide: "right"),
                 QuizDisOrDatItem(index: 4, text: "23", correctSide: "left"),
-                QuizDisOrDatItem(index: 5, text: "49 (indice : 7 × 7)", correctSide: "right")
+                QuizDisOrDatItem(index: 5, text: "49", correctSide: "right")
             ],
             audioCueID: "dod_MATH_2"
         ),
@@ -3176,9 +3193,9 @@ public enum QuestionBank {
             items: [
                 QuizDisOrDatItem(index: 0, text: "Ratatouille", correctSide: "left"),
                 QuizDisOrDatItem(index: 1, text: "Shrek", correctSide: "right"),
-                QuizDisOrDatItem(index: 2, text: "Vice-Versa (Inside Out)", correctSide: "left"),
+                QuizDisOrDatItem(index: 2, text: "Vice-Versa", correctSide: "left"),
                 QuizDisOrDatItem(index: 3, text: "Kung Fu Panda", correctSide: "right"),
-                QuizDisOrDatItem(index: 4, text: "Là-Haut (Up)", correctSide: "left"),
+                QuizDisOrDatItem(index: 4, text: "Là-Haut", correctSide: "left"),
                 QuizDisOrDatItem(index: 5, text: "Madagascar", correctSide: "right")
             ],
             audioCueID: "dod_CINE_2"
@@ -3192,12 +3209,12 @@ public enum QuestionBank {
             optionRight: "ANNÉES 2000 💿",
             valuePerItem: 500,
             items: [
-                QuizDisOrDatItem(index: 0, text: "Les Démons de Minuit (Images)", correctSide: "left"),
-                QuizDisOrDatItem(index: 1, text: "Alors on danse (Stromae)", correctSide: "right"),
-                QuizDisOrDatItem(index: 2, text: "Take On Me (a-ha)", correctSide: "left"),
-                QuizDisOrDatItem(index: 3, text: "Crazy in Love (Beyoncé)", correctSide: "right"),
-                QuizDisOrDatItem(index: 4, text: "L'Aventurier (Indochine)", correctSide: "left"),
-                QuizDisOrDatItem(index: 5, text: "Moi... Lolita (Alizée)", correctSide: "right")
+                QuizDisOrDatItem(index: 0, text: "Les Démons de Minuit", correctSide: "left"),
+                QuizDisOrDatItem(index: 1, text: "Alors on danse", correctSide: "right"),
+                QuizDisOrDatItem(index: 2, text: "Take On Me", correctSide: "left"),
+                QuizDisOrDatItem(index: 3, text: "Crazy in Love", correctSide: "right"),
+                QuizDisOrDatItem(index: 4, text: "L'Aventurier", correctSide: "left"),
+                QuizDisOrDatItem(index: 5, text: "Moi... Lolita", correctSide: "right")
             ],
             audioCueID: "dod_MUS_1"
         ),
@@ -3228,7 +3245,7 @@ public enum QuestionBank {
             optionRight: "BOBARD 🤥",
             valuePerItem: 500,
             items: [
-                QuizDisOrDatItem(index: 0, text: "Les bananes sont naturellement légèrement radioactives (potassium 40)", correctSide: "left"),
+                QuizDisOrDatItem(index: 0, text: "Les bananes sont naturellement légèrement radioactives", correctSide: "left"),
                 QuizDisOrDatItem(index: 1, text: "La Grande Muraille de Chine se voit à l'œil nu depuis la Lune", correctSide: "right"),
                 QuizDisOrDatItem(index: 2, text: "Les requins existaient sur Terre avant les arbres et avant les dinosaures", correctSide: "left"),
                 QuizDisOrDatItem(index: 3, text: "Un poisson rouge n'a que 3 secondes de mémoire", correctSide: "right"),
@@ -3246,12 +3263,12 @@ public enum QuestionBank {
             optionRight: "APRÈS 1900 🚀",
             valuePerItem: 500,
             items: [
-                QuizDisOrDatItem(index: 0, text: "Le briquet (inventé en 1823, avant même les allumettes modernes !)", correctSide: "left"),
-                QuizDisOrDatItem(index: 1, text: "Le four à micro-ondes (1945)", correctSide: "right"),
-                QuizDisOrDatItem(index: 2, text: "Le Coca-Cola (1886)", correctSide: "left"),
-                QuizDisOrDatItem(index: 3, text: "Le Velcro / scratch (1941)", correctSide: "right"),
-                QuizDisOrDatItem(index: 4, text: "Le téléphone d'Alexander Graham Bell (1876)", correctSide: "left"),
-                QuizDisOrDatItem(index: 5, text: "Le Post-it jaune (1980)", correctSide: "right")
+                QuizDisOrDatItem(index: 0, text: "Le briquet", correctSide: "left"),
+                QuizDisOrDatItem(index: 1, text: "Le four à micro-ondes", correctSide: "right"),
+                QuizDisOrDatItem(index: 2, text: "Le Coca-Cola", correctSide: "left"),
+                QuizDisOrDatItem(index: 3, text: "Le Velcro / scratch", correctSide: "right"),
+                QuizDisOrDatItem(index: 4, text: "Le téléphone d'Alexander Graham Bell", correctSide: "left"),
+                QuizDisOrDatItem(index: 5, text: "Le Post-it jaune", correctSide: "right")
             ],
             audioCueID: "dod_CUL_2"
         ),
@@ -3283,11 +3300,11 @@ public enum QuestionBank {
             valuePerItem: 500,
             items: [
                 QuizDisOrDatItem(index: 0, text: "Les intérêts de ton Livret A", correctSide: "left"),
-                QuizDisOrDatItem(index: 1, text: "Les dividendes sur un Compte-Titres Ordinaire (CTO)", correctSide: "right"),
+                QuizDisOrDatItem(index: 1, text: "Les dividendes sur un Compte-Titres Ordinaire", correctSide: "right"),
                 QuizDisOrDatItem(index: 2, text: "Les plus-values d'un PEA ouvert depuis plus de 5 ans", correctSide: "left"),
-                QuizDisOrDatItem(index: 3, text: "Les intérêts d'un Livret bancaire fiscalisé (Super Livret)", correctSide: "right"),
+                QuizDisOrDatItem(index: 3, text: "Les intérêts d'un Livret bancaire fiscalisé", correctSide: "right"),
                 QuizDisOrDatItem(index: 4, text: "La revente de ta résidence principale", correctSide: "left"),
-                QuizDisOrDatItem(index: 5, text: "Une plus-value crypto convertie en euros (> 305 €/an)", correctSide: "right")
+                QuizDisOrDatItem(index: 5, text: "Une plus-value crypto convertie en euros", correctSide: "right")
             ],
             audioCueID: "dod_ECO_2"
         ),
@@ -3324,7 +3341,7 @@ public enum QuestionBank {
                 QuizDisOrDatItem(index: 0, text: "A chanté le méga-tube de l'été « Espresso »", correctSide: "left"),
                 QuizDisOrDatItem(index: 1, text: "Compose toutes ses chansons avec son grand frère Finneas", correctSide: "right"),
                 QuizDisOrDatItem(index: 2, text: "A dépassé le milliard de streams sur Spotify en 2024", correctSide: "both"),
-                QuizDisOrDatItem(index: 3, text: "A remporté deux Oscars de la meilleure chanson originale (James Bond & Barbie)", correctSide: "right"),
+                QuizDisOrDatItem(index: 3, text: "A remporté deux Oscars de la meilleure chanson originale", correctSide: "right"),
                 QuizDisOrDatItem(index: 4, text: "A assuré la première partie de la tournée The Eras Tour de Taylor Swift", correctSide: "left"),
                 QuizDisOrDatItem(index: 5, text: "Adorée par la fille de Xabi dans les playlists de la voiture", correctSide: "both")
             ],
@@ -3341,7 +3358,7 @@ public enum QuestionBank {
             valuePerItem: 500,
             items: [
                 QuizDisOrDatItem(index: 0, text: "Saint-Nectaire", correctSide: "both"),
-                QuizDisOrDatItem(index: 1, text: "Boursin (créé par François Boursin)", correctSide: "left"),
+                QuizDisOrDatItem(index: 1, text: "Boursin", correctSide: "left"),
                 QuizDisOrDatItem(index: 2, text: "Roquefort-sur-Soulzon", correctSide: "both"),
                 QuizDisOrDatItem(index: 3, text: "Courchevel", correctSide: "right"),
                 QuizDisOrDatItem(index: 4, text: "Maroilles", correctSide: "both"),
@@ -3362,9 +3379,9 @@ public enum QuestionBank {
                 QuizDisOrDatItem(index: 0, text: "___ après-midi", correctSide: "both"),
                 QuizDisOrDatItem(index: 1, text: "___ tentacule", correctSide: "left"),
                 QuizDisOrDatItem(index: 2, text: "___ oasis", correctSide: "right"),
-                QuizDisOrDatItem(index: 3, text: "___ crêpe (celle qui se mange ou le tissu/caoutchouc !)", correctSide: "both"),
+                QuizDisOrDatItem(index: 3, text: "___ crêpe", correctSide: "both"),
                 QuizDisOrDatItem(index: 4, text: "___ pétale", correctSide: "left"),
-                QuizDisOrDatItem(index: 5, text: "___ livre (de lecture ou de beurre !)", correctSide: "both")
+                QuizDisOrDatItem(index: 5, text: "___ livre", correctSide: "both")
             ],
             audioCueID: "rac_FR_1"
         ),
@@ -3399,7 +3416,7 @@ public enum QuestionBank {
             items: [
                 QuizDisOrDatItem(index: 0, text: "Capital 100 % garanti sans aucun risque de baisse", correctSide: "left"),
                 QuizDisOrDatItem(index: 1, text: "Permet d'investir dans des ETF comme le MSCI World", correctSide: "right"),
-                QuizDisOrDatItem(index: 2, text: "0 % d'impôt sur le revenu sur les gains (après 5 ans pour le PEA)", correctSide: "both"),
+                QuizDisOrDatItem(index: 2, text: "0 % d'impôt sur le revenu sur les gains", correctSide: "both"),
                 QuizDisOrDatItem(index: 3, text: "Plafond des versements fixé à 22 950 €", correctSide: "left"),
                 QuizDisOrDatItem(index: 4, text: "Plafond des versements fixé à 150 000 €", correctSide: "right"),
                 QuizDisOrDatItem(index: 5, text: "Limité à un seul par personne majeure", correctSide: "both")

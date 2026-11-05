@@ -11,6 +11,9 @@ final class QuestionBankTests: XCTestCase {
             for q in mcqs {
                 XCTAssertEqual(q.choices.count, 4, "Question \(q.id) must have 4 choices")
                 XCTAssertTrue((0..<4).contains(q.correctIndex), "Question \(q.id) must have valid correctIndex")
+                for choice in q.choices {
+                    XCTAssertFalse(choice.contains("(") || choice.contains(")"), "Choice '\(choice)' in \(q.id) must not contain parenthetical hints")
+                }
                 XCTAssertFalse(q.funnyTitle.isEmpty)
                 XCTAssertFalse(q.prompt.isEmpty)
                 XCTAssertFalse(q.meemawRoastOnWrong.isEmpty)
@@ -22,6 +25,7 @@ final class QuestionBankTests: XCTestCase {
             for round in rounds {
                 XCTAssertEqual(round.items.count, 6, "DisOrDat round \(round.id) must have 6 items")
                 for item in round.items {
+                    XCTAssertFalse(item.text.contains("(") || item.text.contains(")"), "DisOrDat item '\(item.text)' in \(round.id) must not contain parenthetical hints")
                     if round.optionBoth != nil {
                         XCTAssertTrue(item.correctSide == "left" || item.correctSide == "right" || item.correctSide == "both")
                     } else {
