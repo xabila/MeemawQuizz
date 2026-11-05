@@ -277,38 +277,71 @@ public enum QuizThemePack: String, CaseIterable, Codable, Identifiable, Sendable
     public var id: String { rawValue }
 
     public var title: String {
+        if AppLanguage.isEnglish {
+            switch self {
+            case .grandMix: return "🔀 Grand Mix Show"
+            case .francaisMeemaw: return "👵 Wordplay & Idioms"
+            case .mathMeemaw: return "📐 Meemaw Math & Logic"
+            case .seriesCinema: return "🎬 Movies & TV Shows"
+            case .musiqueTubes: return "🎵 Music & Pop Hits"
+            case .cultureGInsolite: return "🌍 Weird Trivia & Science"
+            case .ecoCash: return "💰 Money & Smart Cash"
+            }
+        }
         switch self {
-        case .grandMix: "🔀 Grand Mix Show"
-        case .francaisMeemaw: "👵 Français & Expressions"
-        case .mathMeemaw: "📐 Meemaw Math & Logique"
-        case .seriesCinema: "🎬 Séries & Cinéma"
-        case .musiqueTubes: "🎵 Musique & Tubes"
-        case .cultureGInsolite: "🌍 Culture G & Insolite"
-        case .ecoCash: "💰 Éco & Cash Perso"
+        case .grandMix: return "🔀 Grand Mix Show"
+        case .francaisMeemaw: return "👵 Français & Expressions"
+        case .mathMeemaw: return "📐 Meemaw Math & Logique"
+        case .seriesCinema: return "🎬 Séries & Cinéma"
+        case .musiqueTubes: return "🎵 Musique & Tubes"
+        case .cultureGInsolite: return "🌍 Culture G & Insolite"
+        case .ecoCash: return "💰 Éco & Cash Perso"
         }
     }
 
     public var shortBadge: String {
+        if AppLanguage.isEnglish {
+            switch self {
+            case .grandMix: return "🔀 GRAND MIX"
+            case .francaisMeemaw: return "👵 WORDPLAY"
+            case .mathMeemaw: return "📐 MATH FLASH"
+            case .seriesCinema: return "🎬 MOVIES & TV"
+            case .musiqueTubes: return "🎵 MUSIC HITS"
+            case .cultureGInsolite: return "🌍 TRIVIA"
+            case .ecoCash: return "💰 SMART CASH"
+            }
+        }
         switch self {
-        case .grandMix: "🔀 GRAND MIX"
-        case .francaisMeemaw: "👵 FRANÇAIS"
-        case .mathMeemaw: "📐 MATH FLASH"
-        case .seriesCinema: "🎬 SÉRIES & CINÉ"
-        case .musiqueTubes: "🎵 MUSIQUE"
-        case .cultureGInsolite: "🌍 CULTURE G"
-        case .ecoCash: "💰 ÉCO & CASH"
+        case .grandMix: return "🔀 GRAND MIX"
+        case .francaisMeemaw: return "👵 FRANÇAIS"
+        case .mathMeemaw: return "📐 MATH FLASH"
+        case .seriesCinema: return "🎬 SÉRIES & CINÉ"
+        case .musiqueTubes: return "🎵 MUSIQUE"
+        case .cultureGInsolite: return "🌍 CULTURE G"
+        case .ecoCash: return "💰 ÉCO & CASH"
         }
     }
 
     public var subtitle: String {
+        if AppLanguage.isEnglish {
+            switch self {
+            case .grandMix: return "The explosive cocktail of all Meemaw themes!"
+            case .francaisMeemaw: return "Tricky spelling, vintage grandma sayings and riddles"
+            case .mathMeemaw: return "Clever mental math, 1951 trains and logic traps"
+            case .seriesCinema: return "Cult quotes, movies summarized by Grandma and TV hits"
+            case .musiqueTubes: return "Finish the lyrics, absurd music records and pop hits"
+            case .cultureGInsolite: return "Crazy science, weird history and unbelievable facts"
+            case .ecoCash: return "Compound interest, inflation and smart money reflexes"
+            }
+        }
         switch self {
-        case .grandMix: "Le cocktail explosif de tous les thèmes de Meemaw !"
-        case .francaisMeemaw: "Orthographe piège, expressions d'antan et devinettes"
-        case .mathMeemaw: "Calcul mental malin, trains de 1951 et pièges logiques"
-        case .seriesCinema: "Répliques cultes, films résumés par Mamie et séries"
-        case .musiqueTubes: "Blind-test de paroles, records absurdes et pop/chanson"
-        case .cultureGInsolite: "Sciences folles, histoire décalée et records improbables"
-        case .ecoCash: "Intérêts composés, PEA, inflation et réflexes malins"
+        case .grandMix: return "Le cocktail explosif de tous les thèmes de Meemaw !"
+        case .francaisMeemaw: return "Orthographe piège, expressions d'antan et devinettes"
+        case .mathMeemaw: return "Calcul mental malin, trains de 1951 et pièges logiques"
+        case .seriesCinema: return "Répliques cultes, films résumés par Mamie et séries"
+        case .musiqueTubes: return "Blind-test de paroles, records absurdes et pop/chanson"
+        case .cultureGInsolite: return "Sciences folles, histoire décalée et records improbables"
+        case .ecoCash: return "Intérêts composés, PEA, inflation et réflexes malins"
         }
     }
 
@@ -335,26 +368,47 @@ public enum ShowGameMode: String, CaseIterable, Codable, Identifiable, Sendable 
     public var id: String { rawValue }
 
     public var title: String {
+        if AppLanguage.isEnglish {
+            switch self {
+            case .fullQuizShow: return "📺 Full TV Quiz Show (+ Drawing)"
+            case .drawSomethingOnly: return "🎨 100% Draw Something"
+            case .esquisseParty: return "📞 Sketch Relay! (1 Easy Word)"
+            }
+        }
         switch self {
-        case .fullQuizShow: "📺 Grand Show Quizz (+ Dessin)"
-        case .drawSomethingOnly: "🎨 100% Draw Something"
-        case .esquisseParty: "📞 Esquissé ! (1 Mot Facile)"
+        case .fullQuizShow: return "📺 Grand Show Quizz (+ Dessin)"
+        case .drawSomethingOnly: return "🎨 100% Draw Something"
+        case .esquisseParty: return "📞 Esquissé ! (1 Mot Facile)"
         }
     }
 
     public var shortBadge: String {
+        if AppLanguage.isEnglish {
+            switch self {
+            case .fullQuizShow: return "📺 FULL SHOW"
+            case .drawSomethingOnly: return "🎨 DRAW SOMETHING"
+            case .esquisseParty: return "📞 SKETCH RELAY!"
+            }
+        }
         switch self {
-        case .fullQuizShow: "📺 SHOW COMPLET"
-        case .drawSomethingOnly: "🎨 DRAW SOMETHING"
-        case .esquisseParty: "📞 ESQUISSÉ !"
+        case .fullQuizShow: return "📺 SHOW COMPLET"
+        case .drawSomethingOnly: return "🎨 DRAW SOMETHING"
+        case .esquisseParty: return "📞 ESQUISSÉ !"
         }
     }
 
     public var subtitle: String {
+        if AppLanguage.isEnglish {
+            switch self {
+            case .fullQuizShow: return "Speed Cash, Bet Your Brain, Jukebox, Closest Guess, Draw Something, Solo, Cheesy Quizz & Jack Attack!"
+            case .drawSomethingOnly: return "Take turns drawing live on the TV while everyone else unscrambles the secret word on their phone!"
+            case .esquisseParty: return "1 easy word to draw (Sun, Pizza, Fish...) ➔ Neighbor guesses 1 word ➔ Final drawing & Comic Book Showcase!"
+            }
+        }
         switch self {
-        case .fullQuizShow: "Quizz Rapide, Tu Te Mets Combien, Jukebox, Pinceau Draw Something, Solo & Raclette !"
-        case .drawSomethingOnly: "Chacun dessine à tour de rôle en direct sur la TV, les autres trouvent le mot avec les lettres mélangées !"
-        case .esquisseParty: "1 seul mot facile à dessiner (Soleil, Pizza, Poisson...) ➔ Le voisin devine 1 mot ➔ Dessin final & Grand Défilé BD !"
+        case .fullQuizShow: return "Quizz Rapide, Tu Te Mets Combien, Jukebox, Pinceau Draw Something, Solo & Raclette !"
+        case .drawSomethingOnly: return "Chacun dessine à tour de rôle en direct sur la TV, les autres trouvent le mot avec les lettres mélangées !"
+        case .esquisseParty: return "1 seul mot facile à dessiner (Soleil, Pizza, Poisson...) ➔ Le voisin devine 1 mot ➔ Dessin final & Grand Défilé BD !"
         }
     }
 
@@ -383,34 +437,64 @@ public enum QuizRoundKind: String, Codable, Sendable {
     case jackAttack = "jack_attack"
 
     public var badgeTitle: String {
+        if AppLanguage.isEnglish {
+            switch self {
+            case .cashSpeed: return "⚡ ROUND 1 • SPEED CASH"
+            case .tuTeMetsCombien: return "🎯 ROUND 2 • BET YOUR BRAIN (1–4 ★)"
+            case .jukeboxExpress: return "🎧 ROUND 3 • JUKEBOX EXPRESS"
+            case .leJustePif: return "🔢 ROUND • CLOSEST GUESS"
+            case .drawSomething: return "🎨 ROUND • DRAW SOMETHING LIVE"
+            case .leSolo: return "🚨 ROUND • SOLO FASTEST FINGER"
+            case .couciCouca: return "🧀 ROUND • CHEESY QUIZZ"
+            case .quoizziQuoissa: return "🤪 ROUND • PUN-A-PALOOZA"
+            case .esquisseTeleArabe: return "📞 PARTY • SKETCH RELAY!"
+            case .finaleDouble: return "🔥 FINAL ROUND • DOUBLE POINTS ×2"
+            case .jackAttack: return "⚡ GRAND FINALE • MEEMAW'S JACK ATTACK"
+            }
+        }
         switch self {
-        case .cashSpeed: "⚡ MANCHE 1 • CASH RAPIDE"
-        case .tuTeMetsCombien: "🎯 MANCHE 2 • TU TE METS COMBIEN ?"
-        case .jukeboxExpress: "🎧 MANCHE 3 • LE JUKEBOX EXPRESS"
-        case .leJustePif: "🔢 MANCHE • LE JUSTE PIF"
-        case .drawSomething: "🎨 MANCHE • PINCEAU DRAW SOMETHING"
-        case .leSolo: "🚨 MANCHE • LE SOLO (1er QUI DÉGAINE)"
-        case .couciCouca: "🧀 MANCHE • LA RACLETTE QUIZZ"
-        case .quoizziQuoissa: "🤪 MANCHE • QUOIZZI-QUOISSA"
-        case .esquisseTeleArabe: "📞 SOIRÉE • ESQUISSÉ ! (TÉLÉPHONE ARABE)"
-        case .finaleDouble: "🔥 MANCHE FINALE • RAFALE POINTS ×2"
-        case .jackAttack: "⚡ GRANDE FINALE • LE JACK ATTACK DE MEEMAW"
+        case .cashSpeed: return "⚡ MANCHE 1 • CASH RAPIDE"
+        case .tuTeMetsCombien: return "🎯 MANCHE 2 • TU TE METS COMBIEN ?"
+        case .jukeboxExpress: return "🎧 MANCHE 3 • LE JUKEBOX EXPRESS"
+        case .leJustePif: return "🔢 MANCHE • LE JUSTE PIF"
+        case .drawSomething: return "🎨 MANCHE • PINCEAU DRAW SOMETHING"
+        case .leSolo: return "🚨 MANCHE • LE SOLO (1er QUI DÉGAINE)"
+        case .couciCouca: return "🧀 MANCHE • LA RACLETTE QUIZZ"
+        case .quoizziQuoissa: return "🤪 MANCHE • QUOIZZI-QUOISSA"
+        case .esquisseTeleArabe: return "📞 SOIRÉE • ESQUISSÉ ! (TÉLÉPHONE ARABE)"
+        case .finaleDouble: return "🔥 MANCHE FINALE • RAFALE POINTS ×2"
+        case .jackAttack: return "⚡ GRANDE FINALE • LE JACK ATTACK DE MEEMAW"
         }
     }
 
     public var ruleSummary: String {
+        if AppLanguage.isEnglish {
+            switch self {
+            case .cashSpeed: return "Everyone answers on their phone! Fastest finger wins the speed bonus!"
+            case .tuTeMetsCombien: return "Before seeing the question, bet from ⭐ (1,000 pts) to ⭐⭐⭐⭐ (5,000 pts) on Meemaw's topic!"
+            case .jukeboxExpress: return "Don't forget the lyrics: complete the exact chorus line right when the music stops!"
+            case .leJustePif: return "No multiple choice: type your best number on the keypad! Closest guess wins +3,000 pts (+5,000 pts for an exact Bullseye)!"
+            case .drawSomething: return "1 player draws live on the TV while everyone else taps the scrambled letters to find the word!"
+            case .leSolo: return "No separate buzzer needed: the FIRST player to tap an answer locks out the room (Double or Wipeout)!"
+            case .couciCouca: return "Rapid-fire binary madness: tap Option A, Option B, or 🧀 BOTH!"
+            case .quoizziQuoissa: return "Meemaw's twisted puns and dad jokes: answer as fast as you can!"
+            case .esquisseTeleArabe: return "1 easy word to draw with your finger -> Neighbor guesses 1 word -> Next drawing & Grand Comic Showcase on TV!"
+            case .finaleDouble: return "Home stretch: all points and penalties are DOUBLED!"
+            case .jackAttack: return "Clues flash at high speed: HIT THE BUZZER only when the matching pair appears (+3,000 pts, or -1,500 pts if it's a trap)!"
+            }
+        }
         switch self {
-        case .cashSpeed: "Tout le monde répond sur son tel ! Le plus rapide rafle le jackpot !"
-        case .tuTeMetsCombien: "Avant de voir la question, mise de ⭐ (1 000 pts) à ⭐⭐⭐⭐ (5 000 pts) sur le sujet annoncé par Meemaw !"
-        case .jukeboxExpress: "N'oubliez pas les paroles de Meemaw : complète le refrain exact au moment où la musique coupe !"
-        case .leJustePif: "Pas de QCM : tape ton estimation chiffrée sur le pavé numérique ! Le plus proche rafle +3 000 pts (et +5 000 pts en Tout Pile) !"
-        case .drawSomething: "1 joueur dessine en direct sur la TV, les autres tapent les lettres façon Draw Something pour trouver le mot !"
-        case .leSolo: "Pas besoin de buzzer : le 1er qui tape sa réponse coupe l'herbe sous le pied des autres (Double ou Gamelle) !"
-        case .couciCouca: "Façon Burger Quiz version Savoie : tape Option A, Option B, ou 🧀 LES DEUX !"
-        case .quoizziQuoissa: "6 jeux de mots et calembours tordus de Meemaw : réponds dès que ça s'affiche !"
-        case .esquisseTeleArabe: "1 seul mot ultra-simple à dessiner au doigt -> Le voisin devine 1 mot -> Dessin suivant & Grand Défilé BD sur la TV !"
-        case .finaleDouble: "Dernière ligne droite : tous les points et pénalités sont DOUBLÉS !"
-        case .jackAttack: "Les propositions défilent à toute allure : BUZZE uniquement quand la bonne association s'affiche (+3 000 pts, ou -1 500 pts si piège) !"
+        case .cashSpeed: return "Tout le monde répond sur son tel ! Le plus rapide rafle le jackpot !"
+        case .tuTeMetsCombien: return "Avant de voir la question, mise de ⭐ (1 000 pts) à ⭐⭐⭐⭐ (5 000 pts) sur le sujet annoncé par Meemaw !"
+        case .jukeboxExpress: return "N'oubliez pas les paroles de Meemaw : complète le refrain exact au moment où la musique coupe !"
+        case .leJustePif: return "Pas de QCM : tape ton estimation chiffrée sur le pavé numérique ! Le plus proche rafle +3 000 pts (et +5 000 pts en Tout Pile) !"
+        case .drawSomething: return "1 joueur dessine en direct sur la TV, les autres tapent les lettres façon Draw Something pour trouver le mot !"
+        case .leSolo: return "Pas besoin de buzzer : le 1er qui tape sa réponse coupe l'herbe sous le pied des autres (Double ou Gamelle) !"
+        case .couciCouca: return "Façon Burger Quiz version Savoie : tape Option A, Option B, ou 🧀 LES DEUX !"
+        case .quoizziQuoissa: return "6 jeux de mots et calembours tordus de Meemaw : réponds dès que ça s'affiche !"
+        case .esquisseTeleArabe: return "1 seul mot ultra-simple à dessiner au doigt -> Le voisin devine 1 mot -> Dessin suivant & Grand Défilé BD sur la TV !"
+        case .finaleDouble: return "Dernière ligne droite : tous les points et pénalités sont DOUBLÉS !"
+        case .jackAttack: return "Les propositions défilent à toute allure : BUZZE uniquement quand la bonne association s'affiche (+3 000 pts, ou -1 500 pts si piège) !"
         }
     }
 }

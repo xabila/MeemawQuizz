@@ -161,6 +161,17 @@ public enum MeemawPunchlines {
     /// Réplique dynamique personnalisée avec le vrai pseudo du joueur (lue sur la TV par la voix féminine Audrey).
     public static func dynamicFastestPraise(playerName: String, delta: Int, reactionMs: Int) -> String {
         let sec = String(format: "%.1f", Double(reactionMs) / 1000.0)
+        if AppLanguage.isEnglish {
+            let templates = [
+                "Way to go \(playerName)! Sniped in \(sec) seconds for \(delta) points—even my 1974 Buick doesn't start that fast!",
+                "Sharp shooting \(playerName)! \(delta) points in \(sec) seconds while everyone else is still looking for their reading glasses!",
+                "Hats off \(playerName), you schooled the whole living room in \(sec) seconds flat!",
+                "Boom! \(playerName) grabs \(delta) points in \(sec) seconds while the rest of the couch is napping!",
+                "What a reflex \(playerName)! \(sec) seconds and \(delta) points—did you dip your cookies in espresso today?"
+            ]
+            let idx = abs(playerName.hashValue &+ reactionMs) % templates.count
+            return templates[idx]
+        }
         let templates = [
             "Bravo \(playerName) ! Dégainé en \(sec) secondes pour \(delta) points, même ma 2 CV démarre moins vite !",
             "Joli coup \(playerName) ! \(delta) points dans la poche en \(sec) secondes, les autres sont encore en train de chercher leurs lunettes !",
@@ -174,10 +185,30 @@ public enum MeemawPunchlines {
     }
 
     public static func dynamicSoloBuzzCallout(playerName: String) -> String {
-        "Stoppez les rotatives ! \(playerName) a dégainé en premier sur LE SOLO ! Voyons si c'est du génie ou du grand n'importe quoi !"
+        if AppLanguage.isEnglish {
+            return "Stop the presses! \(playerName) drew first on THE SOLO! Let's see if it's pure genius or a total faceplant!"
+        }
+        return "Stoppez les rotatives ! \(playerName) a dégainé en premier sur LE SOLO ! Voyons si c'est du génie ou du grand n'importe quoi !"
     }
 
     public static func dynamicSoloResult(playerName: String, isCorrect: Bool, delta: Int) -> String {
+        if AppLanguage.isEnglish {
+            if isCorrect {
+                let wins = [
+                    "Gorgeous \(playerName)! You stole the question right out from under the couch and banked \(delta) points!",
+                    "Perfect heist by \(playerName) in Solo! Plus \(delta) points in the piggy bank—everyone else can weep!",
+                    "What nerve \(playerName)! First on the trigger, right answer, and bam: \(delta) points!"
+                ]
+                return wins[abs(playerName.hashValue &+ delta) % wins.count]
+            } else {
+                let fails = [
+                    "Oh sweetie \(playerName)! You tried to shoot faster than your shadow and lost \(abs(delta)) points!",
+                    "Crash and burn \(playerName)! Answering before thinking costs you \(abs(delta)) points right in the dentures!",
+                    "Oof \(playerName)! The Solo of shame: the whole living room just watched you lose \(abs(delta)) points live!"
+                ]
+                return fails[abs(playerName.hashValue &+ delta) % fails.count]
+            }
+        }
         if isCorrect {
             let wins = [
                 "Magnifique \(playerName) ! Tu as coupé l'herbe sous le pied de tout le salon et tu prends \(delta) points d'un coup !",
@@ -196,6 +227,9 @@ public enum MeemawPunchlines {
     }
 
     public static func dynamicWrongRoast(playerName: String, roast: String) -> String {
-        "\(playerName), écoute bien Mamie : \(roast)"
+        if AppLanguage.isEnglish {
+            return "\(playerName), listen carefully to Grandma: \(roast)"
+        }
+        return "\(playerName), écoute bien Mamie : \(roast)"
     }
 }

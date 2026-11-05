@@ -128,4 +128,19 @@ final class MeemawQuizzCoreTests: XCTestCase {
             }
         }
     }
+
+    func testEnglishQuestionBankAndMechanicsAreComplete() {
+        XCTAssertGreaterThanOrEqual(QuestionBank.allEnglishQuestions.count, 40)
+        XCTAssertGreaterThanOrEqual(QuestionBank.englishDisOrDatRounds.count, 4)
+        XCTAssertGreaterThanOrEqual(QuestionBank.englishSponsors.count, 4)
+        XCTAssertGreaterThanOrEqual(QuestionBank.englishJustePifQuestions.count, 6)
+        XCTAssertGreaterThanOrEqual(QuestionBank.englishJackAttackRounds.count, 2)
+        XCTAssertEqual(DrawingBank.englishEsquisseStarterPrompts.count, 30)
+
+        for q in QuestionBank.allEnglishQuestions {
+            XCTAssertEqual(q.choices.count, 4, "Question \(q.id) must have 4 choices")
+            XCTAssertTrue((0..<4).contains(q.correctIndex))
+            XCTAssertNotNil(q.audioCueID)
+        }
+    }
 }

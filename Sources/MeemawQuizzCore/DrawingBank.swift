@@ -86,12 +86,54 @@ public enum DrawingBank {
         CatalogEntry(word: "HIBOU", categoryHint: "Oiseau nocturne", stars: 3, points: 3000)
     ]
 
+    public static let allEnglishWords: [CatalogEntry] = [
+        // ⭐ EASY (1,000 PTS)
+        CatalogEntry(word: "SUN", categoryHint: "Sky & Weather", stars: 1, points: 1000),
+        CatalogEntry(word: "HOUSE", categoryHint: "Building", stars: 1, points: 1000),
+        CatalogEntry(word: "FISH", categoryHint: "Ocean Animal", stars: 1, points: 1000),
+        CatalogEntry(word: "PIZZA", categoryHint: "Food", stars: 1, points: 1000),
+        CatalogEntry(word: "ROCKET", categoryHint: "Outer Space", stars: 1, points: 1000),
+        CatalogEntry(word: "CROWN", categoryHint: "Royalty", stars: 1, points: 1000),
+        CatalogEntry(word: "BANANA", categoryHint: "Fruit", stars: 1, points: 1000),
+        CatalogEntry(word: "HEART", categoryHint: "Symbol", stars: 1, points: 1000),
+        CatalogEntry(word: "APPLE", categoryHint: "Fruit", stars: 1, points: 1000),
+        CatalogEntry(word: "CLOUD", categoryHint: "Weather", stars: 1, points: 1000),
+        // ⭐⭐ MEDIUM (2,000 PTS)
+        CatalogEntry(word: "GUITAR", categoryHint: "Musical Instrument", stars: 2, points: 2000),
+        CatalogEntry(word: "GHOST", categoryHint: "Spooky", stars: 2, points: 2000),
+        CatalogEntry(word: "SHARK", categoryHint: "Ocean Predator", stars: 2, points: 2000),
+        CatalogEntry(word: "VOLCANO", categoryHint: "Explosive Nature", stars: 2, points: 2000),
+        CatalogEntry(word: "ROBOT", categoryHint: "Sci-Fi", stars: 2, points: 2000),
+        CatalogEntry(word: "PIRATE", categoryHint: "High Seas", stars: 2, points: 2000),
+        CatalogEntry(word: "TURTLE", categoryHint: "Animal with a Shell", stars: 2, points: 2000),
+        CatalogEntry(word: "CACTUS", categoryHint: "Desert Plant", stars: 2, points: 2000),
+        CatalogEntry(word: "CASTLE", categoryHint: "Middle Ages", stars: 2, points: 2000),
+        CatalogEntry(word: "DIAMOND", categoryHint: "Treasure", stars: 2, points: 2000),
+        // ⭐⭐⭐ HARD (3,000 PTS)
+        CatalogEntry(word: "DINOSAUR", categoryHint: "Prehistory", stars: 3, points: 3000),
+        CatalogEntry(word: "UNICORN", categoryHint: "Magical Creature", stars: 3, points: 3000),
+        CatalogEntry(word: "KANGAROO", categoryHint: "Jumping Animal", stars: 3, points: 3000),
+        CatalogEntry(word: "TORNADO", categoryHint: "Extreme Weather", stars: 3, points: 3000),
+        CatalogEntry(word: "VAMPIRE", categoryHint: "Creature of the Night", stars: 3, points: 3000),
+        CatalogEntry(word: "OCTOPUS", categoryHint: "Eight Tentacles", stars: 3, points: 3000),
+        CatalogEntry(word: "CROCODILE", categoryHint: "Big Teeth", stars: 3, points: 3000),
+        CatalogEntry(word: "SUBMARINE", categoryHint: "Deep Sea", stars: 3, points: 3000)
+    ]
+
+    public static let englishEsquisseStarterPrompts: [String] = [
+        "SUN", "APPLE", "PIZZA", "FISH", "HOUSE", "TREE", "BALLOON", "GLASSES",
+        "ROCKET", "BOAT", "HEART", "STAR", "CLOUD", "BANANA", "CAKE",
+        "ICECREAM", "GIFT", "CROWN", "SNAKE", "STICKMAN", "FLOWER", "CAT",
+        "TURTLE", "SNAIL", "UMBRELLA", "MUG", "CAR", "CHEESE", "GHOST", "DIAMOND"
+    ]
+
     /// Picks 3 word options (1 star, 2 stars, 3 stars) for the drawer to choose from.
     public static func pickThreeWordOptions(excluding usedWords: Set<String> = []) -> [DrawWordOption] {
+        let source = AppLanguage.isEnglish ? allEnglishWords : allWords
         var result: [DrawWordOption] = []
         for starLevel in [1, 2, 3] {
-            let candidates = allWords.filter { $0.stars == starLevel && !usedWords.contains($0.word) }
-            let pool = candidates.isEmpty ? allWords.filter { $0.stars == starLevel } : candidates
+            let candidates = source.filter { $0.stars == starLevel && !usedWords.contains($0.word) }
+            let pool = candidates.isEmpty ? source.filter { $0.stars == starLevel } : candidates
             if let picked = pool.randomElement() {
                 result.append(makeWordOption(from: picked))
             }
@@ -180,16 +222,18 @@ public enum DrawingBank {
     ]
 
     public static func randomEsquissePrompt(excluding used: Set<String> = []) -> String {
-        let avail = esquisseStarterPrompts.filter { !used.contains($0) }
-        return (avail.isEmpty ? esquisseStarterPrompts : avail).randomElement() ?? "SOLEIL"
+        let pool = AppLanguage.isEnglish ? englishEsquisseStarterPrompts : esquisseStarterPrompts
+        let avail = pool.filter { !used.contains($0) }
+        return (avail.isEmpty ? pool : avail).randomElement() ?? (AppLanguage.isEnglish ? "SUN" : "SOLEIL")
     }
 
     public static func pickThreeEsquissePrompts(excluding used: Set<String> = []) -> [String] {
-        let avail = esquisseStarterPrompts.filter { !used.contains($0) }.shuffled()
+        let pool = AppLanguage.isEnglish ? englishEsquisseStarterPrompts : esquisseStarterPrompts
+        let avail = pool.filter { !used.contains($0) }.shuffled()
         if avail.count >= 3 {
             return Array(avail.prefix(3))
         }
-        return Array(esquisseStarterPrompts.shuffled().prefix(3))
+        return Array(pool.shuffled().prefix(3))
     }
 
     /// Table des confusions visuelles (1 seul mot !) quand on dessine au doigt sur un téléphone
@@ -223,12 +267,43 @@ public enum DrawingBank {
         "VOITURE": ["CHAUSSURE", "TORTUE", "CAMION"],
         "FROMAGE": ["PIZZA", "GÂTEAU", "PYRAMIDE"],
         "FANTÔME": ["MÉDUSE", "NUAGE", "CHAMPIGNON"],
-        "DIAMANT": ["CERF-VOLANT", "ÉTOILE", "TOUPIE"]
+        "DIAMANT": ["CERF-VOLANT", "ÉTOILE", "TOUPIE"],
+        // English visual confusions
+        "SUN": ["FLOWER", "SPIDER", "ORANGE"],
+        "APPLE": ["TOMATO", "BALLOON", "CHERRY"],
+        "FISH": ["SHARK", "BOAT", "BANANA"],
+        "HOUSE": ["CASTLE", "ARROW", "GIFT"],
+        "TREE": ["CACTUS", "MOUNTAIN", "ROCKET"],
+        "BALLOON": ["APPLE", "SUN", "BUBBLE"],
+        "GLASSES": ["BICYCLE", "SCISSORS", "OWL"],
+        "ROCKET": ["CARROT", "PENCIL", "TREE"],
+        "BOAT": ["HAT", "BANANA", "MUG"],
+        "HEART": ["STRAWBERRY", "APPLE", "BUTTERFLY"],
+        "STAR": ["SUN", "SNOWFLAKE", "FLOWER"],
+        "CLOUD": ["SHEEP", "POPCORN", "ROCK"],
+        "BANANA": ["MOON", "SMILE", "BOAT"],
+        "CAKE": ["HAT", "HOUSE", "GIFT"],
+        "ICECREAM": ["MICROPHONE", "CARROT", "LIGHTBULB"],
+        "GIFT": ["SUITCASE", "TV", "CAKE"],
+        "CROWN": ["COMB", "MOUNTAIN", "CASTLE"],
+        "SNAKE": ["WORM", "ROPE", "LIGHTNING"],
+        "STICKMAN": ["ROBOT", "SCARECROW", "GHOST"],
+        "FLOWER": ["SUN", "WINDMILL", "TREE"],
+        "CAT": ["RABBIT", "OWL", "FOX"],
+        "TURTLE": ["HELMET", "SNAIL", "MUSHROOM"],
+        "SNAIL": ["LOLLIPOP", "TURTLE", "SHELL"],
+        "UMBRELLA": ["MUSHROOM", "PALMTREE", "JELLYFISH"],
+        "MUG": ["BUCKET", "HAT", "DRUM"],
+        "CAR": ["SHOE", "TURTLE", "TRUCK"],
+        "CHEESE": ["PIZZA", "CAKE", "PYRAMID"],
+        "GHOST": ["JELLYFISH", "CLOUD", "MUSHROOM"],
+        "DIAMOND": ["KITE", "STAR", "CROWN"]
     ]
 
     /// Generates 4 quick-tap Pop-Art 1-word buttons (1 original word + 3 visually similar single words) so players can guess in 1 tap on their phone!
     public static func quickGuessSuggestions(from previousPrompt: String) -> [String] {
         let clean = previousPrompt.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        let pool = AppLanguage.isEnglish ? englishEsquisseStarterPrompts : esquisseStarterPrompts
         var options: [String] = []
         if !clean.isEmpty {
             options.append(clean)
@@ -242,7 +317,7 @@ public enum DrawingBank {
         if options.count < 4 && !options.contains(funny) {
             options.append(funny)
         }
-        for candidate in esquisseStarterPrompts.shuffled() where options.count < 4 {
+        for candidate in pool.shuffled() where options.count < 4 {
             if !options.contains(candidate) {
                 options.append(candidate)
             }
@@ -255,6 +330,9 @@ public enum DrawingBank {
         let clean = previousPrompt.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
         if let cousins = visualWordConfusions[clean], let first = cousins.first {
             return first
+        }
+        if AppLanguage.isEnglish {
+            return ["BALLOON", "STICKMAN", "SUN", "FISH", "STAR"].randomElement()!
         }
         let lower = clean.lowercased()
         if lower.contains("chat") { return "LAPIN" }
@@ -287,17 +365,31 @@ public enum DrawingBank {
         public var id: String { rawValue }
 
         public var label: String {
+            if AppLanguage.isEnglish {
+                switch self {
+                case .sun: return "☀️ Sun"
+                case .cat: return "🐱 Cat"
+                case .fish: return "🐟 Fish"
+                case .crown: return "👑 Crown"
+                case .glasses: return "🕶️ Glasses"
+                case .heart: return "❤️ Heart"
+                case .star: return "⭐ Star"
+                case .fire: return "🔥 Fire"
+                case .house: return "🏠 House"
+                case .stickman: return "🧍 Stickman"
+                }
+            }
             switch self {
-            case .sun: "☀️ Soleil"
-            case .cat: "🐱 Chat"
-            case .fish: "🐟 Poisson"
-            case .crown: "👑 Couronne"
-            case .glasses: "🕶️ Lunettes"
-            case .heart: "❤️ Cœur"
-            case .star: "⭐ Étoile"
-            case .fire: "🔥 Feu"
-            case .house: "🏠 Maison"
-            case .stickman: "🧍 Bonhomme"
+            case .sun: return "☀️ Soleil"
+            case .cat: return "🐱 Chat"
+            case .fish: return "🐟 Poisson"
+            case .crown: return "👑 Couronne"
+            case .glasses: return "🕶️ Lunettes"
+            case .heart: return "❤️ Cœur"
+            case .star: return "⭐ Étoile"
+            case .fire: return "🔥 Feu"
+            case .house: return "🏠 Maison"
+            case .stickman: return "🧍 Bonhomme"
             }
         }
 
@@ -499,14 +591,25 @@ public enum DrawingBank {
         public var id: String { rawValue }
 
         public var label: String {
+            if AppLanguage.isEnglish {
+                switch self {
+                case .freehand: return "✏️ Free"
+                case .line: return "📏 Line"
+                case .circle: return "⭕ Circle"
+                case .rectangle: return "🔲 Box"
+                case .triangle: return "🔺 Triangle"
+                case .stickman: return "🧍 Stickman"
+                case .arrow: return "➡️ Arrow"
+                }
+            }
             switch self {
-            case .freehand: "✏️ Libre"
-            case .line: "📏 Ligne"
-            case .circle: "⭕ Rond"
-            case .rectangle: "🔲 Boîte"
-            case .triangle: "🔺 Triangle"
-            case .stickman: "🧍 Bonhomme"
-            case .arrow: "➡️ Flèche"
+            case .freehand: return "✏️ Libre"
+            case .line: return "📏 Ligne"
+            case .circle: return "⭕ Rond"
+            case .rectangle: return "🔲 Boîte"
+            case .triangle: return "🔺 Triangle"
+            case .stickman: return "🧍 Bonhomme"
+            case .arrow: return "➡️ Flèche"
             }
         }
     }
@@ -635,13 +738,13 @@ public enum DrawingBank {
         let clean = normalizeWord(word)
         let center = NormalizedPoint(x: 0.50, y: 0.50)
         switch clean {
-        case "SOLEIL":
+        case "SOLEIL", "SUN":
             return DrawingCanvasData(strokes: makeStickerStrokes(sticker: .sun, center: center, scale: 1.5))
 
-        case "CHAT":
+        case "CHAT", "CAT":
             return DrawingCanvasData(strokes: makeStickerStrokes(sticker: .cat, center: center, scale: 1.55))
 
-        case "PIZZA", "FROMAGE":
+        case "PIZZA", "FROMAGE", "CHEESE":
             return DrawingCanvasData(strokes: [
                 DrawingStroke(colorHex: "#F59E0B", lineWidth: 8, points: [
                     NormalizedPoint(x: 0.50, y: 0.84),
@@ -654,13 +757,13 @@ public enum DrawingBank {
                 circleStroke(cx: 0.48, cy: 0.62, r: 0.04, color: "#E11D48", width: 6)
             ])
 
-        case "COEUR", "CŒUR":
+        case "COEUR", "CŒUR", "HEART":
             return DrawingCanvasData(strokes: makeStickerStrokes(sticker: .heart, center: center, scale: 1.55))
 
-        case "ETOILE":
+        case "ETOILE", "STAR":
             return DrawingCanvasData(strokes: makeStickerStrokes(sticker: .star, center: center, scale: 1.55))
 
-        case "POMME", "BALLON":
+        case "POMME", "BALLON", "APPLE", "BALLOON":
             var strokes: [DrawingStroke] = [
                 circleStroke(cx: 0.50, cy: 0.54, r: 0.24, color: "#E11D48", width: 8),
                 DrawingStroke(colorHex: "#10B981", lineWidth: 7, points: [
@@ -669,7 +772,7 @@ public enum DrawingBank {
                     NormalizedPoint(x: 0.66, y: 0.22)
                 ])
             ]
-            if clean == "BALLON" {
+            if clean == "BALLON" || clean == "BALLOON" {
                 strokes.append(DrawingStroke(colorHex: "#111827", lineWidth: 5, points: [
                     NormalizedPoint(x: 0.50, y: 0.78),
                     NormalizedPoint(x: 0.46, y: 0.92)
@@ -677,7 +780,7 @@ public enum DrawingBank {
             }
             return DrawingCanvasData(strokes: strokes)
 
-        case "MAISON":
+        case "MAISON", "HOUSE":
             return DrawingCanvasData(strokes: [
                 // Walls
                 DrawingStroke(colorHex: "#2563EB", lineWidth: 7, points: [
@@ -702,7 +805,7 @@ public enum DrawingBank {
                 ])
             ])
 
-        case "POISSON", "REQUIN":
+        case "POISSON", "REQUIN", "FISH", "SHARK":
             return DrawingCanvasData(strokes: [
                 // Body oval + tail
                 DrawingStroke(colorHex: "#00ACC1", lineWidth: 7, points: [
@@ -725,7 +828,7 @@ public enum DrawingBank {
                 ])
             ])
 
-        case "FUSEE":
+        case "FUSEE", "ROCKET":
             return DrawingCanvasData(strokes: [
                 // Rocket body
                 DrawingStroke(colorHex: "#E11D48", lineWidth: 7, points: [
@@ -756,7 +859,7 @@ public enum DrawingBank {
                 ])
             ])
 
-        case "SAPIN":
+        case "SAPIN", "TREE":
             return DrawingCanvasData(strokes: [
                 DrawingStroke(colorHex: "#10B981", lineWidth: 8, points: [
                     NormalizedPoint(x: 0.50, y: 0.15),
@@ -776,7 +879,7 @@ public enum DrawingBank {
                 ])
             ])
 
-        case "LUNETTES":
+        case "LUNETTES", "GLASSES":
             return DrawingCanvasData(strokes: [
                 circleStroke(cx: 0.32, cy: 0.52, r: 0.14, color: "#8E44AD", width: 7),
                 circleStroke(cx: 0.68, cy: 0.52, r: 0.14, color: "#8E44AD", width: 7),
@@ -794,7 +897,7 @@ public enum DrawingBank {
                 ])
             ])
 
-        case "COURONNE":
+        case "COURONNE", "CROWN":
             return DrawingCanvasData(strokes: [
                 DrawingStroke(colorHex: "#F59E0B", lineWidth: 8, points: [
                     NormalizedPoint(x: 0.20, y: 0.72),

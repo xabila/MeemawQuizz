@@ -47,14 +47,16 @@ final class GameSessionController {
     var localAvatarEmoji: String = "🦊"
 
     // MARK: - Synchronized Show State
-    var roomCode: String = "MAMIE"
+    var roomCode: String = AppLanguage.isEnglish ? "MEEMAW" : "MAMIE"
     var selectedGameMode: ShowGameMode = .fullQuizShow
     var selectedPack: QuizThemePack = .grandMix
     var stage: ShowStageState = .lobby
     var roundKind: QuizRoundKind = .cashSpeed
     var questionNumber: Int = 0
     var totalQuestions: Int = 8
-    var meemawSpeech: String = "Bienvenue dans le Grand Quizz AirPlay de Meemaw ! Connectez vos téléphones sur le Wi-Fi !"
+    var meemawSpeech: String = AppLanguage.isEnglish
+        ? "Welcome to Meemaw's AirPlay TV Quiz Show! Connect your phones over Wi-Fi or Hotspot!"
+        : "Bienvenue dans le Grand Quizz AirPlay de Meemaw ! Connectez vos téléphones sur le Wi-Fi !"
     var meemawPose: String = "meemaw_salut"
     var timeRemainingSec: Double = 0
     var totalTimerSec: Double = 12
@@ -283,11 +285,17 @@ final class GameSessionController {
 
     func addDemoBotPlayers() {
         guard role == .hostAndPlayer1 else { return }
-        let botCatalog: [(String, String, PlayerColor, String)] = [
-            ("bot_tonton", "Tonton Gérard", .electricBlue, "🐬"),
-            ("bot_tata", "Tata Josiane", .candyPink, "🦩"),
-            ("bot_kevin", "Kévin du 59", .mintGreen, "🐸")
-        ]
+        let botCatalog: [(String, String, PlayerColor, String)] = AppLanguage.isEnglish
+            ? [
+                ("bot_tonton", "Uncle Bob", .electricBlue, "🐬"),
+                ("bot_tata", "Aunt Brenda", .candyPink, "🦩"),
+                ("bot_kevin", "Cousin Kyle", .mintGreen, "🐸")
+            ]
+            : [
+                ("bot_tonton", "Tonton Gérard", .electricBlue, "🐬"),
+                ("bot_tata", "Tata Josiane", .candyPink, "🦩"),
+                ("bot_kevin", "Kévin du 59", .mintGreen, "🐸")
+            ]
         for (id, name, color, emoji) in botCatalog {
             if !registry.players.contains(where: { $0.id == id }) {
                 registry.upsertPlayer(
@@ -591,7 +599,9 @@ final class GameSessionController {
     func selectGameMode(_ mode: ShowGameMode) {
         guard role == .hostAndPlayer1 else { return }
         selectedGameMode = mode
-        meemawSpeech = "Mode choisi : \(mode.title) — \(mode.subtitle)"
+        meemawSpeech = AppLanguage.isEnglish
+            ? "Mode selected: \(mode.title) — \(mode.subtitle)"
+            : "Mode choisi : \(mode.title) — \(mode.subtitle)"
         audio.triggerControllerHaptic(style: .medium)
         broadcastState()
     }
@@ -599,7 +609,9 @@ final class GameSessionController {
     func selectThemePack(_ pack: QuizThemePack) {
         guard role == .hostAndPlayer1 else { return }
         selectedPack = pack
-        meemawSpeech = "Thème sélectionné : \(pack.title) ! \(pack.subtitle)"
+        meemawSpeech = AppLanguage.isEnglish
+            ? "Theme selected: \(pack.title)! \(pack.subtitle)"
+            : "Thème sélectionné : \(pack.title) ! \(pack.subtitle)"
         broadcastState()
     }
 
@@ -884,66 +896,90 @@ final class GameSessionController {
 
         let studioFile: String
         let text: String
+        let isEN = AppLanguage.isEnglish
         switch kind {
         case .cashSpeed:
             audio.setMusicMood(.chillLobby)
             studioFile = "mq_round1_cash.m4a"
-            let sponsorNote = activeSponsor.map { " 🪤 SPONSOR DU JOUR : « \($0.name) » (+3 500 pts si vous osez cliquer sur sa réponse cachée) !" } ?? ""
-            text = "Manche 1 : Cash Rapide ! Tout le monde répond sur son téléphone, et vous avez 1 VIS « Clouer le Bec » !\(sponsorNote)"
+            if isEN {
+                let sponsorNote = activeSponsor.map { " 🪤 TODAY'S SPONSOR: '\($0.name)' (+3,500 pts if you dare tap their hidden answer)!" } ?? ""
+                text = "Round 1: Speed Cash! Everyone answers on their phone, and you have 1 SCREW to trap an opponent!\(sponsorNote)"
+            } else {
+                let sponsorNote = activeSponsor.map { " 🪤 SPONSOR DU JOUR : « \($0.name) » (+3 500 pts si vous osez cliquer sur sa réponse cachée) !" } ?? ""
+                text = "Manche 1 : Cash Rapide ! Tout le monde répond sur son téléphone, et vous avez 1 VIS « Clouer le Bec » !\(sponsorNote)"
+            }
             meemawPose = "meemaw_vitesse"
             audio.playJingle("jingle_intro.wav")
         case .tuTeMetsCombien:
             audio.setMusicMood(.chillLobby)
             studioFile = "mq_round_ttmc.m4a"
-            text = "Manche 2 : Tu Te Mets Combien ? Avant de voir la question, misez de 1 à 4 étoiles sur le sujet annoncé par Meemaw : 4 étoiles, c'est 5 000 points ou la gamelle !"
+            text = isEN
+                ? "Round 2: Bet Your Brain! Before seeing the question, bet from 1 to 4 stars on Meemaw's topic: 4 stars is 5,000 points or a wipeout!"
+                : "Manche 2 : Tu Te Mets Combien ? Avant de voir la question, misez de 1 à 4 étoiles sur le sujet annoncé par Meemaw : 4 étoiles, c'est 5 000 points ou la gamelle !"
             meemawPose = "meemaw_duel_challenge"
             audio.playJingle("jingle_couci.wav")
         case .jukeboxExpress:
             audio.setMusicMood(.fastAction)
             studioFile = "mq_round_jukebox.m4a"
-            text = "Manche 3 : Le Jukebox Express de Meemaw ! Complétez les paroles exactes au moment où la musique coupe !"
+            text = isEN
+                ? "Round 3: Meemaw's Jukebox Express! Complete the exact chorus lyrics right when the music stops!"
+                : "Manche 3 : Le Jukebox Express de Meemaw ! Complétez les paroles exactes au moment où la musique coupe !"
             meemawPose = "meemaw_fun"
             audio.playJingle("jingle_intro.wav")
         case .leJustePif:
             audio.setMusicMood(.chillLobby)
-            studioFile = "mq_round_ttmc.m4a"
-            text = "🔢 Manche : Le Juste Pif ! Tapez votre estimation chiffrée sur le clavier numérique : +3 000 pts au plus proche, et +5 000 pts en Tout Pile !"
+            studioFile = "mq_round_juste_pif.m4a"
+            text = isEN
+                ? "🔢 Closest Guess Round! Type your best numeric estimate on your keypad: +3,000 pts to the closest player, and +5,000 pts for an exact Bullseye!"
+                : "🔢 Manche : Le Juste Pif ! Tapez votre estimation chiffrée sur le clavier numérique : +3 000 pts au plus proche, et +5 000 pts en Tout Pile !"
             meemawPose = "meemaw_duel_challenge"
             audio.playJingle("jingle_couci.wav")
         case .drawSomething:
             audio.setMusicMood(.chillLobby)
             studioFile = "mq_round_draw.m4a"
-            text = "🎨 Manche Pinceau Draw Something ! Un artiste dessine en direct sur la TV, et les autres composent le mot avec les lettres mélangées sur leur téléphone !"
+            text = isEN
+                ? "🎨 Draw Something Live! One artist draws live on the TV while everyone else unscrambles the secret word on their phone!"
+                : "🎨 Manche Pinceau Draw Something ! Un artiste dessine en direct sur la TV, et les autres composent le mot avec les lettres mélangées sur leur téléphone !"
             meemawPose = "meemaw_fun"
             audio.playJingle("jingle_couci.wav")
         case .leSolo:
             audio.setMusicMood(.fastAction)
             studioFile = "mq_round2_solo_fast.m4a"
-            text = "C'est l'heure du SOLO ! Pas besoin de buzzer : le tout premier qui tape une réponse sur son téléphone gagne le DOUBLE... ou perd tout s'il se plante !"
+            text = isEN
+                ? "SOLO Time! No separate buzzer needed: the very first player to tap an answer wins DOUBLE... or loses it all if they miss!"
+                : "C'est l'heure du SOLO ! Pas besoin de buzzer : le tout premier qui tape une réponse sur son téléphone gagne le DOUBLE... ou perd tout s'il se plante !"
             meemawPose = "meemaw_boxing_referee"
             audio.playJingle("jingle_solo_siren.wav")
         case .couciCouca, .quoizziQuoissa:
             audio.setMusicMood(.fastAction)
             studioFile = "mq_round3_raclette.m4a"
-            text = "La Raclette Quizz de Meemaw ! 6 questions qui fondent dans le poêlon : Gauche, Droite, ou LES DEUX !"
+            text = isEN
+                ? "Meemaw's Cheesy Quizz! 6 rapid-fire binary questions: Option A, Option B, or BOTH!"
+                : "La Raclette Quizz de Meemaw ! 6 questions qui fondent dans le poêlon : Gauche, Droite, ou LES DEUX !"
             meemawPose = "meemaw_fun"
             audio.playJingle("jingle_couci.wav")
         case .esquisseTeleArabe:
             audio.setMusicMood(.chillLobby)
             studioFile = "mq_round_esquisse.m4a"
-            text = "📞 Bienvenue dans ESQUISSÉ ! 1 seul mot ultra-facile à dessiner au doigt, 1 dessin, et votre voisin devine quel est ce mot !"
+            text = isEN
+                ? "📞 Welcome to SKETCH RELAY! 1 easy word to draw with your finger, 1 drawing, and your neighbor guesses what it is!"
+                : "📞 Bienvenue dans ESQUISSÉ ! 1 seul mot ultra-facile à dessiner au doigt, 1 dessin, et votre voisin devine quel est ce mot !"
             meemawPose = "meemaw_fun"
             audio.playJingle("jingle_couci.wav")
         case .finaleDouble:
             audio.setMusicMood(.fastAction)
             studioFile = "mq_round4_finale.m4a"
-            text = "La Rafale Finale ! Tous les points sont DOUBLÉS, tout peut encore basculer !"
-        case .jackAttack:
-            audio.setMusicMood(.fastAction)
-            studioFile = "mq_round4_finale.m4a"
-            text = "⚡ GRANDE FINALE : LE JACK ATTACK DE MEEMAW ! 5 vagues d'associations : buzzez UNIQUEMENT quand la bonne réponse s'affiche (+3 000 pts, ou -1 500 pts si piège) !"
+            text = isEN
+                ? "Final Round! All points and penalties are DOUBLED, anyone can still steal the crown!"
+                : "La Rafale Finale ! Tous les points sont DOUBLÉS, tout peut encore basculer !"
             meemawPose = "meemaw_duel_challenge"
             audio.playJingle("jingle_solo_siren.wav")
+        case .jackAttack:
+            audio.setMusicMood(.fastAction)
+            studioFile = "mq_round_jack_attack.m4a"
+            text = isEN
+                ? "⚡ GRAND FINALE: MEEMAW'S JACK ATTACK! 5 rapid-fire association waves: hit your buzzer ONLY when the matching pair appears (+3,000 pts, or -1,500 pts if it's a trap)!"
+                : "⚡ GRANDE FINALE : LE JACK ATTACK DE MEEMAW ! 5 vagues d'associations : buzzez UNIQUEMENT quand la bonne réponse s'affiche (+3 000 pts, ou -1 500 pts si piège) !"
             meemawPose = "meemaw_duel_challenge"
             audio.playJingle("jingle_solo_siren.wav")
         }

@@ -1,6 +1,7 @@
 @preconcurrency import AVFoundation
 import AudioToolbox
 import Foundation
+import MeemawQuizzCore
 import Observation
 import UIKit
 
@@ -37,6 +38,7 @@ final class MeemawShowAudioEngine: NSObject {
     private var activeBgTrackFilename: String?
     private let synthesizer = AVSpeechSynthesizer()
     private var cachedFrenchVoice: AVSpeechSynthesisVoice?
+    private var cachedEnglishVoice: AVSpeechSynthesisVoice?
     private var didResolveVoice = false
     private var onVoiceCompletion: (() -> Void)?
     private var audioSessionReady = false
@@ -150,7 +152,7 @@ final class MeemawShowAudioEngine: NSObject {
         jinglePlayer = player
     }
 
-    /// Joue un fichier `.m4a` studio pré-généré de Meemaw (100% voix Audrey Premium studio, zéro voix robotique iOS).
+    /// Joue un fichier `.m4a` studio pré-généré de Meemaw (FR ou EN selon la langue iOS).
     func playMeemawStudioOrFallback(
         studioFilename: String?,
         fallbackText: String,
@@ -161,23 +163,37 @@ final class MeemawShowAudioEngine: NSObject {
         onVoiceCompletion = completion
         startBackgroundGroove(ducked: true)
 
-        if let studioFilename,
-           let url = resolveAudioURL(named: studioFilename),
-           let player = try? AVAudioPlayer(contentsOf: url) {
-            player.delegate = self
-            player.volume = 1.0
-            player.prepareToPlay()
-            isMeemawSpeaking = true
-            player.play()
-            voicePlayer = player
+        if let studioFilename {
+            let candidates: [String]
+            if AppLanguage.isEnglish && !studioFilename.hasPrefix("en_") {
+                candidates = ["en_\(studioFilename)", studioFilename]
+            } else {
+                candidates = [studioFilename]
+            }
+            for candidate in candidates {
+                if let url = resolveAudioURL(named: candidate),
+                   let player = try? AVAudioPlayer(contentsOf: url) {
+                    player.delegate = self
+                    player.volume = 1.0
+                    player.prepareToPlay()
+                    isMeemawSpeaking = true
+                    player.play()
+                    voicePlayer = player
+                    return
+                }
+            }
+        }
+
+        if AppLanguage.isEnglish && !fallbackText.isEmpty {
+            speakDynamicAudrey(fallbackText)
             return
         }
 
-        // Never use the robotic iOS compact TTS voice; finish cleanly if a file is not found.
+        // Never use the robotic iOS compact French TTS voice; finish cleanly if a file is not found.
         finishVoiceTurn()
     }
 
-    /// Synthèse vocale dynamique avec la voix féminine Audrey (pour prononcer les pseudos des joueurs en direct).
+    /// Synthèse vocale dynamique avec la voix féminine de Meemaw (FR Audrey ou EN Samantha/Ava selon la langue iOS).
     func speakDynamicPlayerCallout(_ text: String, completion: (() -> Void)? = nil) {
         ensureAudioSession()
         stopVoiceOnly()
@@ -203,24 +219,14 @@ final class MeemawShowAudioEngine: NSObject {
     }
 
     private func speakDynamicAudrey(_ text: String) {
-        let spoken = text
-            .replacingOccurrences(of: "Meemaw", with: "Mimeau")
-            .replacingOccurrences(of: "meemaw", with: "mimeau")
-            .replacingOccurrences(of: "Xabi", with: "Chabi")
-            .replacingOccurrences(of: "xabi", with: "Chabi")
-            .replacingOccurrences(of: "XABI", with: "Chabi")
-            .replacingOccurrences(of: "Quoizzi-Quoissa", with: "Kouazi Kouassa")
-            .replacingOccurrences(of: "___", with: "…")
-
-        let utterance = AVSpeechUtterance(string: spoken)
         if !didResolveVoice {
             didResolveVoice = true
-            let preferred = [
+            let preferredFR = [
                 "com.apple.voice.premium.fr-FR.Audrey",
                 "com.apple.voice.enhanced.fr-FR.Audrey",
                 "com.apple.ttsbundle.Audrey-premium"
             ]
-            for id in preferred {
+            for id in preferredFR {
                 if let v = AVSpeechSynthesisVoice(identifier: id) {
                     cachedFrenchVoice = v
                     break
@@ -231,7 +237,50 @@ final class MeemawShowAudioEngine: NSObject {
                     $0.language.hasPrefix("fr") && ($0.name.lowercased().contains("audrey") || $0.gender == .female)
                 }) ?? AVSpeechSynthesisVoice(language: "fr-FR")
             }
+
+            let preferredEN = [
+                "com.apple.voice.premium.en-US.Ava",
+                "com.apple.voice.enhanced.en-US.Ava",
+                "com.apple.voice.premium.en-US.Samantha",
+                "com.apple.voice.enhanced.en-US.Samantha",
+                "com.apple.ttsbundle.Samantha-premium"
+            ]
+            for id in preferredEN {
+                if let v = AVSpeechSynthesisVoice(identifier: id) {
+                    cachedEnglishVoice = v
+                    break
+                }
+            }
+            if cachedEnglishVoice == nil {
+                cachedEnglishVoice = AVSpeechSynthesisVoice.speechVoices().first(where: {
+                    $0.language.hasPrefix("en-US") && ($0.name.lowercased().contains("samantha") || $0.name.lowercased().contains("ava") || $0.gender == .female)
+                }) ?? AVSpeechSynthesisVoice(language: "en-US")
+            }
         }
+
+        if AppLanguage.isEnglish {
+            let spokenEN = text
+                .replacingOccurrences(of: "___", with: "blank")
+                .replacingOccurrences(of: "★", with: "star")
+            let utterance = AVSpeechUtterance(string: spokenEN)
+            utterance.voice = cachedEnglishVoice
+            utterance.rate = 0.51
+            utterance.pitchMultiplier = 1.06
+            isMeemawSpeaking = true
+            synthesizer.speak(utterance)
+            return
+        }
+
+        let spoken = text
+            .replacingOccurrences(of: "Meemaw", with: "Mimeau")
+            .replacingOccurrences(of: "meemaw", with: "mimeau")
+            .replacingOccurrences(of: "Xabi", with: "Chabi")
+            .replacingOccurrences(of: "xabi", with: "Chabi")
+            .replacingOccurrences(of: "XABI", with: "Chabi")
+            .replacingOccurrences(of: "Quoizzi-Quoissa", with: "Kouazi Kouassa")
+            .replacingOccurrences(of: "___", with: "…")
+
+        let utterance = AVSpeechUtterance(string: spoken)
         utterance.voice = cachedFrenchVoice
         utterance.rate = 0.52
         isMeemawSpeaking = true

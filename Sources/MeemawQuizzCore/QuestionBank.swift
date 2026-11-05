@@ -48,14 +48,43 @@ public struct ShowGameDeck: Sendable {
 public enum QuestionBank {
 
     public static var allMusiqueAndJukeboxQuestions: [QuizMCQQuestion] {
-        musiqueQuestions + extraMusiqueAndJukeboxQuestions
+        if AppLanguage.isEnglish {
+            return englishMusiqueAndJukeboxQuestions
+        }
+        return musiqueQuestions + extraMusiqueAndJukeboxQuestions
     }
 
     public static var combinedDisOrDatRounds: [QuizDisOrDatRound] {
-        allDisOrDatRounds + extraDisOrDatRounds
+        if AppLanguage.isEnglish {
+            return englishDisOrDatRounds
+        }
+        return allDisOrDatRounds + extraDisOrDatRounds
     }
 
     public static func questions(for pack: QuizThemePack) -> [QuizMCQQuestion] {
+        if AppLanguage.isEnglish {
+            switch pack {
+            case .francaisMeemaw:
+                return englishFrancaisQuestions
+            case .mathMeemaw:
+                return englishMathQuestions
+            case .seriesCinema:
+                return englishSeriesCinemaQuestions
+            case .musiqueTubes:
+                return englishMusiqueAndJukeboxQuestions
+            case .cultureGInsolite:
+                return englishCultureGQuestions
+            case .ecoCash:
+                return englishEcoCashQuestions
+            case .grandMix:
+                return englishFrancaisQuestions
+                    + englishMathQuestions
+                    + englishSeriesCinemaQuestions
+                    + englishMusiqueAndJukeboxQuestions
+                    + englishCultureGQuestions
+                    + englishEcoCashQuestions
+            }
+        }
         switch pack {
         case .francaisMeemaw:
             return francaisQuestions + extraFrancaisQuestions
@@ -83,24 +112,31 @@ public enum QuestionBank {
         let nonPun = combinedDisOrDatRounds.filter { !$0.isPunRound }
         switch pack {
         case .francaisMeemaw:
-            return nonPun.filter { $0.theme == .francaisMeemaw }
+            let filtered = nonPun.filter { $0.theme == .francaisMeemaw }
+            return filtered.isEmpty ? nonPun : filtered
         case .mathMeemaw:
-            return nonPun.filter { $0.theme == .mathMeemaw }
+            let filtered = nonPun.filter { $0.theme == .mathMeemaw }
+            return filtered.isEmpty ? nonPun : filtered
         case .seriesCinema:
-            return nonPun.filter { $0.theme == .seriesCinema }
+            let filtered = nonPun.filter { $0.theme == .seriesCinema }
+            return filtered.isEmpty ? nonPun : filtered
         case .musiqueTubes:
-            return nonPun.filter { $0.theme == .musiqueTubes }
+            let filtered = nonPun.filter { $0.theme == .musiqueTubes }
+            return filtered.isEmpty ? nonPun : filtered
         case .cultureGInsolite:
-            return nonPun.filter { $0.theme == .cultureGInsolite }
+            let filtered = nonPun.filter { $0.theme == .cultureGInsolite }
+            return filtered.isEmpty ? nonPun : filtered
         case .ecoCash:
-            return nonPun.filter { $0.theme == .ecoCash }
+            let filtered = nonPun.filter { $0.theme == .ecoCash }
+            return filtered.isEmpty ? nonPun : filtered
         case .grandMix:
             return nonPun
         }
     }
 
     public static var allPunRounds: [QuizDisOrDatRound] {
-        combinedDisOrDatRounds.filter(\.isPunRound)
+        let puns = combinedDisOrDatRounds.filter(\.isPunRound)
+        return puns.isEmpty ? combinedDisOrDatRounds : puns
     }
 
     public static func buildShowDeck(
@@ -118,10 +154,11 @@ public enum QuestionBank {
             freshPool.append(contentsOf: grandMixUnseen)
         }
         if freshPool.count < 12 {
-            freshPool = baseQuestions.shuffled()
+            freshPool = (baseQuestions + questions(for: .grandMix)).shuffled()
         }
 
-        let sponsor = allSponsors.shuffled().first ?? allSponsors[0]
+        let sponsorsPool = AppLanguage.isEnglish ? englishSponsors : allSponsors
+        let sponsor = sponsorsPool.shuffled().first ?? sponsorsPool[0]
 
         // 3 questions par manche : 3 Cash, 3 Solo, 3 Finale Double, 3 TTMC
         var cash = Array(freshPool.prefix(3))
@@ -152,14 +189,15 @@ public enum QuestionBank {
         let jukebox = Array((jukeboxPool + fallbackMusicPool + allMusic.shuffled()).prefix(3))
 
         // 3 questions Le Juste Pif
+        let pifSource = AppLanguage.isEnglish ? englishJustePifQuestions : allJustePifQuestions
         let themePif = pack == .grandMix
-            ? allJustePifQuestions
-            : allJustePifQuestions.filter { $0.theme == pack }
-        let unseenPif = (themePif + allJustePifQuestions)
+            ? pifSource
+            : pifSource.filter { $0.theme == pack }
+        let unseenPif = (themePif + pifSource)
             .filter { !excludingQuestionIDs.contains($0.id) }
             .shuffled()
         var uniquePif: [QuizJustePifQuestion] = []
-        for item in (unseenPif + allJustePifQuestions.shuffled()) {
+        for item in (unseenPif + pifSource.shuffled()) {
             if !uniquePif.contains(where: { $0.id == item.id }) {
                 uniquePif.append(item)
             }
@@ -177,8 +215,9 @@ public enum QuestionBank {
         let unseenPuns = allPunRounds.filter { !excludingDisOrDatIDs.contains($0.id) }.shuffled()
         let punRound = unseenPuns.first ?? allPunRounds.shuffled().first ?? combinedDisOrDatRounds[0]
 
-        let unseenJack = allJackAttackRounds.filter { !excludingDisOrDatIDs.contains($0.id) }.shuffled()
-        let jackRound = unseenJack.first ?? allJackAttackRounds.shuffled().first ?? allJackAttackRounds[0]
+        let jackSource = AppLanguage.isEnglish ? englishJackAttackRounds : allJackAttackRounds
+        let unseenJack = jackSource.filter { !excludingDisOrDatIDs.contains($0.id) }.shuffled()
+        let jackRound = unseenJack.first ?? jackSource.shuffled().first ?? jackSource[0]
 
         return ShowGameDeck(
             sponsor: sponsor,

@@ -198,19 +198,35 @@ public enum QuizScoringEngine {
                 : 9999
 
             let title: String
-            if rank == 1 {
-                title = "👑 Le Chouchou Officiel de Meemaw"
-            } else if player.soloWinsCount >= 1 {
-                title = "🚨 Le Kamikaze du Buzzer SOLO"
-            } else if avgMs < 3200 && player.correctAnswersCount >= 2 {
-                title = "⚡ La Gâchette la plus Rapide du Salon"
-            } else if rank == sorted.count && sorted.count > 1 {
-                title = "🐢 La Tortue Rhumatisante du Dimanche"
+            if AppLanguage.isEnglish {
+                if rank == 1 {
+                    title = "👑 Meemaw's Official Golden Child"
+                } else if player.soloWinsCount >= 1 {
+                    title = "🚨 The SOLO Buzzer Daredevil"
+                } else if avgMs < 3200 && player.correctAnswersCount >= 2 {
+                    title = "⚡ Fastest Trigger in the Living Room"
+                } else if rank == sorted.count && sorted.count > 1 {
+                    title = "🐢 Sunday Afternoon Sleepy Turtle"
+                } else {
+                    title = "🍪 Certified Butter Cookie Connoisseur"
+                }
             } else {
-                title = "🍪 Amateur Éclairé de Petits Beurres"
+                if rank == 1 {
+                    title = "👑 Le Chouchou Officiel de Meemaw"
+                } else if player.soloWinsCount >= 1 {
+                    title = "🚨 Le Kamikaze du Buzzer SOLO"
+                } else if avgMs < 3200 && player.correctAnswersCount >= 2 {
+                    title = "⚡ La Gâchette la plus Rapide du Salon"
+                } else if rank == sorted.count && sorted.count > 1 {
+                    title = "🐢 La Tortue Rhumatisante du Dimanche"
+                } else {
+                    title = "🍪 Amateur Éclairé de Petits Beurres"
+                }
             }
 
-            let subtitle = "\(player.correctAnswersCount) bonnes réponses • Moy. \(String(format: "%.1f", Double(avgMs) / 1000.0))s"
+            let subtitle = AppLanguage.isEnglish
+                ? "\(player.correctAnswersCount) correct answers • Avg \(String(format: "%.1f", Double(avgMs) / 1000.0))s"
+                : "\(player.correctAnswersCount) bonnes réponses • Moy. \(String(format: "%.1f", Double(avgMs) / 1000.0))s"
             return PodiumAward(
                 playerID: player.id,
                 playerName: player.name,
