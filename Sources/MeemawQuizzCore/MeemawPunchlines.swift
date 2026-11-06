@@ -23,7 +23,7 @@ public enum MeemawPunchlines {
         ),
         MeemawStudioCue(
             id: "round1_cash",
-            text: "Manche 1 : Cash Rapide ! Tout le monde répond sur son téléphone, et vous avez une vis Clouer le Bec pour piéger un adversaire !",
+            text: "Manche 1 : Cash Rapide ! Tout le monde répond sur son téléphone, et vous avez le bouton Clouer le Bec pour piéger un adversaire !",
             filename: "mq_round1_cash.m4a"
         ),
         MeemawStudioCue(

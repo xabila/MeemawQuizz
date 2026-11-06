@@ -941,7 +941,7 @@ final class GameSessionController {
                 text = "Round 1: Speed Cash! Everyone answers on their phone, and you have 1 SCREW to trap an opponent!\(sponsorNote)"
             } else {
                 let sponsorNote = activeSponsor.map { " 🪤 SPONSOR DU JOUR : « \($0.name) » (+3 500 pts si vous osez cliquer sur sa réponse cachée) !" } ?? ""
-                text = "Manche 1 : Cash Rapide ! Tout le monde répond sur son téléphone, et vous avez 1 VIS « Clouer le Bec » !\(sponsorNote)"
+                text = "Manche 1 : Cash Rapide ! Tout le monde répond sur son téléphone, et vous avez le bouton « Clouer le Bec » pour piéger un adversaire !\(sponsorNote)"
             }
             meemawPose = "meemaw_vitesse"
             audio.playJingle("jingle_intro.wav")
