@@ -985,14 +985,14 @@ final class GameSessionController {
         }
 
         meemawSpeech = text
-        broadcastState()
+        audio.playMeemawStudioOrFallback(studioFilename: studioFile, fallbackText: text)
 
-        // Guaranteed auto-advance countdown even if the host forgets to press Next or audio callback drops
-        startCountdown(duration: 6.5) { [weak self] in
+        // Guaranteed auto-advance countdown that always waits for Meemaw to finish her intro + 1.5s breathing room
+        let introDuration = max(8.0, ceil(audio.currentVoiceDuration + 1.5))
+        startCountdown(duration: introDuration) { [weak self] in
             self?.advanceToNextPhaseStep()
         }
-
-        audio.playMeemawStudioOrFallback(studioFilename: studioFile, fallbackText: text)
+        broadcastState()
     }
 
     // MARK: - Manche 2 : 🎯 « Tu Te Mets Combien ? » (Bet 1 to 4 stars before seeing the question!)
@@ -1008,12 +1008,9 @@ final class GameSessionController {
         screwAttackerID = nil
         screwAttackerName = nil
         stage = .ttmcBetting
-        totalTimerSec = 14.0
-        timeRemainingSec = 14.0
         meemawPose = "meemaw_duel_challenge"
         let betPrompt = "🎯 TU TE METS COMBIEN (de ⭐ à ⭐⭐⭐⭐) sur : « \(question.funnyTitle) » (\(question.theme.shortBadge)) ?"
         meemawSpeech = betPrompt
-        broadcastState()
 
         let ttmcCue = question.audioCueID.map { "\($0)_ttmc.m4a" } ?? "mq_round_ttmc.m4a"
         audio.playMeemawStudioOrFallback(
@@ -1021,13 +1018,17 @@ final class GameSessionController {
             fallbackText: "Tu te mets combien de une à quatre étoiles sur : \(question.funnyTitle) ?"
         )
 
-        // Schedule bots to lock their bet stars
+        let voiceDur = audio.currentVoiceDuration
+        let betDuration = max(16.0, ceil(voiceDur + 8.0))
+
+        // Schedule bots to lock their bet stars AFTER Meemaw finishes introducing the topic
         let bots = registry.players.filter { $0.id.hasPrefix("bot_") }
         if !bots.isEmpty {
             botActionTask?.cancel()
+            let firstBotWaitMs = Int(max(4.5, voiceDur + 0.4) * 1000)
             botActionTask = Task { @MainActor [weak self] in
-                for bot in bots {
-                    let delayMs = Int.random(in: 1800...4200)
+                for (idx, bot) in bots.enumerated() {
+                    let delayMs = idx == 0 ? firstBotWaitMs : Int.random(in: 900...2000)
                     try? await Task.sleep(for: .milliseconds(delayMs))
                     guard let self, !Task.isCancelled, self.stage == .ttmcBetting else { return }
                     let stars = [2, 2, 3, 3, 4, 1].randomElement() ?? 2
@@ -1036,9 +1037,10 @@ final class GameSessionController {
             }
         }
 
-        startCountdown(duration: 14.0) { [weak self] in
+        startCountdown(duration: betDuration) { [weak self] in
             self?.openTTMCAnsweringPhase(question)
         }
+        broadcastState()
     }
 
     private func handlePlayerBetStars(playerID: String, stars: Int) {
@@ -1051,7 +1053,15 @@ final class GameSessionController {
 
         if registry.players.allSatisfy({ $0.lockedBetStars != nil }) {
             stopTimers()
-            openTTMCAnsweringPhase(q)
+            let remainingVoice = audio.remainingVoiceTime
+            if remainingVoice > 0.25 {
+                scheduleDelayed(seconds: remainingVoice + 0.4) { [weak self] in
+                    guard let self, self.stage == .ttmcBetting else { return }
+                    self.openTTMCAnsweringPhase(q)
+                }
+            } else {
+                openTTMCAnsweringPhase(q)
+            }
         }
     }
 
@@ -1062,12 +1072,9 @@ final class GameSessionController {
             registry.updatePlayer(id: p.id) { $0.lockedBetStars = 2 }
         }
         stage = .cashAnswering
-        totalTimerSec = 24.0
-        timeRemainingSec = 24.0
         questionOpenedAt = Date()
         meemawPose = "meemaw_dictation_talk"
         meemawSpeech = "Les paris sont fermés ! Voici la question : \(question.prompt)"
-        broadcastState()
 
         let cueFile = question.audioCueID.map { "\($0).m4a" }
         audio.playMeemawStudioOrFallback(
@@ -1075,10 +1082,12 @@ final class GameSessionController {
             fallbackText: "\(question.funnyTitle). \(question.prompt)"
         )
 
+        let answerDuration = max(26.0, ceil(audio.currentVoiceDuration + 14.0))
         scheduleBotsForCashQuestion(question)
-        startCountdown(duration: 24.0) { [weak self] in
+        startCountdown(duration: answerDuration) { [weak self] in
             self?.revealCashQuestionResult(question, isDoubleFinale: false)
         }
+        broadcastState()
     }
 
     // MARK: - Manche 3 : 🎧 « Le Jukebox Express » (Paroles Coupées & Tubes)
@@ -1094,12 +1103,9 @@ final class GameSessionController {
         screwAttackerID = nil
         screwAttackerName = nil
         stage = .cashAnswering
-        totalTimerSec = 24.0
-        timeRemainingSec = 24.0
         questionOpenedAt = Date()
         meemawPose = "meemaw_fun"
         meemawSpeech = "🎧 \(question.funnyTitle) — \(question.prompt)"
-        broadcastState()
 
         let cueFile = question.audioCueID.map { "\($0).m4a" }
         audio.playMeemawStudioOrFallback(
@@ -1107,10 +1113,12 @@ final class GameSessionController {
             fallbackText: "\(question.funnyTitle). \(question.prompt)"
         )
 
+        let answerDuration = max(26.0, ceil(audio.currentVoiceDuration + 14.0))
         scheduleBotsForCashQuestion(question)
-        startCountdown(duration: 24.0) { [weak self] in
+        startCountdown(duration: answerDuration) { [weak self] in
             self?.revealCashQuestionResult(question, isDoubleFinale: false)
         }
+        broadcastState()
     }
 
     // MARK: - Manche 1 & 6 : Cash Speed / Finale Double
@@ -1126,12 +1134,9 @@ final class GameSessionController {
         screwAttackerID = nil
         screwAttackerName = nil
         stage = .cashAnswering
-        totalTimerSec = 26.0
-        timeRemainingSec = 26.0
         questionOpenedAt = Date()
         meemawPose = "meemaw_dictation_talk"
         meemawSpeech = "« \(question.funnyTitle) » — \(question.prompt)"
-        broadcastState()
 
         let cueFile = question.audioCueID.map { "\($0).m4a" }
         audio.playMeemawStudioOrFallback(
@@ -1139,10 +1144,12 @@ final class GameSessionController {
             fallbackText: "\(question.funnyTitle). \(question.prompt)"
         )
 
+        let answerDuration = max(28.0, ceil(audio.currentVoiceDuration + 14.0))
         scheduleBotsForCashQuestion(question)
-        startCountdown(duration: 26.0) { [weak self] in
+        startCountdown(duration: answerDuration) { [weak self] in
             self?.revealCashQuestionResult(question, isDoubleFinale: isDoubleFinale)
         }
+        broadcastState()
     }
 
     private func handlePlayerChoice(playerID: String, choiceIndex: Int) {
@@ -1261,16 +1268,10 @@ final class GameSessionController {
             }
         }
 
-        // Guaranteed auto-advance after 9.5s if the host forgets to press Next
-        startCountdown(duration: 9.5) { [weak self] in
-            self?.advanceToNextPhaseStep()
-        }
-
         if let spWinner = triggeredSponsorWinner, let sp = activeSponsor {
             audio.playJingle("jingle_victory.wav")
             meemawPose = "meemaw_celebrate"
             meemawSpeech = "🎁 JACKPOT SPONSOR DE MAMIE ! \(spWinner) a osé cliquer sur la réponse sponsorisée « \(sp.name) » et rafle +\(sp.jackpotReward) PTS !\n\(question.explanation)"
-            broadcastState()
             audio.playMeemawStudioOrFallback(
                 studioFilename: "mq_react_all_correct.m4a",
                 fallbackText: meemawSpeech
@@ -1284,7 +1285,6 @@ final class GameSessionController {
             )
             meemawPose = "meemaw_celebrate"
             meemawSpeech = "\(praise)\n\(question.explanation)"
-            broadcastState()
 
             let winFile = question.audioCueID.map { "\($0)_win.m4a" } ?? "mq_react_all_correct.m4a"
             audio.playMeemawStudioOrFallback(
@@ -1295,7 +1295,6 @@ final class GameSessionController {
             audio.playJingle("sfx_wrong.wav")
             meemawPose = "meemaw_worried"
             meemawSpeech = "\(question.meemawRoastOnWrong)\n\(question.explanation)"
-            broadcastState()
 
             let roastFile = question.audioCueID.map { "\($0)_roast.m4a" } ?? "mq_react_nobody_correct.m4a"
             audio.playMeemawStudioOrFallback(
@@ -1303,6 +1302,13 @@ final class GameSessionController {
                 fallbackText: question.meemawRoastOnWrong
             )
         }
+
+        // Guaranteed auto-advance AFTER Meemaw finishes her reaction & explanation + 1.5s breathing room
+        let revealDuration = max(9.5, ceil(audio.currentVoiceDuration + 1.5))
+        startCountdown(duration: revealDuration) { [weak self] in
+            self?.advanceToNextPhaseStep()
+        }
+        broadcastState()
     }
 
     // MARK: - Manche 4 : 🔢 « Le Juste Pif » (Estimation Numérique au Plus Proche)
@@ -1314,12 +1320,9 @@ final class GameSessionController {
         activeJustePif = pif
         revealedCorrectIndex = nil
         stage = .justePifAnswering
-        totalTimerSec = 18.0
-        timeRemainingSec = 18.0
         questionOpenedAt = Date()
         meemawPose = "meemaw_duel_challenge"
         meemawSpeech = "🔢 LE JUSTE PIF : « \(pif.funnyTitle) » — \(pif.prompt) (\(pif.unitLabel))"
-        broadcastState()
 
         let pifCue = pif.id.hasPrefix("EN_") ? "en_pif_\(pif.id).m4a" : "pif_\(pif.id).m4a"
         audio.playMeemawStudioOrFallback(
@@ -1327,13 +1330,17 @@ final class GameSessionController {
             fallbackText: "\(pif.funnyTitle). \(pif.prompt)"
         )
 
-        // Schedule bots to submit plausible estimates
+        let voiceDur = audio.currentVoiceDuration
+        let pifDuration = max(22.0, ceil(voiceDur + 12.0))
+
+        // Schedule bots to submit plausible estimates AFTER Meemaw reads the question
         let bots = registry.players.filter { $0.id.hasPrefix("bot_") }
         if !bots.isEmpty {
             botActionTask?.cancel()
+            let firstBotWaitMs = Int(max(5.5, voiceDur + 0.8) * 1000)
             botActionTask = Task { @MainActor [weak self] in
-                for bot in bots {
-                    let delayMs = Int.random(in: 3500...9500)
+                for (idx, bot) in bots.enumerated() {
+                    let delayMs = idx == 0 ? firstBotWaitMs : Int.random(in: 1200...3200)
                     try? await Task.sleep(for: .milliseconds(delayMs))
                     guard let self, !Task.isCancelled, self.stage == .justePifAnswering else { return }
                     let spread = max(5, Int(Double(pif.correctValue) * 0.35))
@@ -1343,9 +1350,10 @@ final class GameSessionController {
             }
         }
 
-        startCountdown(duration: 18.0) { [weak self] in
+        startCountdown(duration: pifDuration) { [weak self] in
             self?.revealJustePifResult(pif)
         }
+        broadcastState()
     }
 
     private func handleSubmitNumericEstimate(playerID: String, estimate: Int) {
@@ -1413,7 +1421,6 @@ final class GameSessionController {
         } else {
             meemawSpeech = "La vraie réponse est \(pif.correctValue) \(pif.unitLabel) !\n\(pif.meemawComment)"
         }
-        broadcastState()
 
         let pifRevealCue = pif.id.hasPrefix("EN_") ? "en_pif_\(pif.id)_reveal.m4a" : "pif_\(pif.id)_reveal.m4a"
         audio.playMeemawStudioOrFallback(
@@ -1421,9 +1428,11 @@ final class GameSessionController {
             fallbackText: meemawSpeech
         )
 
-        startCountdown(duration: 9.0) { [weak self] in
+        let revealDuration = max(9.5, ceil(audio.currentVoiceDuration + 1.5))
+        startCountdown(duration: revealDuration) { [weak self] in
             self?.advanceToNextPhaseStep()
         }
+        broadcastState()
     }
 
     // MARK: - Grande Finale : ⚡ « Le Jack Attack de Meemaw » (5 Vagues au Buzzer)
@@ -1560,7 +1569,7 @@ final class GameSessionController {
         }
         broadcastState()
 
-        startCountdown(duration: 4.5) { [weak self] in
+        startCountdown(duration: 5.5) { [weak self] in
             guard let self else { return }
             if waveIndex + 1 < round.waves.count {
                 self.startJackAttackWave(at: waveIndex + 1)
@@ -1583,12 +1592,9 @@ final class GameSessionController {
         screwAttackerID = nil
         screwAttackerName = nil
         stage = .soloBuzzOpen
-        totalTimerSec = 24.0
-        timeRemainingSec = 24.0
         questionOpenedAt = Date()
         meemawPose = "meemaw_boxing_referee"
         meemawSpeech = "🚨 LE SOLO (\(question.baseValue * 2) PTS) : Le 1er qui tape une réponse prend tout ou perd tout ! « \(question.funnyTitle) »"
-        broadcastState()
 
         let cueFile = question.audioCueID.map { "\($0).m4a" }
         audio.playMeemawStudioOrFallback(
@@ -1596,18 +1602,20 @@ final class GameSessionController {
             fallbackText: "\(question.funnyTitle). \(question.prompt)"
         )
 
+        let soloDuration = max(28.0, ceil(audio.currentVoiceDuration + 14.0))
         scheduleBotsForSoloBuzz(question)
-        startCountdown(duration: 24.0) { [weak self] in
+        startCountdown(duration: soloDuration) { [weak self] in
             // Nobody answered in time!
             guard let self else { return }
             self.stage = .questionReveal
             self.revealedCorrectIndex = question.correctIndex
             self.meemawSpeech = "Personne n'a osé tenter le SOLO ! Bande de poules mouillées ! \(question.explanation)"
             self.broadcastState()
-            self.startCountdown(duration: 8.0) { [weak self] in
+            self.startCountdown(duration: 8.5) { [weak self] in
                 self?.advanceToNextPhaseStep()
             }
         }
+        broadcastState()
     }
 
     private func handlePlayerSoloBuzz(playerID: String) {
@@ -1620,24 +1628,23 @@ final class GameSessionController {
         soloBuzzerPlayerID = player.id
         soloBuzzerPlayerName = player.name
         stage = .soloPlayerAnswering
-        totalTimerSec = 12.0
-        timeRemainingSec = 12.0
         questionOpenedAt = Date()
 
         let callout = MeemawPunchlines.dynamicSoloBuzzCallout(playerName: player.name)
         meemawPose = "meemaw_duel_challenge"
         meemawSpeech = callout
-        broadcastState()
 
         audio.playMeemawStudioOrFallback(
             studioFilename: "mq_solo_buzz.m4a",
             fallbackText: callout
         )
 
-        startCountdown(duration: 12.0) { [weak self] in
+        let answerDur = max(14.0, ceil(audio.currentVoiceDuration + 8.0))
+        startCountdown(duration: answerDur) { [weak self] in
             guard let self, self.stage == .soloPlayerAnswering else { return }
             self.revealSoloQuestionResult(q, buzzerPlayerID: player.id, chosenIndex: nil)
         }
+        broadcastState()
     }
 
     private func revealSoloQuestionResult(_ question: QuizMCQQuestion, buzzerPlayerID: String, chosenIndex: Int?) {
@@ -1678,14 +1685,15 @@ final class GameSessionController {
                 let line = "🔩💥 RETOUR DE MANIVELLE ! \(playerName) connaissait la réponse et empoche +\(victimBonus) points ! \(attackerName) perd \(abs(attackerPenalty)) points pour avoir voulu lui clouer le bec !"
                 meemawPose = "meemaw_celebrate"
                 meemawSpeech = "\(line)\n\(question.explanation)"
-                broadcastState()
-                startCountdown(duration: 9.5) { [weak self] in
-                    self?.advanceToNextPhaseStep()
-                }
                 audio.playMeemawStudioOrFallback(
                     studioFilename: "mq_screw_backfire.m4a",
                     fallbackText: line
                 )
+                let revealDuration = max(9.5, ceil(audio.currentVoiceDuration + 1.5))
+                startCountdown(duration: revealDuration) { [weak self] in
+                    self?.advanceToNextPhaseStep()
+                }
+                broadcastState()
             } else {
                 // Victim got it WRONG! The Screw succeeded!
                 let victimPenalty = -base
@@ -1703,14 +1711,15 @@ final class GameSessionController {
                 let line = "🔩🎯 BEC CLOUÉ ! \(playerName) s'est planté en beauté (\(victimPenalty) pts) ! \(attackerName) jubile et rafle +\(attackerBonus) points de coup de Jarnac !"
                 meemawPose = "meemaw_giggle"
                 meemawSpeech = "\(line)\n\(question.explanation)"
-                broadcastState()
-                startCountdown(duration: 9.5) { [weak self] in
-                    self?.advanceToNextPhaseStep()
-                }
                 audio.playMeemawStudioOrFallback(
                     studioFilename: "mq_screw_success.m4a",
                     fallbackText: line
                 )
+                let revealDuration = max(9.5, ceil(audio.currentVoiceDuration + 1.5))
+                startCountdown(duration: revealDuration) { [weak self] in
+                    self?.advanceToNextPhaseStep()
+                }
+                broadcastState()
             }
             return
         }
@@ -1733,12 +1742,6 @@ final class GameSessionController {
         let line = MeemawPunchlines.dynamicSoloResult(playerName: playerName, isCorrect: isCorrect, delta: delta)
         meemawPose = isCorrect ? "meemaw_celebrate" : "meemaw_giggle"
         meemawSpeech = "\(line)\n\(question.explanation)"
-        broadcastState()
-
-        // Guaranteed auto-advance after 9.5s if the host forgets to press Next
-        startCountdown(duration: 9.5) { [weak self] in
-            self?.advanceToNextPhaseStep()
-        }
 
         let soloStudioCue: String
         if isCorrect {
@@ -1750,6 +1753,13 @@ final class GameSessionController {
             studioFilename: soloStudioCue,
             fallbackText: line
         )
+
+        // Guaranteed auto-advance AFTER Meemaw finishes her reaction & explanation + 1.5s breathing room
+        let revealDuration = max(9.5, ceil(audio.currentVoiceDuration + 1.5))
+        startCountdown(duration: revealDuration) { [weak self] in
+            self?.advanceToNextPhaseStep()
+        }
+        broadcastState()
     }
 
     // MARK: - Manche 3 : La Raclette Quizz (DisOrDat / 3 choix)
@@ -1763,14 +1773,14 @@ final class GameSessionController {
         revealedBinarySide = nil
         meemawPose = "meemaw_fun"
 
-        // Start Item 0 IMMEDIATELY so players can answer right away without waiting for Meemaw to finish talking!
-        startCouciCoucaItem(at: 0, isFirstItemWithIntroVoice: true)
-
         let cueFile = round.audioCueID.map { "\($0).m4a" }
         audio.playMeemawStudioOrFallback(
             studioFilename: cueFile,
             fallbackText: "\(round.funnyTitle). \(round.prompt)"
         )
+
+        // Start Item 0 after starting the intro voice so `audio.currentVoiceDuration` is known
+        startCouciCoucaItem(at: 0, isFirstItemWithIntroVoice: true)
     }
 
     private func startCouciCoucaItem(at index: Int, isFirstItemWithIntroVoice: Bool = false) {
@@ -1783,7 +1793,9 @@ final class GameSessionController {
         activeDisOrDatItemIndex = index
         revealedBinarySide = nil
         stage = .couciCoucaItem
-        let duration: Double = isFirstItemWithIntroVoice ? 16.0 : 10.0
+        let duration: Double = isFirstItemWithIntroVoice
+            ? max(18.0, ceil(audio.currentVoiceDuration + 9.0))
+            : 10.0
         totalTimerSec = duration
         timeRemainingSec = duration
         let item = round.items[index]
@@ -1811,7 +1823,14 @@ final class GameSessionController {
 
         if registry.players.allSatisfy({ $0.lockedSide != nil }) {
             stopTimers()
-            scoreAndAdvanceCouciItem(at: idx)
+            if idx == 0, audio.remainingVoiceTime > 0.25 {
+                scheduleDelayed(seconds: audio.remainingVoiceTime + 0.35) { [weak self] in
+                    guard let self, self.stage == .couciCoucaItem else { return }
+                    self.scoreAndAdvanceCouciItem(at: idx)
+                }
+            } else {
+                scoreAndAdvanceCouciItem(at: idx)
+            }
         }
     }
 
@@ -1934,27 +1953,31 @@ final class GameSessionController {
         stage = .drawWordChoice
         meemawPose = "meemaw_fun"
         meemawSpeech = "🎨 C'est au tour de \(drawer.name) de dessiner ! Choisis secrètement ton mot (⭐ à ⭐⭐⭐) sur ton téléphone !"
-        broadcastState()
 
         audio.playMeemawStudioOrFallback(
             studioFilename: "mq_draw_word_pick.m4a",
             fallbackText: meemawSpeech
         )
 
+        let voiceDur = audio.currentVoiceDuration
+        let pickDur = max(15.0, ceil(voiceDur + 7.0))
+
         if drawer.id.hasPrefix("bot_") {
             botActionTask?.cancel()
+            let waitMs = Int(max(6.0, voiceDur + 0.6) * 1000)
             botActionTask = Task { @MainActor [weak self] in
-                try? await Task.sleep(for: .milliseconds(2200))
+                try? await Task.sleep(for: .milliseconds(waitMs))
                 guard let self, !Task.isCancelled, self.stage == .drawWordChoice else { return }
                 let preferred = options.first(where: { ["SOLEIL", "MAISON", "POISSON", "FUSEE", "SAPIN", "LUNETTES", "COURONNE"].contains($0.word) }) ?? options.randomElement()!
                 self.handleSelectDrawWord(playerID: drawer.id, word: preferred.word)
             }
         }
 
-        startCountdown(duration: 12.0) { [weak self] in
+        startCountdown(duration: pickDur) { [weak self] in
             guard let self, self.stage == .drawWordChoice, let first = self.activeDrawRound?.wordOptions.first else { return }
             self.handleSelectDrawWord(playerID: drawer.id, word: first.word)
         }
+        broadcastState()
     }
 
     private func handleSelectDrawWord(playerID: String, word: String) {
@@ -2146,11 +2169,12 @@ final class GameSessionController {
             meemawSpeech = "🎨 Personne n'a déchiffré ce gribouillis ! Le mot était « \(chosen.word) » !"
             audio.playMeemawStudioOrFallback(studioFilename: "mq_react_nobody_correct.m4a", fallbackText: meemawSpeech)
         }
-        broadcastState()
 
-        startCountdown(duration: 7.5) { [weak self] in
+        let revealDur = max(8.5, ceil(audio.currentVoiceDuration + 1.5))
+        startCountdown(duration: revealDur) { [weak self] in
             self?.advanceToNextPhaseStep()
         }
+        broadcastState()
     }
 
     // MARK: - 📞 Mode « ESQUISSÉ ! » (Téléphone Arabe Dessiné — façon Gartic Phone)
@@ -2542,20 +2566,25 @@ final class GameSessionController {
             fallbackText: callout
         )
 
+        let voiceDur = audio.currentVoiceDuration
+        let screwDur = max(15.0, ceil(voiceDur + 8.0))
+
         if target.id.hasPrefix("bot_") {
             botActionTask?.cancel()
+            let botWaitMs = Int(max(5.5, voiceDur + 1.2) * 1000)
             botActionTask = Task { @MainActor [weak self] in
-                try? await Task.sleep(for: .milliseconds(4500))
+                try? await Task.sleep(for: .milliseconds(botWaitMs))
                 guard let self, !Task.isCancelled, self.stage == .soloPlayerAnswering else { return }
                 let botPick = (Int.random(in: 0..<100) < 50) ? q.correctIndex : Int.random(in: 0..<4)
                 self.handlePlayerChoice(playerID: target.id, choiceIndex: botPick)
             }
         }
 
-        startCountdown(duration: 12.0) { [weak self] in
+        startCountdown(duration: screwDur) { [weak self] in
             guard let self, self.stage == .soloPlayerAnswering else { return }
             self.revealSoloQuestionResult(q, buzzerPlayerID: target.id, chosenIndex: nil)
         }
+        broadcastState()
     }
 
     // MARK: - Final Podium
@@ -2586,9 +2615,10 @@ final class GameSessionController {
         let bots = registry.players.filter { $0.id.hasPrefix("bot_") }
         guard !bots.isEmpty else { return }
         botActionTask?.cancel()
+        let firstWaitMs = Int(max(6.5, audio.currentVoiceDuration + 0.8) * 1000)
         botActionTask = Task { @MainActor [weak self] in
-            for bot in bots {
-                let delayMs = Int.random(in: 5500...14000)
+            for (idx, bot) in bots.enumerated() {
+                let delayMs = idx == 0 ? firstWaitMs : Int.random(in: 1800...4500)
                 try? await Task.sleep(for: .milliseconds(delayMs))
                 guard let self, !Task.isCancelled, self.stage == .cashAnswering else { return }
                 let pick = (Int.random(in: 0..<100) < 68) ? q.correctIndex : Int.random(in: 0..<4)
@@ -2601,8 +2631,9 @@ final class GameSessionController {
         let bots = registry.players.filter { $0.id.hasPrefix("bot_") }
         guard let randomBot = bots.randomElement() else { return }
         botActionTask?.cancel()
+        let minBuzzMs = Int(max(11.5, audio.currentVoiceDuration + 2.0) * 1000)
         botActionTask = Task { @MainActor [weak self] in
-            let delayMs = Int.random(in: 9500...16500)
+            let delayMs = Int.random(in: minBuzzMs...(minBuzzMs + 5500))
             try? await Task.sleep(for: .milliseconds(delayMs))
             guard let self, !Task.isCancelled, self.stage == .soloBuzzOpen else { return }
             let botPick = (Int.random(in: 0..<100) < 65) ? q.correctIndex : Int.random(in: 0..<4)
@@ -2615,9 +2646,13 @@ final class GameSessionController {
         guard !bots.isEmpty else { return }
         let possibleSides = round.optionBoth != nil ? ["left", "right", "both"] : ["left", "right"]
         botActionTask?.cancel()
+        let isFirstItem = (activeDisOrDatItemIndex ?? 0) == 0
+        let firstBotWaitMs = isFirstItem
+            ? Int(max(4.5, audio.currentVoiceDuration + 0.8) * 1000)
+            : Int.random(in: 2800...5200)
         botActionTask = Task { @MainActor [weak self] in
-            for bot in bots {
-                let delayMs = Int.random(in: 3000...6500)
+            for (idx, bot) in bots.enumerated() {
+                let delayMs = idx == 0 ? firstBotWaitMs : Int.random(in: 1200...2800)
                 try? await Task.sleep(for: .milliseconds(delayMs))
                 guard let self, !Task.isCancelled, self.stage == .couciCoucaItem else { return }
                 let pick = (Int.random(in: 0..<100) < 72) ? item.correctSide : (possibleSides.randomElement() ?? "left")

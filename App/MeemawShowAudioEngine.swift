@@ -20,6 +20,11 @@ final class MeemawShowAudioEngine: NSObject {
     static let shared = MeemawShowAudioEngine()
 
     private(set) var isMeemawSpeaking: Bool = false
+    private(set) var currentVoiceDuration: TimeInterval = 0
+    var remainingVoiceTime: TimeInterval {
+        guard isMeemawSpeaking, let player = voicePlayer, player.isPlaying else { return 0 }
+        return max(0, player.duration - player.currentTime)
+    }
     private(set) var currentMood: BackgroundMusicMood = .chillLobby
     var isMusicMuted: Bool = false {
         didSet {
@@ -180,6 +185,7 @@ final class MeemawShowAudioEngine: NSObject {
                     player.delegate = self
                     player.volume = 1.0
                     player.prepareToPlay()
+                    currentVoiceDuration = player.duration
                     isMeemawSpeaking = true
                     player.play()
                     voicePlayer = player
@@ -188,6 +194,7 @@ final class MeemawShowAudioEngine: NSObject {
             }
         }
 
+        currentVoiceDuration = 5.0
         if AppLanguage.isEnglish && !fallbackText.isEmpty {
             speakDynamicAudrey(fallbackText)
             return
