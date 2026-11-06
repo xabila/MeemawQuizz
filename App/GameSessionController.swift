@@ -1321,8 +1321,9 @@ final class GameSessionController {
         meemawSpeech = "🔢 LE JUSTE PIF : « \(pif.funnyTitle) » — \(pif.prompt) (\(pif.unitLabel))"
         broadcastState()
 
+        let pifCue = pif.id.hasPrefix("EN_") ? "en_pif_\(pif.id).m4a" : "pif_\(pif.id).m4a"
         audio.playMeemawStudioOrFallback(
-            studioFilename: nil,
+            studioFilename: pifCue,
             fallbackText: "\(pif.funnyTitle). \(pif.prompt)"
         )
 
@@ -1414,8 +1415,9 @@ final class GameSessionController {
         }
         broadcastState()
 
+        let pifRevealCue = pif.id.hasPrefix("EN_") ? "en_pif_\(pif.id)_reveal.m4a" : "pif_\(pif.id)_reveal.m4a"
         audio.playMeemawStudioOrFallback(
-            studioFilename: nil,
+            studioFilename: pifRevealCue,
             fallbackText: meemawSpeech
         )
 

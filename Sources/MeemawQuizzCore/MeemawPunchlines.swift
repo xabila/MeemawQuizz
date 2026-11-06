@@ -37,6 +37,16 @@ public enum MeemawPunchlines {
             filename: "mq_round_jukebox.m4a"
         ),
         MeemawStudioCue(
+            id: "round_juste_pif",
+            text: "Manche : Le Juste Pif ! Tapez votre estimation chiffrée sur le clavier numérique : trois mille points au plus proche, et cinq mille points en Tout Pile !",
+            filename: "mq_round_juste_pif.m4a"
+        ),
+        MeemawStudioCue(
+            id: "round_jack_attack",
+            text: "Grande Finale : Le Jack Attack de Meemaw ! Cinq vagues d'associations : buzzez uniquement quand la bonne réponse s'affiche !",
+            filename: "mq_round_jack_attack.m4a"
+        ),
+        MeemawStudioCue(
             id: "round2_solo",
             text: "Manche 4 : C'est l'heure du Solo ! Pas besoin de buzzer avant : le tout premier qui touche une réponse coupe l'herbe sous le pied des autres ! S'il a bon il double la mise, s'il se trompe c'est la gamelle !",
             filename: "mq_round2_solo_fast.m4a"
