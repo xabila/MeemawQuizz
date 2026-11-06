@@ -68,6 +68,12 @@ struct PlayerControllerView: View {
                             finalPodiumControllerSection
                         }
 
+                        if snap.stage != .lobby
+                            && snap.stage != .finalPodium
+                            && snap.stage != .esquisseDrawing
+                            && snap.stage != .drawLiveGuessing {
+                            inGameQuitAndStopFooter
+                        }
                     }
                     .padding(.bottom, 20)
                 }
@@ -100,31 +106,24 @@ struct PlayerControllerView: View {
 
     private var topPlayerAndHostBar: some View {
         VStack(spacing: 8) {
-            HStack(spacing: 8) {
+            HStack(spacing: 10) {
                 // Left Button: Player Profile & Settings Sheet Trigger
                 Button {
                     isShowingSettingsSheet = true
                 } label: {
                     HStack(spacing: 7) {
-                        ZStack {
-                            Circle()
-                                .fill(PopArt.color(for: me?.color ?? session.localSelectedColor))
-                                .frame(width: 26, height: 26)
-                                .overlay(Circle().strokeBorder(PopArt.ink, lineWidth: 1.8))
-                            Text(me?.avatarEmoji ?? session.localAvatarEmoji)
-                                .font(.system(size: 15))
-                        }
+                        Text(me?.avatarEmoji ?? session.localAvatarEmoji)
+                            .font(.system(size: 19))
                         Text(me?.name ?? session.localPlayerName)
                             .font(.system(size: 15, weight: .black, design: .rounded))
                             .foregroundStyle(PopArt.ink)
                             .lineLimit(1)
-                        Image(systemName: "slider.horizontal.3")
-                            .font(.system(size: 12, weight: .black))
+                        Image(systemName: "gearshape.fill")
+                            .font(.system(size: 13, weight: .bold))
                             .foregroundStyle(PopArt.ink.opacity(0.65))
                     }
-                    .padding(.leading, 6)
-                    .padding(.trailing, 12)
-                    .padding(.vertical, 6)
+                    .padding(.horizontal, 13)
+                    .padding(.vertical, 8)
                     .background(PopArt.white, in: Capsule())
                     .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2.5))
                     .background(
@@ -138,23 +137,13 @@ struct PlayerControllerView: View {
                 Spacer(minLength: 4)
 
                 if snap.stage != .lobby {
-                    HStack(spacing: 4) {
-                        Image(systemName: "star.fill")
-                            .font(.system(size: 11, weight: .black))
-                            .foregroundStyle(PopArt.orange)
-                        Text("\(me?.score ?? 0) PTS")
-                            .font(.system(size: 14, weight: .black, design: .monospaced))
-                            .foregroundStyle(PopArt.ink)
-                    }
-                    .padding(.horizontal, 11)
-                    .padding(.vertical, 7)
-                    .background(PopArt.yellow, in: Capsule())
-                    .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2.5))
-                    .background(
-                        Capsule()
-                            .fill(PopArt.ink)
-                            .offset(x: 0, y: 2.5)
-                    )
+                    Text("\(me?.score ?? 0) PTS")
+                        .font(.system(size: 15, weight: .black, design: .monospaced))
+                        .foregroundStyle(PopArt.ink)
+                        .padding(.horizontal, 11)
+                        .padding(.vertical, 8)
+                        .background(PopArt.yellow, in: Capsule())
+                        .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2.5))
                 }
 
                 // Right Button: Beloved 📺 TV Live Preview Toggle
@@ -163,15 +152,15 @@ struct PlayerControllerView: View {
                         displayManager.isPreviewTVOnPhoneSelected.toggle()
                     }
                 } label: {
-                    HStack(spacing: 5) {
+                    HStack(spacing: 6) {
                         Image(systemName: displayManager.isPreviewTVOnPhoneSelected ? "tv.fill" : "tv")
                             .font(.system(size: 13, weight: .black))
                         Text(displayManager.isPreviewTVOnPhoneSelected ? "TV ON" : "TV")
-                            .font(.system(size: 13, weight: .black, design: .rounded))
+                            .font(.system(size: 14, weight: .black, design: .rounded))
                     }
                     .foregroundStyle(PopArt.ink)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 7)
+                    .padding(.horizontal, 13)
+                    .padding(.vertical, 8)
                     .background(displayManager.isPreviewTVOnPhoneSelected ? PopArt.yellow : PopArt.white, in: Capsule())
                     .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2.5))
                     .background(
@@ -183,37 +172,32 @@ struct PlayerControllerView: View {
                 .buttonStyle(.plain)
             }
 
-            // In-Game Consolidated Studio Régie Bar (No duplicate bottom footer!)
+            // In-Game Host Régie Bar (Only shown during an active show)
             if snap.stage != .lobby {
                 if session.role == .hostAndPlayer1 {
                     HStack(spacing: 6) {
-                        HStack(spacing: 4) {
-                            Circle()
-                                .fill(PopArt.greenSuccess)
-                                .frame(width: 7, height: 7)
-                            Text(
-                                displayManager.isExternalTVSceneConnected
-                                    ? "AIRPLAY"
-                                    : "\(snap.players.count) JOUEURS"
-                            )
-                            .font(.system(size: 11, weight: .black, design: .rounded))
-                            .foregroundStyle(PopArt.ink)
-                        }
-                        .padding(.leading, 4)
+                        Label(
+                            displayManager.isExternalTVSceneConnected
+                                ? "AirPlay"
+                                : "\(snap.players.count) joueur\(snap.players.count > 1 ? "s" : "")",
+                            systemImage: displayManager.isExternalTVSceneConnected ? "airplayvideo" : "person.2.fill"
+                        )
+                        .font(.system(size: 12, weight: .black, design: .rounded))
+                        .foregroundStyle(PopArt.ink)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.75)
 
                         Spacer(minLength: 4)
 
                         Button {
                             session.skipToNextStep()
                         } label: {
-                            HStack(spacing: 4) {
-                                Image(systemName: "forward.end.fill")
-                                    .font(.system(size: 10, weight: .black))
-                                Text("Suivant")
-                                    .font(.system(size: 12, weight: .black, design: .rounded))
-                            }
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
+                            Text("⏭️ Suivant")
+                                .font(.system(size: 12, weight: .black))
+                                .lineLimit(1)
+                                .fixedSize(horizontal: true, vertical: false)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 6)
                         }
                         .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.yellow, cornerRadius: 10))
 
@@ -221,67 +205,57 @@ struct PlayerControllerView: View {
                             Button {
                                 session.finishGameToPodiumNow()
                             } label: {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "trophy.fill")
-                                        .font(.system(size: 10, weight: .black))
-                                    Text("Podium")
-                                        .font(.system(size: 12, weight: .black, design: .rounded))
-                                }
-                                .padding(.horizontal, 9)
-                                .padding(.vertical, 6)
+                                Text("🏆 Podium")
+                                    .font(.system(size: 12, weight: .black))
+                                    .lineLimit(1)
+                                    .fixedSize(horizontal: true, vertical: false)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 6)
                             }
-                            .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.cream, cornerRadius: 10))
+                            .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.white, cornerRadius: 10))
                         }
 
                         Button {
                             session.returnToLobby()
                         } label: {
-                            HStack(spacing: 4) {
-                                Image(systemName: "xmark")
-                                    .font(.system(size: 10, weight: .black))
-                                Text("Salon")
-                                    .font(.system(size: 12, weight: .black, design: .rounded))
-                            }
-                            .padding(.horizontal, 9)
-                            .padding(.vertical, 6)
+                            Text("⏹️ Arrêter")
+                                .font(.system(size: 12, weight: .black))
+                                .lineLimit(1)
+                                .fixedSize(horizontal: true, vertical: false)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 6)
                         }
                         .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.redError, foregroundColor: .white, cornerRadius: 10))
                     }
                     .padding(.horizontal, 10)
-                    .padding(.vertical, 7)
-                    .background(PopArt.white.opacity(0.96), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(PopArt.ink, lineWidth: 2.2))
+                    .padding(.vertical, 8)
+                    .background(PopArt.white.opacity(0.95), in: RoundedRectangle(cornerRadius: 14))
+                    .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(PopArt.ink, lineWidth: 2))
                 } else {
                     HStack(spacing: 8) {
-                        HStack(spacing: 5) {
-                            Circle()
-                                .fill(session.isBonjourConnectedToRemoteHost ? PopArt.greenSuccess : PopArt.yellow)
-                                .frame(width: 8, height: 8)
-                            Text(session.isBonjourConnectedToRemoteHost ? "Connecté au salon" : "Recherche du salon...")
-                                .font(.system(size: 12, weight: .black, design: .rounded))
-                                .foregroundStyle(PopArt.ink)
-                        }
+                        Label(
+                            session.isBonjourConnectedToRemoteHost ? "Connecté au salon" : "Recherche du salon...",
+                            systemImage: "wifi"
+                        )
+                        .font(.system(size: 12, weight: .black, design: .rounded))
+                        .foregroundStyle(PopArt.ink)
 
                         Spacer()
 
                         Button {
                             session.leaveRemoteSession()
                         } label: {
-                            HStack(spacing: 4) {
-                                Image(systemName: "rectangle.portrait.and.arrow.right")
-                                    .font(.system(size: 11, weight: .black))
-                                Text("Quitter")
-                                    .font(.system(size: 12, weight: .black, design: .rounded))
-                            }
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
+                            Text("🚪 Quitter")
+                                .font(.system(size: 12, weight: .black))
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
                         }
                         .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.redError, foregroundColor: .white, cornerRadius: 10))
                     }
                     .padding(.horizontal, 12)
-                    .padding(.vertical, 7)
-                    .background(PopArt.white.opacity(0.96), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(PopArt.ink, lineWidth: 2.2))
+                    .padding(.vertical, 8)
+                    .background(PopArt.white.opacity(0.95), in: RoundedRectangle(cornerRadius: 14))
+                    .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(PopArt.ink, lineWidth: 2))
                 }
             }
         }
@@ -289,84 +263,36 @@ struct PlayerControllerView: View {
 
     // MARK: - 1B. Compact Meemaw Banner on Phone (when in-game without AirPlay TV)
 
-    private var isTimedBannerStage: Bool {
-        switch snap.stage {
-        case .ttmcBetting, .cashAnswering, .soloBuzzOpen, .soloPlayerAnswering,
-             .couciCoucaItem, .justePifAnswering, .drawLiveGuessing,
-             .esquisseDrawing, .esquisseGuessing, .jackAttackActive:
-            return snap.timeRemainingSec > 0
-        default:
-            return false
-        }
-    }
-
-    private var maxStageTimeSec: Int {
-        switch snap.stage {
-        case .ttmcBetting: return 15
-        case .couciCoucaItem: return 8
-        case .soloBuzzOpen: return 12
-        case .drawLiveGuessing, .esquisseDrawing: return 45
-        default: return 20
-        }
-    }
-
     private var compactPhoneMeemawBanner: some View {
-        PopArtCard(cornerRadius: 20, borderWidth: 3, backgroundColor: PopArt.white, shadowOffset: 4) {
-            VStack(spacing: 8) {
-                HStack(spacing: 12) {
-                    MeemawGuestStarAvatar(
-                        pose: snap.meemawPose,
-                        isSpeaking: MeemawShowAudioEngine.shared.isMeemawSpeaking,
-                        size: 58
-                    )
+        PopArtCard(cornerRadius: 18, borderWidth: 3, backgroundColor: PopArt.white, shadowOffset: 4) {
+            HStack(spacing: 12) {
+                MeemawGuestStarAvatar(
+                    pose: snap.meemawPose,
+                    isSpeaking: MeemawShowAudioEngine.shared.isMeemawSpeaking,
+                    size: 58
+                )
 
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack(spacing: 6) {
-                            Text(snap.stage == .lobby ? "🎙️ MEEMAW QUIZZ" : snap.roundKind.badgeTitle)
-                                .font(.system(size: 10, weight: .black, design: .rounded))
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 3)
-                                .background(PopArt.orange, in: Capsule())
-                                .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 1.5))
-
-                            Spacer(minLength: 4)
-
-                            if isTimedBannerStage {
-                                HStack(spacing: 3) {
-                                    Image(systemName: "timer")
-                                        .font(.system(size: 10, weight: .black))
-                                    Text(String(format: "%.1fs", snap.timeRemainingSec))
-                                        .font(.system(size: 12, weight: .black, design: .monospaced))
-                                }
-                                .foregroundStyle(snap.timeRemainingSec <= 4.0 ? .white : PopArt.ink)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 3)
-                                .background(
-                                    snap.timeRemainingSec <= 4.0 ? PopArt.redError : PopArt.yellow,
-                                    in: Capsule()
-                                )
-                                .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 1.5))
-                            }
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(snap.stage == .lobby ? "🎙️ MEEMAW QUIZZ" : snap.roundKind.badgeTitle)
+                            .font(.system(size: 11, weight: .black, design: .rounded))
+                            .foregroundStyle(PopArt.orange)
+                        Spacer()
+                        if snap.timeRemainingSec > 0 && (snap.stage == .ttmcBetting || snap.stage == .cashAnswering || snap.stage == .soloBuzzOpen || snap.stage == .soloPlayerAnswering || snap.stage == .couciCoucaItem) {
+                            Text(String(format: "⏱️ %.1fs", snap.timeRemainingSec))
+                                .font(.system(size: 12, weight: .black, design: .monospaced))
+                                .foregroundStyle(snap.timeRemainingSec <= 3.5 ? PopArt.redError : PopArt.ink)
                         }
-
-                        Text(snap.meemawSpeech)
-                            .font(.system(size: 13.5, weight: .heavy, design: .rounded))
-                            .foregroundStyle(PopArt.ink)
-                            .lineLimit(3)
-                            .minimumScaleFactor(0.82)
                     }
-                }
 
-                if isTimedBannerStage {
-                    StudioTimerProgressBar(
-                        timeRemaining: Int(ceil(snap.timeRemainingSec)),
-                        maxTime: maxStageTimeSec,
-                        height: 8
-                    )
+                    Text(snap.meemawSpeech)
+                        .font(.system(size: 13, weight: .heavy, design: .rounded))
+                        .foregroundStyle(PopArt.ink)
+                        .lineLimit(3)
+                        .minimumScaleFactor(0.8)
                 }
             }
-            .padding(11)
+            .padding(10)
         }
     }
 
@@ -376,58 +302,37 @@ struct PlayerControllerView: View {
         VStack(spacing: 14) {
             // Compact Studio Header Card (only when TV preview isn't already open)
             if !displayManager.isPreviewTVOnPhoneSelected {
-                PopArtCard(cornerRadius: 22, borderWidth: 3.5, backgroundColor: PopArt.white, shadowOffset: 5) {
+                PopArtCard(cornerRadius: 20, borderWidth: 3, backgroundColor: PopArt.white, shadowOffset: 4) {
                     HStack(spacing: 12) {
                         MeemawGuestStarAvatar(
                             pose: snap.meemawPose,
                             isSpeaking: MeemawShowAudioEngine.shared.isMeemawSpeaking,
-                            size: 64
+                            size: 58
                         )
 
-                        VStack(alignment: .leading, spacing: 5) {
-                            HStack(spacing: 6) {
-                                Text("🔴 EN DIRECT DU STUDIO")
-                                    .font(.system(size: 10, weight: .black, design: .rounded))
-                                    .foregroundStyle(.white)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 3)
-                                    .background(PopArt.redError, in: Capsule())
-                                    .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 1.5))
-
-                                Text("SAISON 1")
-                                    .font(.system(size: 10, weight: .black, design: .monospaced))
-                                    .foregroundStyle(PopArt.ink)
-                                    .padding(.horizontal, 7)
-                                    .padding(.vertical, 3)
-                                    .background(PopArt.yellow, in: Capsule())
-                                    .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 1.5))
-                            }
-
-                            Text("« Installez-vous mes chéris, Mamie Meemaw chauffe le buzzer ! »")
-                                .font(.system(size: 13.5, weight: .heavy, design: .rounded))
-                                .foregroundStyle(PopArt.ink)
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("🎙️ MEEMAW QUIZZ SHOW")
+                                .font(.system(size: 12, weight: .black, design: .rounded))
+                                .foregroundStyle(PopArt.orange)
+                            Text("Choisis ta partie et lance le show sur l'iPhone ou l'Apple TV !")
+                                .font(.system(size: 13, weight: .bold, design: .rounded))
+                                .foregroundStyle(PopArt.ink.opacity(0.85))
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                         Spacer(minLength: 0)
                     }
-                    .padding(13)
+                    .padding(12)
                 }
             }
 
             if session.role == .hostAndPlayer1 {
-                // Single Cohesive Mode Card (White & Gold — with instant Theme Pills)
+                // Single Cohesive Mode Card (White & Gold — no rainbow clutter)
                 PopArtCard(cornerRadius: 22, borderWidth: 3.5, backgroundColor: PopArt.white, shadowOffset: 5) {
                     VStack(alignment: .leading, spacing: 10) {
-                        HStack {
-                            Label("PROGRAMME TV DU SOIR", systemImage: "sparkles.tv.fill")
-                                .font(.system(size: 12, weight: .black, design: .rounded))
-                                .foregroundStyle(PopArt.ink.opacity(0.65))
-                            Spacer()
-                            Text("3 MODES")
-                                .font(.system(size: 10, weight: .black, design: .monospaced))
-                                .foregroundStyle(PopArt.ink.opacity(0.55))
-                        }
-                        .padding(.horizontal, 2)
+                        Text("CHOISIS TA PARTIE")
+                            .font(.system(size: 12, weight: .black, design: .rounded))
+                            .foregroundStyle(PopArt.ink.opacity(0.55))
+                            .padding(.horizontal, 2)
 
                         ForEach(ShowGameMode.allCases) { mode in
                             lobbyModeRow(for: mode)
@@ -442,10 +347,10 @@ struct PlayerControllerView: View {
                         session.startNewShow()
                     } label: {
                         HStack(spacing: 10) {
-                            Image(systemName: "play.tv.fill")
-                                .font(.system(size: 18, weight: .black))
-                            Text("LANCER LE SHOW TV !")
-                                .font(.system(size: 19, weight: .black, design: .rounded))
+                            Image(systemName: "play.fill")
+                                .font(.system(size: 16, weight: .black))
+                            Text("LANCER LA PARTIE")
+                                .font(.system(size: 18, weight: .black, design: .rounded))
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
@@ -461,19 +366,20 @@ struct PlayerControllerView: View {
                     Button {
                         isShowingSettingsSheet = true
                     } label: {
-                        HStack(spacing: 8) {
-                            HStack(spacing: -5) {
+                        HStack(spacing: 7) {
+                            HStack(spacing: -4) {
                                 ForEach(snap.players.prefix(4)) { p in
                                     Text(p.avatarEmoji)
                                         .font(.system(size: 15))
-                                        .frame(width: 28, height: 28)
-                                        .background(PopArt.color(for: p.color), in: Circle())
-                                        .overlay(Circle().strokeBorder(PopArt.ink, lineWidth: 1.8))
+                                        .frame(width: 26, height: 26)
+                                        .background(PopArt.cream, in: Circle())
+                                        .overlay(Circle().strokeBorder(PopArt.ink, lineWidth: 1.5))
                                 }
                             }
-                            Text("\(snap.players.count) candidat\(snap.players.count > 1 ? "s" : "")")
+                            Text("\(snap.players.count) joueur\(snap.players.count > 1 ? "s" : "")")
                                 .font(.system(size: 13, weight: .black, design: .rounded))
                                 .foregroundStyle(PopArt.ink)
+                                .lineLimit(1)
 
                             Text("•")
                                 .foregroundStyle(PopArt.ink.opacity(0.4))
@@ -481,16 +387,18 @@ struct PlayerControllerView: View {
                             Text("Profil, Bots & Salon Wi-Fi")
                                 .font(.system(size: 13, weight: .bold, design: .rounded))
                                 .foregroundStyle(PopArt.blue)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.78)
 
                             Spacer(minLength: 2)
 
-                            Image(systemName: "chevron.right.circle.fill")
-                                .font(.system(size: 16, weight: .black))
-                                .foregroundStyle(PopArt.orange)
+                            Image(systemName: "slider.horizontal.3")
+                                .font(.system(size: 13, weight: .black))
+                                .foregroundStyle(PopArt.ink.opacity(0.65))
                         }
                         .padding(.horizontal, 14)
                         .padding(.vertical, 11)
-                        .background(PopArt.white.opacity(0.96), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .background(PopArt.white.opacity(0.94), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                         .overlay(
                             RoundedRectangle(cornerRadius: 16, style: .continuous)
                                 .strokeBorder(PopArt.ink, lineWidth: 2.5)
@@ -502,16 +410,16 @@ struct PlayerControllerView: View {
                 // Minimal Client Waiting Card
                 PopArtCard(cornerRadius: 22, borderWidth: 3.5, backgroundColor: PopArt.white, shadowOffset: 5) {
                     VStack(spacing: 12) {
-                        Text(session.isBonjourConnectedToRemoteHost ? "✅ Connecté au Plateau TV" : "📡 Recherche du salon sur le Wi-Fi...")
+                        Text(session.isBonjourConnectedToRemoteHost ? "✅ Connecté au Salon" : "📡 Recherche du salon sur le Wi-Fi...")
                             .font(.system(size: 17, weight: .black, design: .rounded))
                             .foregroundStyle(PopArt.ink)
                             .multilineTextAlignment(.center)
 
-                        Text("Programme : \(snap.selectedGameMode.title)")
+                        Text("Mode choisi : \(snap.selectedGameMode.title)")
                             .font(.system(size: 13, weight: .bold, design: .rounded))
                             .foregroundStyle(PopArt.orange)
 
-                        Text("Dès que l'hôte lance le générique, ta manette buzzer s'affichera automatiquement.")
+                        Text("Dès que l'hôte lance la partie, ta manette s'affichera automatiquement.")
                             .font(.system(size: 13, weight: .medium, design: .rounded))
                             .foregroundStyle(PopArt.ink.opacity(0.75))
                             .multilineTextAlignment(.center)
@@ -519,7 +427,7 @@ struct PlayerControllerView: View {
                         Button {
                             isShowingSettingsSheet = true
                         } label: {
-                            Text("⚙️ Mon Profil & Couleur de Buzzer")
+                            Text("⚙️ Mon Profil & Réglages du Salon")
                                 .font(.system(size: 14, weight: .black, design: .rounded))
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 12)
@@ -562,34 +470,24 @@ struct PlayerControllerView: View {
             } label: {
                 HStack(spacing: 12) {
                     ZStack {
-                        RoundedRectangle(cornerRadius: 13, style: .continuous)
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
                             .fill(isModeSelected ? PopArt.yellow : PopArt.cream)
-                            .frame(width: 46, height: 46)
+                            .frame(width: 44, height: 44)
                             .overlay(
-                                RoundedRectangle(cornerRadius: 13, style: .continuous)
-                                    .strokeBorder(PopArt.ink, lineWidth: 2.2)
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .strokeBorder(PopArt.ink, lineWidth: 2)
                             )
                         Text(iconText)
-                            .font(.system(size: 22))
+                            .font(.system(size: 21))
                     }
 
                     VStack(alignment: .leading, spacing: 2) {
-                        HStack(spacing: 6) {
-                            Text(cleanTitle)
-                                .font(.system(size: 16, weight: .black, design: .rounded))
-                                .foregroundStyle(PopArt.ink)
-                            if isModeSelected {
-                                Text("ACTIF")
-                                    .font(.system(size: 9, weight: .black, design: .rounded))
-                                    .foregroundStyle(.white)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(PopArt.orange, in: Capsule())
-                            }
-                        }
+                        Text(cleanTitle)
+                            .font(.system(size: 16, weight: .black, design: .rounded))
+                            .foregroundStyle(PopArt.ink)
                         Text(cleanSubtitle)
                             .font(.system(size: 12, weight: .medium, design: .rounded))
-                            .foregroundStyle(PopArt.ink.opacity(0.72))
+                            .foregroundStyle(PopArt.ink.opacity(0.7))
                             .lineLimit(2)
                     }
 
@@ -603,46 +501,42 @@ struct PlayerControllerView: View {
             }
             .buttonStyle(.plain)
 
-            // Instant Horizontal Quick-Theme Pill Bar when Grand Quizz TV is selected
+            // Single clean Dropdown Menu for Theme Selection (instead of 7 rainbow buttons)
             if mode == .fullQuizShow && isModeSelected {
                 Divider().overlay(PopArt.ink.opacity(0.15))
 
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack {
-                        Text("THÈME DES QUESTIONS :")
-                            .font(.system(size: 10.5, weight: .black, design: .rounded))
-                            .foregroundStyle(PopArt.ink.opacity(0.65))
-                        Spacer()
-                        Text(snap.selectedPack.title)
-                            .font(.system(size: 11, weight: .black, design: .rounded))
-                            .foregroundStyle(PopArt.orange)
-                    }
+                HStack {
+                    Text("Thème des questions")
+                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                        .foregroundStyle(PopArt.ink.opacity(0.75))
 
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 6) {
-                            ForEach(QuizThemePack.allCases) { pack in
-                                let isPackSelected = (snap.selectedPack == pack)
-                                Button {
-                                    session.selectThemePack(pack)
-                                } label: {
+                    Spacer()
+
+                    Menu {
+                        ForEach(QuizThemePack.allCases) { pack in
+                            Button {
+                                session.selectThemePack(pack)
+                            } label: {
+                                if snap.selectedPack == pack {
+                                    Label(pack.title, systemImage: "checkmark")
+                                } else {
                                     Text(pack.title)
-                                        .font(.system(size: 12, weight: .black, design: .rounded))
-                                        .foregroundStyle(isPackSelected ? .white : PopArt.ink)
-                                        .padding(.horizontal, 11)
-                                        .padding(.vertical, 6)
-                                        .background(
-                                            isPackSelected ? PopArt.blue : PopArt.white,
-                                            in: Capsule()
-                                        )
-                                        .overlay(
-                                            Capsule()
-                                                .strokeBorder(PopArt.ink, lineWidth: isPackSelected ? 2.2 : 1.5)
-                                        )
                                 }
-                                .buttonStyle(.plain)
                             }
                         }
-                        .padding(.vertical, 2)
+                    } label: {
+                        HStack(spacing: 6) {
+                            Text(snap.selectedPack.title)
+                                .font(.system(size: 13, weight: .black, design: .rounded))
+                                .foregroundStyle(PopArt.ink)
+                            Image(systemName: "chevron.up.chevron.down")
+                                .font(.system(size: 11, weight: .black))
+                                .foregroundStyle(PopArt.ink.opacity(0.7))
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 7)
+                        .background(PopArt.white, in: Capsule())
+                        .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
                     }
                 }
             }
@@ -650,7 +544,7 @@ struct PlayerControllerView: View {
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(isModeSelected ? Color(hex: "#FEF3C7") : PopArt.cream.opacity(0.6))
+                .fill(isModeSelected ? Color(hex: "#FEF3C7") : PopArt.white)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
@@ -1285,38 +1179,25 @@ struct PlayerControllerView: View {
                 let isFrozen = me?.isJackAttackFrozen ?? false
 
                 PopArtCard(cornerRadius: 22, borderWidth: 4, backgroundColor: PopArt.white) {
-                    VStack(spacing: 10) {
+                    VStack(spacing: 8) {
                         HStack {
                             Text("⚡ JACK ATTACK • VAGUE \(wIdx + 1)/\(round.waves.count)")
-                                .font(.system(size: 12, weight: .black, design: .rounded))
+                                .font(.system(size: 13, weight: .black, design: .rounded))
                                 .foregroundStyle(PopArt.ink)
-                                .padding(.horizontal, 11)
+                                .padding(.horizontal, 12)
                                 .padding(.vertical, 5)
                                 .background(PopArt.yellow, in: Capsule())
                                 .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
-
                             Spacer()
-
-                            HStack(spacing: 4) {
-                                ForEach(0..<round.waves.count, id: \.self) { dotIdx in
-                                    Circle()
-                                        .fill(dotIdx < wIdx ? PopArt.greenSuccess : (dotIdx == wIdx ? PopArt.orange : PopArt.ink.opacity(0.18)))
-                                        .frame(width: 9, height: 9)
-                                        .overlay(Circle().strokeBorder(PopArt.ink, lineWidth: 1.2))
-                                }
-                            }
-
-                            Spacer()
-
                             Text("+3 000 / -1 500")
-                                .font(.system(size: 11, weight: .black, design: .monospaced))
+                                .font(.system(size: 12, weight: .black, design: .monospaced))
                                 .foregroundStyle(.white)
-                                .padding(.horizontal, 9)
+                                .padding(.horizontal, 10)
                                 .padding(.vertical, 4)
                                 .background(PopArt.orange, in: Capsule())
                         }
-                        Text(wave.clueTitle.uppercased())
-                            .font(.system(size: 12, weight: .black, design: .rounded))
+                        Text(wave.clueTitle)
+                            .font(.system(size: 13, weight: .black, design: .rounded))
                             .foregroundStyle(PopArt.orange)
                             .multilineTextAlignment(.center)
                         Text(wave.anchorText)
@@ -1357,32 +1238,21 @@ struct PlayerControllerView: View {
                     Button {
                         session.submitJackAttackBuzz()
                     } label: {
-                        VStack(spacing: 12) {
-                            HStack(spacing: 6) {
-                                Image(systemName: isFrozen ? "snowflake" : "bolt.fill")
-                                    .font(.system(size: 15, weight: .black))
-                                Text(isFrozen ? "BUZZER GELÉ (-1 500 PTS)" : "APPUIE DÈS QUE C'EST BON !")
-                                    .font(.system(size: 14, weight: .black, design: .rounded))
-                            }
-                            .foregroundStyle(isFrozen ? .white.opacity(0.85) : PopArt.ink)
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 5)
-                            .background(isFrozen ? Color.black.opacity(0.25) : PopArt.yellow, in: Capsule())
-                            .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
-
+                        VStack(spacing: 10) {
+                            Text(isFrozen ? "🧊 BUZZER GELÉ (-1 500 PTS)" : "🚨 BUZZER MAINTENANT !")
+                                .font(.system(size: 15, weight: .black, design: .rounded))
+                                .foregroundStyle(isFrozen ? .white.opacity(0.85) : PopArt.yellow)
                             Text(currentOption)
-                                .font(.system(size: 29, weight: .black, design: .rounded))
+                                .font(.system(size: 28, weight: .black, design: .rounded))
                                 .foregroundStyle(.white)
                                 .multilineTextAlignment(.center)
-                                .padding(.horizontal, 10)
-                                .contentTransition(.numericText())
-
-                            Text(isFrozen ? "Tu as buzzé sur un piège pendant cette vague !" : "Attention : les mauvaises associations coûtent -1 500 pts")
-                                .font(.system(size: 12.5, weight: .bold, design: .rounded))
+                                .padding(.horizontal, 8)
+                            Text(isFrozen ? "Tu as buzzé sur un piège pendant cette vague !" : "Tape dès que la BONNE association s'affiche !")
+                                .font(.system(size: 13, weight: .bold, design: .rounded))
                                 .foregroundStyle(.white.opacity(0.9))
                         }
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 32)
+                        .padding(.vertical, 34)
                     }
                     .buttonStyle(
                         PopArtActionButtonStyle(
@@ -1402,11 +1272,11 @@ struct PlayerControllerView: View {
     private var ttmcBettingControllerSection: some View {
         VStack(spacing: 12) {
             if let q = snap.activeQuestion {
-                PopArtCard(cornerRadius: 22, borderWidth: 4, backgroundColor: PopArt.white) {
+                PopArtCard(cornerRadius: 22, borderWidth: 4, backgroundColor: Color(hex: "#FEF9C3")) {
                     VStack(spacing: 8) {
                         HStack {
                             Text("🎯 TU TE METS COMBIEN ?")
-                                .font(.system(size: 13, weight: .black, design: .rounded))
+                                .font(.system(size: 14, weight: .black, design: .rounded))
                                 .foregroundStyle(.white)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 5)
@@ -1415,22 +1285,21 @@ struct PlayerControllerView: View {
                             Spacer()
                             Text(q.theme.shortBadge)
                                 .font(.system(size: 12, weight: .black, design: .rounded))
-                                .foregroundStyle(PopArt.ink)
+                                .foregroundStyle(.white)
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 4)
-                                .background(PopArt.yellow, in: Capsule())
-                                .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 1.8))
+                                .background(Color(hex: q.theme.accentHex), in: Capsule())
                         }
 
-                        Text("SUJET MYSTÈRE DE MEEMAW")
-                            .font(.system(size: 11, weight: .black, design: .rounded))
-                            .foregroundStyle(PopArt.orange)
+                        Text("Sujet mystère de Meemaw :")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(PopArt.ink.opacity(0.75))
 
                         Text("« \(q.funnyTitle) »")
                             .font(.system(size: 22, weight: .black, design: .rounded))
                             .foregroundStyle(PopArt.ink)
                             .multilineTextAlignment(.center)
-                            .padding(.vertical, 2)
+                            .padding(.vertical, 4)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(16)
@@ -1441,10 +1310,10 @@ struct PlayerControllerView: View {
                     let stakes = QuizScoringEngine.ttmcStakes(for: lockedStars)
                     PopArtCard(cornerRadius: 18, borderWidth: 3.5, backgroundColor: PopArt.yellow) {
                         VStack(spacing: 4) {
-                            Text("🔒 PARI VERROUILLÉ : \(String(repeating: "⭐", count: lockedStars)) (+\(stakes.win) / \(stakes.loss) PTS)")
-                                .font(.system(size: 15, weight: .black, design: .rounded))
+                            Text("🔒 PARI VERROUILLÉ : \(String(repeating: "⭐", count: lockedStars)) (+\(stakes.win) PTS / \(stakes.loss) PTS)")
+                                .font(.system(size: 16, weight: .black, design: .rounded))
                                 .foregroundStyle(PopArt.ink)
-                            Text("⏳ En attente des autres candidats (\(betCount)/\(snap.players.count))...")
+                            Text("⏳ En attente des paris des autres joueurs (\(betCount)/\(snap.players.count))...")
                                 .font(.system(size: 13, weight: .heavy, design: .rounded))
                                 .foregroundStyle(PopArt.ink.opacity(0.8))
                         }
@@ -1454,11 +1323,11 @@ struct PlayerControllerView: View {
                     }
                 }
 
-                let starOptions: [(stars: Int, title: String, subtitle: String, winText: String, lossText: String, color: Color)] = [
-                    (1, "1 ÉTOILE • PRUDENT", "Question abordable, risque minimal", "+1 000", "-250", PopArt.cyan),
-                    (2, "2 ÉTOILES • CONFIANT", "Tu connais bien le sujet", "+2 000", "-500", PopArt.greenSuccess),
-                    (3, "3 ÉTOILES • CHAUD BOUILLANT", "Tu vises le haut du podium", "+3 500", "-1 000", PopArt.orange),
-                    (4, "4 ÉTOILES • LE MELON TOTAL !", "Quitte ou double légendaire", "+5 000", "-2 500", PopArt.redError)
+                let starOptions: [(stars: Int, title: String, subtitle: String, color: Color)] = [
+                    (1, "⭐ 1 ÉTOILE • PETIT JOUEUR", "+1 000 PTS si bon  •  -250 PTS si faux", PopArt.cyan),
+                    (2, "⭐⭐ 2 ÉTOILES • TRANQUILLE", "+2 000 PTS si bon  •  -500 PTS si faux", PopArt.greenSuccess),
+                    (3, "⭐⭐⭐ 3 ÉTOILES • CHAUD BOUILLANT", "+3 500 PTS si bon  •  -1 000 PTS si faux", PopArt.orange),
+                    (4, "⭐⭐⭐⭐ 4 ÉTOILES • LE MELON TOTAL !", "+5 000 PTS si bon  •  -2 500 PTS si faux !", PopArt.redError)
                 ]
 
                 ForEach(starOptions, id: \.stars) { opt in
@@ -1467,38 +1336,24 @@ struct PlayerControllerView: View {
                     Button {
                         session.submitBetStars(opt.stars)
                     } label: {
-                        HStack(spacing: 12) {
+                        HStack {
                             VStack(alignment: .leading, spacing: 3) {
-                                HStack(spacing: 6) {
-                                    Text(String(repeating: "⭐", count: opt.stars))
-                                        .font(.system(size: 14))
-                                    Text(opt.title)
-                                        .font(.system(size: 16, weight: .black, design: .rounded))
-                                        .foregroundStyle(isSelected ? PopArt.ink : .white)
-                                }
+                                Text(opt.title)
+                                    .font(.system(size: 17, weight: .black, design: .rounded))
+                                    .foregroundStyle(isSelected ? PopArt.ink : .white)
                                 Text(opt.subtitle)
-                                    .font(.system(size: 12, weight: .bold, design: .rounded))
-                                    .foregroundStyle(isSelected ? PopArt.ink.opacity(0.8) : .white.opacity(0.9))
+                                    .font(.system(size: 13, weight: .heavy, design: .rounded))
+                                    .foregroundStyle(isSelected ? PopArt.ink.opacity(0.85) : .white.opacity(0.92))
                             }
-
-                            Spacer(minLength: 4)
-
-                            VStack(alignment: .trailing, spacing: 2) {
-                                Text("\(opt.winText) PTS")
-                                    .font(.system(size: 13, weight: .black, design: .monospaced))
+                            Spacer()
+                            if isSelected {
+                                Text("🔒 MISÉ")
+                                    .font(.system(size: 13, weight: .black))
                                     .foregroundStyle(PopArt.ink)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 3)
-                                    .background(PopArt.yellow, in: Capsule())
-                                    .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 1.5))
-
-                                Text("ou \(opt.lossText)")
-                                    .font(.system(size: 10.5, weight: .black, design: .monospaced))
-                                    .foregroundStyle(isSelected ? PopArt.ink.opacity(0.75) : .white.opacity(0.9))
                             }
                         }
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 12)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 14)
                         .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(
@@ -1684,38 +1539,16 @@ struct PlayerControllerView: View {
                     }
                 }
 
-                PopArtCard(cornerRadius: 20, borderWidth: 3.5, backgroundColor: PopArt.white) {
-                    VStack(spacing: 8) {
-                        HStack {
-                            Text(q.theme.shortBadge)
-                                .font(.system(size: 11, weight: .black, design: .rounded))
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 4)
-                                .background(PopArt.blue, in: Capsule())
-                                .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 1.5))
-
-                            Spacer()
-
-                            Text("+\(snap.roundKind == .finaleDouble ? q.baseValue * 2 : q.baseValue) PTS")
-                                .font(.system(size: 12, weight: .black, design: .monospaced))
-                                .foregroundStyle(PopArt.ink)
-                                .padding(.horizontal, 9)
-                                .padding(.vertical, 4)
-                                .background(PopArt.yellow, in: Capsule())
-                                .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 1.5))
-                        }
-
-                        Text("« \(q.funnyTitle) »")
-                            .font(.system(size: 15, weight: .black, design: .rounded))
+                PopArtCard(cornerRadius: 18, borderWidth: 3, backgroundColor: PopArt.white) {
+                    VStack(spacing: 6) {
+                        Text(q.funnyTitle)
+                            .font(.system(size: 16, weight: .black, design: .rounded))
                             .foregroundStyle(PopArt.orange)
                             .multilineTextAlignment(.center)
-
                         Text(q.prompt)
-                            .font(.system(size: 17, weight: .black, design: .rounded))
+                            .font(.system(size: 15, weight: .bold))
                             .foregroundStyle(PopArt.ink)
                             .multilineTextAlignment(.center)
-                            .fixedSize(horizontal: false, vertical: true)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(14)
@@ -1736,45 +1569,40 @@ struct PlayerControllerView: View {
                         return isMyChoice ? PopArt.yellow : PopArt.white
                     }()
 
-                    let keycapBg: Color = {
-                        if isRevealed && isCorrect { return PopArt.yellow }
-                        if isRevealed && isMyChoice { return PopArt.white }
-                        return isMyChoice ? PopArt.orange : PopArt.yellow
-                    }()
-
                     Button {
                         session.submitChoice(idx)
                     } label: {
-                        HStack(spacing: 12) {
+                        HStack(spacing: 14) {
                             Text(letters[idx])
-                                .font(.system(size: 20, weight: .black, design: .rounded))
+                                .font(.system(size: 22, weight: .black, design: .rounded))
                                 .foregroundStyle(PopArt.ink)
-                                .frame(width: 42, height: 42)
-                                .background(keycapBg, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                                .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(PopArt.ink, lineWidth: 2.5))
+                                .frame(width: 44, height: 44)
+                                .background(PopArt.orange, in: RoundedRectangle(cornerRadius: 12))
+                                .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(PopArt.ink, lineWidth: 2.5))
 
                             Text(q.choices[idx])
-                                .font(.system(size: 16.5, weight: .heavy, design: .rounded))
+                                .font(.system(size: 17, weight: .heavy, design: .rounded))
                                 .foregroundStyle(isRevealed && (isCorrect || isMyChoice) ? .white : PopArt.ink)
                                 .multilineTextAlignment(.leading)
 
-                            Spacer(minLength: 4)
+                            Spacer()
 
                             if isRevealed && isCorrect {
-                                Image(systemName: "checkmark.seal.fill")
-                                    .font(.system(size: 20, weight: .black))
-                                    .foregroundStyle(PopArt.yellow)
+                                Text("✅ BON")
+                                    .font(.system(size: 13, weight: .black))
+                                    .foregroundStyle(.white)
                             } else if isRevealed && isMyChoice && !isCorrect {
-                                Image(systemName: "xmark.octagon.fill")
-                                    .font(.system(size: 20, weight: .black))
+                                Text("❌ TON CHOIX")
+                                    .font(.system(size: 12, weight: .black))
                                     .foregroundStyle(.white)
                             } else if isMyChoice {
-                                Text("🔒")
-                                    .font(.system(size: 16))
+                                Text("🔒 CHOISI")
+                                    .font(.system(size: 12, weight: .black))
+                                    .foregroundStyle(PopArt.ink)
                             }
                         }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 12)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 14)
                         .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(PopArtActionButtonStyle(backgroundColor: btnBg, cornerRadius: 18))
@@ -1811,92 +1639,111 @@ struct PlayerControllerView: View {
                     }
                 }
 
-                // Compact Arsenal de Sabotage : 🔩 « Clouer le Bec » + 💋 Bisou Baveux
+                // Jokers Multi : 🔩 « Clouer le Bec » (Style You Don't Know Jack) + 💋 Bisou Baveux
                 let opponents = snap.players.filter { $0.id != session.localPlayerID }
                 if snap.stage == .cashAnswering,
                    let me,
                    !opponents.isEmpty,
                    (!me.hasUsedScrew || !me.hasUsedBisouTrap) {
-                    PopArtCard(cornerRadius: 18, borderWidth: 3, backgroundColor: PopArt.cream) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Text("⚡ JOKERS DE SABOTAGE (1 PAR PARTIE)")
-                                    .font(.system(size: 11, weight: .black, design: .rounded))
-                                    .foregroundStyle(PopArt.ink.opacity(0.7))
-                                Spacer()
-                            }
+                    PopArtCard(cornerRadius: 18, borderWidth: 3, backgroundColor: Color(hex: "#FFF8E7")) {
+                        VStack(spacing: 10) {
+                            if !me.hasUsedScrew {
+                                VStack(spacing: 6) {
+                                    Text("🔩 COUP DE JARNAC (JACK) : CLOUER LE BEC D'UN ADVERSAIRE !")
+                                        .font(.system(size: 12, weight: .black))
+                                        .foregroundStyle(PopArt.purple)
+                                    Text("Il se retrouve seul face à la question : s'il se trompe, tu rafles ses points !")
+                                        .font(.system(size: 11, weight: .bold))
+                                        .foregroundStyle(PopArt.ink.opacity(0.72))
+                                        .multilineTextAlignment(.center)
 
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 8) {
-                                    if !me.hasUsedScrew {
-                                        ForEach(opponents) { target in
-                                            Button {
-                                                session.sendScrewOpponent(to: target.id)
-                                            } label: {
-                                                HStack(spacing: 5) {
-                                                    Text("🔩 Clouer")
-                                                        .font(.system(size: 12, weight: .black, design: .rounded))
-                                                    Text("\(target.avatarEmoji) \(target.name)")
-                                                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                                    ScrollView(.horizontal, showsIndicators: false) {
+                                        HStack(spacing: 8) {
+                                            ForEach(opponents) { target in
+                                                Button {
+                                                    session.sendScrewOpponent(to: target.id)
+                                                } label: {
+                                                    HStack(spacing: 6) {
+                                                        Text("🔩")
+                                                        Text(target.avatarEmoji)
+                                                        Text("Clouer \(target.name)")
+                                                            .font(.system(size: 13, weight: .black))
+                                                    }
+                                                    .padding(.horizontal, 12)
+                                                    .padding(.vertical, 8)
                                                 }
-                                                .padding(.horizontal, 11)
-                                                .padding(.vertical, 7)
-                                            }
-                                            .buttonStyle(
-                                                PopArtActionButtonStyle(
-                                                    backgroundColor: PopArt.purple,
-                                                    foregroundColor: .white,
-                                                    cornerRadius: 12
+                                                .buttonStyle(
+                                                    PopArtActionButtonStyle(
+                                                        backgroundColor: PopArt.purple,
+                                                        foregroundColor: .white,
+                                                        cornerRadius: 12
+                                                    )
                                                 )
-                                            )
-                                        }
-                                    }
-
-                                    if !me.hasUsedBisouTrap {
-                                        ForEach(opponents) { target in
-                                            Button {
-                                                session.sendBisouTrap(to: target.id)
-                                            } label: {
-                                                HStack(spacing: 5) {
-                                                    Text("💋 Bisou")
-                                                        .font(.system(size: 12, weight: .black, design: .rounded))
-                                                    Text("\(target.avatarEmoji) \(target.name)")
-                                                        .font(.system(size: 12, weight: .bold, design: .rounded))
-                                                }
-                                                .padding(.horizontal, 11)
-                                                .padding(.vertical, 7)
                                             }
-                                            .buttonStyle(
-                                                PopArtActionButtonStyle(
-                                                    backgroundColor: PopArt.pink,
-                                                    foregroundColor: .white,
-                                                    cornerRadius: 12
-                                                )
-                                            )
                                         }
                                     }
                                 }
-                                .padding(.vertical, 2)
+                            }
+
+                            if !me.hasUsedBisouTrap {
+                                VStack(spacing: 6) {
+                                    Text("💋 JOKER BAVEUX : EMBROUILLER L'ÉCRAN D'UN ADVERSAIRE")
+                                        .font(.system(size: 12, weight: .black))
+                                        .foregroundStyle(PopArt.pink)
+
+                                    ScrollView(.horizontal, showsIndicators: false) {
+                                        HStack(spacing: 8) {
+                                            ForEach(opponents) { target in
+                                                Button {
+                                                    session.sendBisouTrap(to: target.id)
+                                                } label: {
+                                                    HStack(spacing: 6) {
+                                                        Text("💋")
+                                                        Text(target.avatarEmoji)
+                                                        Text(target.name)
+                                                            .font(.system(size: 13, weight: .black))
+                                                    }
+                                                    .padding(.horizontal, 12)
+                                                    .padding(.vertical, 8)
+                                                }
+                                                .buttonStyle(
+                                                    PopArtActionButtonStyle(
+                                                        backgroundColor: PopArt.pink,
+                                                        foregroundColor: .white,
+                                                        cornerRadius: 12
+                                                    )
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
-                        .padding(11)
+                        .padding(12)
                     }
                 }
             }
         }
     }
 
-    // MARK: - 6. Manche 3 : Raclette Quizz Buttons (Cohesive Studio Ivory & Gold Palette)
+    // MARK: - 6. Manche 3 : Raclette Quizz Buttons
 
     private static let itemCardPalette: [Color] = [
-        PopArt.white,
-        PopArt.cream
+        Color(hex: "#FFF3E0"), // 1: Orange crème
+        Color(hex: "#E0F7FA"), // 2: Cyan polaire
+        Color(hex: "#F3E5F5"), // 3: Violet pop
+        Color(hex: "#FFE4E8"), // 4: Rose bonbon
+        Color(hex: "#ECFDF5"), // 5: Menthe fraîche
+        Color(hex: "#FEF9C3")  // 6: Jaune citron
     ]
 
     private static let itemBadgePalette: [Color] = [
         PopArt.orange,
-        PopArt.blue,
-        PopArt.purple
+        PopArt.cyan,
+        PopArt.purple,
+        PopArt.pink,
+        PopArt.greenSuccess,
+        PopArt.blue
     ]
 
     private func disOrDatButtonColor(side: String, defaultColor: Color) -> Color {
@@ -1972,41 +1819,30 @@ struct PlayerControllerView: View {
                 }
 
                 PopArtCard(cornerRadius: 20, borderWidth: 3.5, backgroundColor: cardBg) {
-                    VStack(spacing: 10) {
+                    VStack(spacing: 8) {
                         HStack {
-                            Text("ITEM \(idx + 1) / \(round.items.count)")
-                                .font(.system(size: 12, weight: .black, design: .rounded))
+                            Text("QUESTION \(idx + 1) / \(round.items.count)")
+                                .font(.system(size: 13, weight: .black, design: .rounded))
                                 .foregroundStyle(.white)
-                                .padding(.horizontal, 11)
+                                .padding(.horizontal, 12)
                                 .padding(.vertical, 5)
                                 .background(badgeBg, in: Capsule())
                                 .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
 
                             Spacer()
 
-                            HStack(spacing: 4) {
-                                ForEach(0..<round.items.count, id: \.self) { dotIdx in
-                                    Circle()
-                                        .fill(dotIdx < idx ? PopArt.greenSuccess : (dotIdx == idx ? PopArt.yellow : PopArt.ink.opacity(0.16)))
-                                        .frame(width: 8, height: 8)
-                                        .overlay(Circle().strokeBorder(PopArt.ink, lineWidth: 1.2))
-                                }
-                            }
-
-                            Spacer()
-
-                            Text("🧀 RACLETTE")
-                                .font(.system(size: 11, weight: .black, design: .rounded))
+                            Text("🧀 RACLETTE QUIZZ")
+                                .font(.system(size: 12, weight: .black, design: .rounded))
                                 .foregroundStyle(PopArt.ink.opacity(0.75))
                         }
 
                         Text(round.funnyTitle)
-                            .font(.system(size: 14, weight: .black, design: .rounded))
-                            .foregroundStyle(PopArt.orange)
+                            .font(.system(size: 14, weight: .black))
+                            .foregroundStyle(badgeBg)
                             .multilineTextAlignment(.center)
 
                         Text(item?.text ?? round.prompt)
-                            .font(.system(size: 22, weight: .black, design: .rounded))
+                            .font(.system(size: 21, weight: .black, design: .rounded))
                             .foregroundStyle(PopArt.ink)
                             .multilineTextAlignment(.center)
                             .padding(.vertical, 4)
@@ -2147,7 +1983,7 @@ struct PlayerControllerView: View {
                         }
                         .buttonStyle(
                             PopArtActionButtonStyle(
-                                backgroundColor: disOrDatButtonColor(side: "both", defaultColor: PopArt.orange),
+                                backgroundColor: disOrDatButtonColor(side: "both", defaultColor: PopArt.purple),
                                 foregroundColor: disOrDatForegroundColor(side: "both"),
                                 cornerRadius: 20
                             )
@@ -2160,88 +1996,29 @@ struct PlayerControllerView: View {
         }
     }
 
-    // MARK: - 7. Final Podium Controller Card (Personal Trophy + Full Leaderboard)
+    // MARK: - 7. Final Podium Controller Card
 
     private var finalPodiumControllerSection: some View {
         VStack(spacing: 14) {
             if let myAward = snap.podiumAwards.first(where: { $0.playerID == session.localPlayerID }) {
-                let medal = myAward.rank == 1 ? "🥇" : (myAward.rank == 2 ? "🥈" : (myAward.rank == 3 ? "🥉" : "🏅"))
                 PopArtCard(cornerRadius: 24, borderWidth: 4, backgroundColor: PopArt.yellow) {
                     VStack(spacing: 10) {
-                        Text("\(medal) TON RÉSULTAT : #\(myAward.rank)")
-                            .font(.system(size: 26, weight: .black, design: .rounded))
+                        Text("🏆 TON RÉSULTAT : #\(myAward.rank)")
+                            .font(.system(size: 28, weight: .black, design: .rounded))
                             .foregroundStyle(PopArt.ink)
                         Text(myAward.funnyTitle)
-                            .font(.system(size: 19, weight: .black, design: .rounded))
+                            .font(.system(size: 20, weight: .black, design: .rounded))
                             .foregroundStyle(PopArt.redError)
                             .multilineTextAlignment(.center)
                         Text("\(myAward.score) POINTS")
                             .font(.system(size: 24, weight: .black, design: .monospaced))
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 18)
-                            .padding(.vertical, 6)
-                            .background(PopArt.ink, in: Capsule())
+                            .foregroundStyle(PopArt.ink)
                         Text(myAward.subtitle)
-                            .font(.system(size: 13.5, weight: .bold, design: .rounded))
-                            .foregroundStyle(PopArt.ink.opacity(0.8))
-                            .multilineTextAlignment(.center)
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(PopArt.ink.opacity(0.75))
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(20)
-                }
-            }
-
-            if !snap.podiumAwards.isEmpty {
-                PopArtCard(cornerRadius: 22, borderWidth: 3.5, backgroundColor: PopArt.white) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("🏆 CLASSEMENT OFFICIEL DU STUDIO")
-                            .font(.system(size: 12, weight: .black, design: .rounded))
-                            .foregroundStyle(PopArt.ink.opacity(0.65))
-
-                        ForEach(snap.podiumAwards) { award in
-                            let isMe = (award.playerID == session.localPlayerID)
-                            let medal = award.rank == 1 ? "🥇" : (award.rank == 2 ? "🥈" : (award.rank == 3 ? "🥉" : "#\(award.rank)"))
-                            HStack(spacing: 10) {
-                                Text(medal)
-                                    .font(.system(size: 20, weight: .black, design: .rounded))
-                                    .frame(width: 30)
-
-                                Text(award.avatarEmoji)
-                                    .font(.system(size: 20))
-
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(award.playerName)
-                                        .font(.system(size: 15, weight: .black, design: .rounded))
-                                        .foregroundStyle(PopArt.ink)
-                                    Text(award.funnyTitle)
-                                        .font(.system(size: 11.5, weight: .bold, design: .rounded))
-                                        .foregroundStyle(PopArt.orange)
-                                        .lineLimit(1)
-                                }
-
-                                Spacer()
-
-                                Text("\(award.score) PTS")
-                                    .font(.system(size: 14, weight: .black, design: .monospaced))
-                                    .foregroundStyle(PopArt.ink)
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 5)
-                                    .background(isMe ? PopArt.yellow : PopArt.cream, in: Capsule())
-                                    .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 1.8))
-                            }
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 8)
-                            .background(
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .fill(isMe ? Color(hex: "#FEF3C7") : PopArt.cream.opacity(0.5))
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .strokeBorder(isMe ? PopArt.ink : PopArt.ink.opacity(0.18), lineWidth: isMe ? 2.2 : 1.2)
-                            )
-                        }
-                    }
-                    .padding(14)
+                    .padding(22)
                 }
             }
 

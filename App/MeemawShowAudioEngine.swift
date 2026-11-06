@@ -80,22 +80,26 @@ final class MeemawShowAudioEngine: NSObject {
         let ns = filename as NSString
         let ext = ns.pathExtension
         let base = ns.deletingPathExtension
+        let candidateExtensions = (ext.lowercased() == "m4a") ? ["mp3", "m4a"] : [ext]
 
-        if let url = Bundle.main.url(forResource: base, withExtension: ext, subdirectory: "MeemawQuizzAudio") {
-            return url
-        }
-        if let url = Bundle.main.url(forResource: base, withExtension: ext) {
-            return url
-        }
-        if let res = Bundle.main.resourceURL {
-            let direct = res.appendingPathComponent("MeemawQuizzAudio").appendingPathComponent(filename)
-            if FileManager.default.fileExists(atPath: direct.path) {
-                return direct
+        for candidateExt in candidateExtensions {
+            let candidateFilename = "\(base).\(candidateExt)"
+            if let url = Bundle.main.url(forResource: base, withExtension: candidateExt, subdirectory: "MeemawQuizzAudio") {
+                return url
             }
-        }
-        let devPath = "/Users/xabi/DEV/MeemawQuizz/App/Resources/MeemawQuizzAudio/\(filename)"
-        if FileManager.default.fileExists(atPath: devPath) {
-            return URL(fileURLWithPath: devPath)
+            if let url = Bundle.main.url(forResource: base, withExtension: candidateExt) {
+                return url
+            }
+            if let res = Bundle.main.resourceURL {
+                let direct = res.appendingPathComponent("MeemawQuizzAudio").appendingPathComponent(candidateFilename)
+                if FileManager.default.fileExists(atPath: direct.path) {
+                    return direct
+                }
+            }
+            let devPath = "/Users/xabi/DEV/MeemawQuizz/App/Resources/MeemawQuizzAudio/\(candidateFilename)"
+            if FileManager.default.fileExists(atPath: devPath) {
+                return URL(fileURLWithPath: devPath)
+            }
         }
         return nil
     }
