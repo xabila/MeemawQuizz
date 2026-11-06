@@ -6,20 +6,20 @@ import UIKit
 // MARK: - Meemaw TV Quiz Show Studio Design System (Aligned with App Icon: Royal Studio Blue, Spotlight Gold & Copper Amber)
 
 enum PopArt {
-    static let studioNavy = Color(hex: "#111E48")
-    static let studioRoyal = Color(hex: "#1E3A8A")
-    static let orange = Color(hex: "#F97316")      // Warm Copper-Amber ("QUIZ" card & Meemaw hair)
-    static let orangeLight = Color(hex: "#FB923C")
-    static let cream = Color(hex: "#FFFDF8")       // Clean Warm Ivory surface
-    static let ink = Color(hex: "#0F172A")         // Deep Studio Navy-Black border
-    static let white = Color.white
-    static let greenSuccess = Color(hex: "#10B981")
-    static let redError = Color(hex: "#E11D48")    // TV Buzzer Crimson Red
-    static let yellow = Color(hex: "#FBBF24")      // Spotlight Gold (Microphone, Bow Tie & Marquee)
-    static let cyan = Color(hex: "#0284C7")        // Studio Rim Light Blue
-    static let purple = Color(hex: "#1D4ED8")      // Harmonized Royal Studio Blue (replaces neon purple)
-    static let pink = Color(hex: "#E11D48")        // Harmonized Buzzer Red (replaces neon candy pink)
-    static let blue = Color(hex: "#2563EB")        // Meemaw Blazer Royal Blue
+    static let studioNavy = Color(hex: "#121A2F")
+    static let studioRoyal = Color(hex: "#1B2A4A")
+    static let orange = Color(hex: "#D97736")      // Warm Terracotta-Amber (refined, non-neon)
+    static let orangeLight = Color(hex: "#E8955B")
+    static let cream = Color(hex: "#F6F4EE")       // Soft Warm Alabaster surface
+    static let ink = Color(hex: "#182235")         // Deep Slate-Navy text & border (softer than pure black)
+    static let white = Color(hex: "#FCFBF8")       // Warm Ivory-White (no harsh screen glare)
+    static let greenSuccess = Color(hex: "#238A66") // Refined Sage-Emerald
+    static let redError = Color(hex: "#C84B5F")    // Softened Coral-Crimson
+    static let yellow = Color(hex: "#F2CD78")      // Soft Champagne Gold (replaces loud bright yellow)
+    static let cyan = Color(hex: "#3A7CA5")        // Calm Steel-Blue
+    static let purple = Color(hex: "#4A588A")      // Muted Slate-Indigo
+    static let pink = Color(hex: "#B85672")        // Muted Rose-Berry
+    static let blue = Color(hex: "#385E9D")        // Calm Studio Blue
 
     static func color(for playerColor: PlayerColor) -> Color {
         Color(hex: playerColor.hex)
@@ -84,44 +84,32 @@ struct PopArtTVBackground: View {
 
     var body: some View {
         ZStack {
-            // Cohesive TV Studio Royal Blue background matching the MeemawQuizz App Icon
+            // Calm, deep velvet studio navy background (Impeccable quieter palette)
             LinearGradient(
                 colors: [
-                    Color(hex: "#1E3A8A"),
-                    Color(hex: "#132356"),
-                    Color(hex: "#0D183A")
+                    Color(hex: "#192642"),
+                    Color(hex: "#111A2E"),
+                    Color(hex: "#0B1120")
                 ],
                 startPoint: .top,
                 endPoint: .bottom
             )
             .ignoresSafeArea()
 
-            // Subtle Golden Marquee Spotlight Glow at top center (like the App Icon arch)
+            // Gentle, understated warm top ambient light
             RadialGradient(
                 colors: [
-                    PopArt.yellow.opacity(0.25),
-                    PopArt.orange.opacity(0.09),
+                    PopArt.yellow.opacity(0.11),
+                    PopArt.orange.opacity(0.04),
                     Color.clear
                 ],
                 center: .top,
                 startRadius: 10,
-                endRadius: 380
+                endRadius: 360
             )
             .ignoresSafeArea()
 
-            // Subtle Left & Right Studio Stage Rim Lights
-            RadialGradient(
-                colors: [
-                    PopArt.cyan.opacity(0.14),
-                    Color.clear
-                ],
-                center: .topLeading,
-                startRadius: 10,
-                endRadius: 300
-            )
-            .ignoresSafeArea()
-
-            HalftonePattern(dotColor: PopArt.yellow.opacity(0.06), dotSize: 3.5, spacing: 18)
+            HalftonePattern(dotColor: PopArt.white.opacity(0.025), dotSize: 3, spacing: 20)
                 .drawingGroup()
                 .ignoresSafeArea()
         }
@@ -131,38 +119,28 @@ struct PopArtTVBackground: View {
 // MARK: - Comic Card & Button Styles
 
 struct PopArtCard<Content: View>: View {
-    var cornerRadius: CGFloat = 22
-    var borderWidth: CGFloat = 3.5
-    var backgroundColor: Color = .white
-    var shadowOffset: CGFloat = 6
+    var cornerRadius: CGFloat = 18
+    var borderWidth: CGFloat = 2
+    var backgroundColor: Color = PopArt.white
+    var shadowOffset: CGFloat = 3
     @ViewBuilder let content: Content
 
     var body: some View {
+        let effectiveBorder = min(2.2, borderWidth)
+        let effectiveShadow = min(3.5, shadowOffset)
         content
             .background(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                     .fill(backgroundColor)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: max(4, cornerRadius - borderWidth), style: .continuous)
-                            .strokeBorder(
-                                LinearGradient(
-                                    colors: [Color.white.opacity(0.55), Color.clear],
-                                    startPoint: .top,
-                                    endPoint: .center
-                                ),
-                                lineWidth: 1.5
-                            )
-                            .padding(borderWidth * 0.75)
-                    )
                     .background(
                         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                            .fill(PopArt.ink)
-                            .offset(x: 0, y: shadowOffset)
+                            .fill(PopArt.ink.opacity(0.45))
+                            .offset(x: 0, y: effectiveShadow)
                     )
             )
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .strokeBorder(PopArt.ink, lineWidth: borderWidth)
+                    .strokeBorder(PopArt.ink.opacity(0.82), lineWidth: effectiveBorder)
             )
     }
 }
@@ -170,7 +148,7 @@ struct PopArtCard<Content: View>: View {
 struct PopArtActionButtonStyle: ButtonStyle {
     var backgroundColor: Color = PopArt.orange
     var foregroundColor: Color = PopArt.ink
-    var cornerRadius: CGFloat = 16
+    var cornerRadius: CGFloat = 15
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -178,30 +156,18 @@ struct PopArtActionButtonStyle: ButtonStyle {
             .background(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                     .fill(backgroundColor)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: max(4, cornerRadius - 3), style: .continuous)
-                            .strokeBorder(
-                                LinearGradient(
-                                    colors: [Color.white.opacity(0.42), Color.clear],
-                                    startPoint: .top,
-                                    endPoint: .center
-                                ),
-                                lineWidth: 1.5
-                            )
-                            .padding(2.5)
-                    )
                     .background(
                         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                            .fill(PopArt.ink)
-                            .offset(y: configuration.isPressed ? 1 : 5)
+                            .fill(PopArt.ink.opacity(0.45))
+                            .offset(y: configuration.isPressed ? 1 : 3)
                     )
             )
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .strokeBorder(PopArt.ink, lineWidth: 3)
+                    .strokeBorder(PopArt.ink.opacity(0.82), lineWidth: 2)
             )
-            .offset(y: configuration.isPressed ? 4 : 0)
-            .animation(.spring(response: 0.2, dampingFraction: 0.72), value: configuration.isPressed)
+            .offset(y: configuration.isPressed ? 2 : 0)
+            .animation(.easeOut(duration: 0.14), value: configuration.isPressed)
             .onChange(of: configuration.isPressed) { _, pressed in
                 if pressed {
                     PopArt.triggerLightHaptic()
