@@ -510,9 +510,20 @@ struct MeemawTVStageView: View {
                 shadowOffset: 8 * scale
             ) {
                 VStack(spacing: 12 * scale) {
-                    Text("🎯 TU TE METS COMBIEN (DE 1 À 4 ÉTOILES) SUR CE SUJET ?")
-                        .font(.system(size: 20 * scale, weight: .black, design: .rounded))
-                        .foregroundStyle(PopArt.purple)
+                    HStack(spacing: 10 * scale) {
+                        Text("🎯 TU TE METS COMBIEN (DE 1 À 4 ÉTOILES) SUR CE SUJET ?")
+                            .font(.system(size: 20 * scale, weight: .black, design: .rounded))
+                            .foregroundStyle(PopArt.purple)
+                        if let dec = question.decade {
+                            Text(dec.badgeLabel)
+                                .font(.system(size: 16 * scale, weight: .black, design: .rounded))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 12 * scale)
+                                .padding(.vertical, 5 * scale)
+                                .background(PopArt.pink, in: Capsule())
+                                .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2.5))
+                        }
+                    }
 
                     Text("« \(question.funnyTitle) »")
                         .font(.system(size: 38 * scale, weight: .black, design: .rounded))
@@ -580,6 +591,15 @@ struct MeemawTVStageView: View {
                         Text("« \(question.funnyTitle.uppercased()) »")
                             .font(.system(size: 18 * scale, weight: .black, design: .rounded))
                             .foregroundStyle(PopArt.orange)
+                        if let dec = question.decade {
+                            Text(dec.badgeLabel)
+                                .font(.system(size: 15 * scale, weight: .black, design: .rounded))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 10 * scale)
+                                .padding(.vertical, 4 * scale)
+                                .background(PopArt.pink, in: Capsule())
+                                .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
+                        }
                         Spacer()
                         let pts = (snap.roundKind == .leSolo || snap.roundKind == .finaleDouble)
                             ? question.baseValue * 2

@@ -45,6 +45,30 @@ final class GameSessionController {
 
     var localSelectedColor: PlayerColor = .meemawOrange
     var localAvatarEmoji: String = "🦊"
+    var localAgeBracket: PlayerAgeBracket = {
+        if let raw = UserDefaults.standard.string(forKey: "meemawquizz.localAgeBracket"),
+           let parsed = PlayerAgeBracket(rawValue: raw) {
+            return parsed
+        }
+        return .age40to54
+    }() {
+        didSet {
+            UserDefaults.standard.set(localAgeBracket.rawValue, forKey: "meemawquizz.localAgeBracket")
+        }
+    }
+
+    var activeTableDecades: [QuizDecade] {
+        let humans = effectiveSnapshot.players.filter { !$0.id.hasPrefix("bot_") }
+        let source = humans.isEmpty ? effectiveSnapshot.players : humans
+        var set = Set<QuizDecade>()
+        for p in source {
+            set.formUnion(p.effectiveAgeBracket.preferredDecades)
+        }
+        if set.isEmpty {
+            set.formUnion(localAgeBracket.preferredDecades)
+        }
+        return QuizDecade.allCases.filter { set.contains($0) }
+    }
 
     // MARK: - Synchronized Show State
     var roomCode: String = AppLanguage.isEnglish ? "MEEMAW" : "MAMIE"
@@ -230,6 +254,9 @@ final class GameSessionController {
             if let me = snapshot.players.first(where: { $0.id == self.localPlayerID }) {
                 self.localSelectedColor = me.color
                 self.localAvatarEmoji = me.avatarEmoji
+                if let age = me.ageBracket {
+                    self.localAgeBracket = age
+                }
             }
         }
     }
@@ -244,6 +271,7 @@ final class GameSessionController {
             name: localPlayerName,
             requestedColor: localSelectedColor,
             avatarEmoji: localAvatarEmoji,
+            ageBracket: localAgeBracket,
             isHost: true,
             platform: .iosHost
         )
@@ -285,24 +313,25 @@ final class GameSessionController {
 
     func addDemoBotPlayers() {
         guard role == .hostAndPlayer1 else { return }
-        let botCatalog: [(String, String, PlayerColor, String)] = AppLanguage.isEnglish
+        let botCatalog: [(String, String, PlayerColor, String, PlayerAgeBracket)] = AppLanguage.isEnglish
             ? [
-                ("bot_tonton", "Uncle Bob", .electricBlue, "🐬"),
-                ("bot_tata", "Aunt Brenda", .candyPink, "🦩"),
-                ("bot_kevin", "Cousin Kyle", .mintGreen, "🐸")
+                ("bot_tonton", "Uncle Bob", .electricBlue, "🐬", .age55Plus),
+                ("bot_tata", "Aunt Brenda", .candyPink, "🦩", .age40to54),
+                ("bot_kevin", "Cousin Kyle", .mintGreen, "🐸", .under25)
             ]
             : [
-                ("bot_tonton", "Tonton Gérard", .electricBlue, "🐬"),
-                ("bot_tata", "Tata Josiane", .candyPink, "🦩"),
-                ("bot_kevin", "Kévin du 59", .mintGreen, "🐸")
+                ("bot_tonton", "Tonton Gérard", .electricBlue, "🐬", .age55Plus),
+                ("bot_tata", "Tata Josiane", .candyPink, "🦩", .age40to54),
+                ("bot_kevin", "Kévin du 59", .mintGreen, "🐸", .under25)
             ]
-        for (id, name, color, emoji) in botCatalog {
+        for (id, name, color, emoji, age) in botCatalog {
             if !registry.players.contains(where: { $0.id == id }) {
                 registry.upsertPlayer(
                     id: id,
                     name: name,
                     requestedColor: color,
                     avatarEmoji: emoji,
+                    ageBracket: age,
                     isHost: false,
                     platform: .iosBonjour
                 )
@@ -322,6 +351,7 @@ final class GameSessionController {
             playerName: localPlayerName,
             requestedColor: localSelectedColor,
             avatarEmoji: localAvatarEmoji,
+            ageBracket: localAgeBracket,
             platform: role == .hostAndPlayer1 ? .iosHost : .iosBonjour
         )
         dispatchAction(msg)
@@ -492,12 +522,16 @@ final class GameSessionController {
                 name: msg.playerName ?? "Invité",
                 requestedColor: msg.requestedColor,
                 avatarEmoji: msg.avatarEmoji,
+                ageBracket: msg.ageBracket,
                 isHost: isHostPlayer,
                 platform: msg.platform ?? .iosBonjour
             )
             if isHostPlayer {
                 localSelectedColor = updated.color
                 localAvatarEmoji = updated.avatarEmoji
+                if let age = updated.ageBracket {
+                    localAgeBracket = age
+                }
             }
             broadcastState()
 
@@ -691,6 +725,7 @@ final class GameSessionController {
 
         activeDeck = QuestionBank.buildShowDeck(
             for: selectedPack,
+            preferredDecades: Set(activeTableDecades),
             excludingQuestionIDs: usedQuestionIDs,
             excludingDisOrDatIDs: usedDisOrDatIDs
         )

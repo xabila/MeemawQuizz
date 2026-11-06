@@ -405,6 +405,9 @@ struct PlayerControllerView: View {
                     .padding(14)
                 }
 
+                // 1-Tap Age Bracket & Generational Mix Card
+                lobbyAgeBracketCard
+
                 // Single Primary Launch CTA + Subtle Settings/Players Link
                 VStack(spacing: 10) {
                     Button {
@@ -500,7 +503,65 @@ struct PlayerControllerView: View {
                     }
                     .padding(16)
                 }
+
+                lobbyAgeBracketCard
             }
+        }
+    }
+
+    private var lobbyAgeBracketCard: some View {
+        let currentAge = me?.effectiveAgeBracket ?? session.localAgeBracket
+        let activeDecades = session.activeTableDecades.map(\.shortTag).joined(separator: " • ")
+
+        return PopArtCard(cornerRadius: 20, borderWidth: 2.5, backgroundColor: PopArt.cream, shadowOffset: 4) {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("🎂 TON ÂGE (QUESTIONS PAR DÉCENNIE)")
+                        .font(.system(size: 11.5, weight: .black, design: .rounded))
+                        .foregroundStyle(PopArt.ink)
+                    Spacer()
+                    Text("Mix : \(activeDecades)")
+                        .font(.system(size: 10.5, weight: .black, design: .rounded))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(PopArt.blue, in: Capsule())
+                }
+
+                HStack(spacing: 6) {
+                    ForEach(PlayerAgeBracket.allCases) { bracket in
+                        let isSelected = (currentAge == bracket)
+                        Button {
+                            session.localAgeBracket = bracket
+                            session.sendLocalProfileUpdate()
+                        } label: {
+                            VStack(spacing: 2) {
+                                Text(bracket.shortBadge)
+                                    .font(.system(size: 11.5, weight: .black, design: .rounded))
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.75)
+                                Text(bracket.subtitle)
+                                    .font(.system(size: 9.5, weight: .bold, design: .rounded))
+                                    .opacity(0.8)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.75)
+                            }
+                            .foregroundStyle(isSelected ? PopArt.ink : PopArt.ink)
+                            .frame(maxWidth: .infinity, minHeight: 44)
+                            .background(
+                                isSelected ? PopArt.yellow : PopArt.white,
+                                in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .strokeBorder(isSelected ? PopArt.ink : PopArt.ink.opacity(0.35), lineWidth: isSelected ? 2.5 : 1.5)
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+            .padding(12)
         }
     }
 
@@ -667,6 +728,46 @@ struct PlayerControllerView: View {
                                     .buttonStyle(PopArtActionButtonStyle(backgroundColor: PopArt.yellow, cornerRadius: 12))
                                 }
 
+                                Text("Tranche d'âge (adapte les décennies 60s–2020s) :")
+                                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                                    .foregroundStyle(PopArt.ink.opacity(0.7))
+
+                                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 2), spacing: 8) {
+                                    ForEach(PlayerAgeBracket.allCases) { bracket in
+                                        let currentAge = me?.effectiveAgeBracket ?? session.localAgeBracket
+                                        let isSelected = (currentAge == bracket)
+                                        Button {
+                                            session.localAgeBracket = bracket
+                                            session.sendLocalProfileUpdate()
+                                        } label: {
+                                            HStack(spacing: 6) {
+                                                VStack(alignment: .leading, spacing: 2) {
+                                                    Text(bracket.shortBadge)
+                                                        .font(.system(size: 13, weight: .black, design: .rounded))
+                                                    Text(bracket.subtitle)
+                                                        .font(.system(size: 10.5, weight: .bold, design: .rounded))
+                                                        .opacity(0.75)
+                                                }
+                                                Spacer(minLength: 0)
+                                                if isSelected {
+                                                    Image(systemName: "checkmark.circle.fill")
+                                                        .font(.system(size: 15, weight: .black))
+                                                }
+                                            }
+                                            .foregroundStyle(PopArt.ink)
+                                            .padding(.horizontal, 10)
+                                            .padding(.vertical, 9)
+                                            .frame(maxWidth: .infinity, minHeight: 44)
+                                            .background(isSelected ? PopArt.yellow : PopArt.cream, in: RoundedRectangle(cornerRadius: 12))
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 12)
+                                                    .strokeBorder(isSelected ? PopArt.ink : PopArt.ink.opacity(0.4), lineWidth: isSelected ? 2.5 : 1.5)
+                                            )
+                                        }
+                                        .buttonStyle(.plain)
+                                    }
+                                }
+
                                 Text("Couleur de ton buzzer :")
                                     .font(.system(size: 12, weight: .bold, design: .rounded))
                                     .foregroundStyle(PopArt.ink.opacity(0.7))
@@ -742,12 +843,18 @@ struct PlayerControllerView: View {
                                 }
 
                                 ForEach(snap.players) { p in
-                                    HStack(spacing: 10) {
+                                    HStack(spacing: 8) {
                                         Text(p.avatarEmoji)
                                             .font(.system(size: 18))
                                         Text(p.name)
                                             .font(.system(size: 14, weight: .black, design: .rounded))
                                             .foregroundStyle(PopArt.ink)
+                                        Text(p.effectiveAgeBracket.shortBadge)
+                                            .font(.system(size: 10.5, weight: .black, design: .rounded))
+                                            .foregroundStyle(PopArt.ink)
+                                            .padding(.horizontal, 7)
+                                            .padding(.vertical, 3)
+                                            .background(PopArt.yellow.opacity(0.75), in: Capsule())
                                         Spacer()
                                         Text(p.id.hasPrefix("bot_") ? "BOT IA" : (p.id == session.localPlayerID ? "MOI" : "INVITÉ"))
                                             .font(.system(size: 10, weight: .black, design: .rounded))
@@ -1384,6 +1491,15 @@ struct PlayerControllerView: View {
                                     .padding(.horizontal, 8)
                                     .padding(.vertical, 3)
                                     .background(PopArt.yellow, in: Capsule())
+
+                                if let dec = q.decade {
+                                    Text(dec.shortTag)
+                                        .font(.system(size: 10.5, weight: .black, design: .rounded))
+                                        .foregroundStyle(.white)
+                                        .padding(.horizontal, 7)
+                                        .padding(.vertical, 3)
+                                        .background(PopArt.orange, in: Capsule())
+                                }
                             }
 
                             Text("« \(q.funnyTitle) »")
@@ -1640,11 +1756,21 @@ struct PlayerControllerView: View {
                 } else {
                     PopArtCard(cornerRadius: 16, borderWidth: 2, backgroundColor: PopArt.white) {
                         VStack(spacing: 4) {
-                            Text(q.funnyTitle)
-                                .font(.system(size: 13, weight: .black, design: .rounded))
-                                .foregroundStyle(PopArt.orange)
-                                .multilineTextAlignment(.center)
-                                .lineLimit(1)
+                            HStack(spacing: 6) {
+                                if let dec = q.decade {
+                                    Text(dec.badgeLabel)
+                                        .font(.system(size: 10.5, weight: .black, design: .rounded))
+                                        .foregroundStyle(.white)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 3)
+                                        .background(PopArt.blue, in: Capsule())
+                                }
+                                Text(q.funnyTitle)
+                                    .font(.system(size: 13, weight: .black, design: .rounded))
+                                    .foregroundStyle(PopArt.orange)
+                                    .multilineTextAlignment(.center)
+                                    .lineLimit(1)
+                            }
                             Text(q.prompt)
                                 .font(.system(size: 15, weight: .bold, design: .rounded))
                                 .foregroundStyle(PopArt.ink)

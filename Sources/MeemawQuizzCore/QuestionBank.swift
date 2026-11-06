@@ -68,7 +68,7 @@ public enum QuestionBank {
         if AppLanguage.isEnglish {
             return englishMusiqueAndJukeboxQuestions
         }
-        return musiqueQuestions + extraMusiqueAndJukeboxQuestions
+        return musiqueQuestions + extraMusiqueAndJukeboxQuestions + decadeMusiqueQuestions
     }
 
     public static var combinedDisOrDatRounds: [QuizDisOrDatRound] {
@@ -104,24 +104,24 @@ public enum QuestionBank {
         }
         switch pack {
         case .francaisMeemaw:
-            return francaisQuestions + extraFrancaisQuestions
+            return francaisQuestions + extraFrancaisQuestions + decadeFrancaisQuestions
         case .mathMeemaw:
-            return mathQuestions + extraMathQuestions
+            return mathQuestions + extraMathQuestions + decadeMathQuestions
         case .seriesCinema:
-            return seriesCinemaQuestions + extraSeriesCinemaQuestions
+            return seriesCinemaQuestions + extraSeriesCinemaQuestions + decadeSeriesCinemaQuestions
         case .musiqueTubes:
-            return musiqueQuestions + extraMusiqueAndJukeboxQuestions
+            return musiqueQuestions + extraMusiqueAndJukeboxQuestions + decadeMusiqueQuestions
         case .cultureGInsolite:
-            return cultureGQuestions + extraCultureGQuestions
+            return cultureGQuestions + extraCultureGQuestions + decadeCultureGQuestions
         case .ecoCash:
-            return ecoCashQuestions + extraEcoCashQuestions
+            return ecoCashQuestions + extraEcoCashQuestions + decadeEcoCashQuestions
         case .grandMix:
-            return (francaisQuestions + extraFrancaisQuestions)
-                + (mathQuestions + extraMathQuestions)
-                + (seriesCinemaQuestions + extraSeriesCinemaQuestions)
-                + (musiqueQuestions + extraMusiqueAndJukeboxQuestions)
-                + (cultureGQuestions + extraCultureGQuestions)
-                + (ecoCashQuestions + extraEcoCashQuestions)
+            return (francaisQuestions + extraFrancaisQuestions + decadeFrancaisQuestions)
+                + (mathQuestions + extraMathQuestions + decadeMathQuestions)
+                + (seriesCinemaQuestions + extraSeriesCinemaQuestions + decadeSeriesCinemaQuestions)
+                + (musiqueQuestions + extraMusiqueAndJukeboxQuestions + decadeMusiqueQuestions)
+                + (cultureGQuestions + extraCultureGQuestions + decadeCultureGQuestions)
+                + (ecoCashQuestions + extraEcoCashQuestions + decadeEcoCashQuestions)
         }
     }
 
@@ -158,11 +158,47 @@ public enum QuestionBank {
 
     public static func buildShowDeck(
         for pack: QuizThemePack,
+        preferredDecades: Set<QuizDecade> = [],
         excludingQuestionIDs: Set<String> = [],
         excludingDisOrDatIDs: Set<String> = []
     ) -> ShowGameDeck {
         let baseQuestions = questions(for: pack)
-        var freshPool = baseQuestions.filter { !excludingQuestionIDs.contains($0.id) }.shuffled()
+        let unseenBase = baseQuestions.filter { !excludingQuestionIDs.contains($0.id) }
+
+        var freshPool: [QuizMCQQuestion]
+        if !preferredDecades.isEmpty {
+            let matchingDecade = unseenBase.filter {
+                if let d = $0.decade { return preferredDecades.contains(d) }
+                return false
+            }.shuffled()
+            let timeless = unseenBase.filter { $0.decade == nil }.shuffled()
+            let otherDecade = unseenBase.filter {
+                if let d = $0.decade { return !preferredDecades.contains(d) }
+                return false
+            }.shuffled()
+
+            // Interleave 2 generation-matched decade questions for every 1 timeless question
+            var interleaved: [QuizMCQQuestion] = []
+            var mIdx = 0
+            var tIdx = 0
+            while mIdx < matchingDecade.count || tIdx < timeless.count {
+                if mIdx < matchingDecade.count {
+                    interleaved.append(matchingDecade[mIdx])
+                    mIdx += 1
+                }
+                if mIdx < matchingDecade.count {
+                    interleaved.append(matchingDecade[mIdx])
+                    mIdx += 1
+                }
+                if tIdx < timeless.count {
+                    interleaved.append(timeless[tIdx])
+                    tIdx += 1
+                }
+            }
+            freshPool = interleaved + otherDecade
+        } else {
+            freshPool = unseenBase.shuffled()
+        }
 
         if freshPool.count < 12 {
             let grandMixUnseen = questions(for: .grandMix)

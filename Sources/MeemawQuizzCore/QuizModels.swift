@@ -54,6 +54,81 @@ public enum PlayerColor: String, CaseIterable, Codable, Identifiable, Sendable {
     }
 }
 
+// MARK: - Decades (1960s -> 2010s-2020s) & Player Age Brackets
+
+public enum QuizDecade: String, CaseIterable, Codable, Identifiable, Sendable {
+    case sixties = "1960s"
+    case seventies = "1970s"
+    case eighties = "1980s"
+    case nineties = "1990s"
+    case twoThousands = "2000s"
+    case twentyTens = "2010s"
+
+    public var id: String { rawValue }
+
+    public var badgeLabel: String {
+        switch self {
+        case .sixties: "🪩 Années 60"
+        case .seventies: "🕺 Années 70"
+        case .eighties: "📼 Années 80"
+        case .nineties: "🕹️ Années 90"
+        case .twoThousands: "💿 Années 2000"
+        case .twentyTens: "📱 Années 2010–20"
+        }
+    }
+
+    public var shortTag: String {
+        switch self {
+        case .sixties: "🪩 60s"
+        case .seventies: "🕺 70s"
+        case .eighties: "📼 80s"
+        case .nineties: "🕹️ 90s"
+        case .twoThousands: "💿 2000s"
+        case .twentyTens: "📱 2010–20s"
+        }
+    }
+}
+
+public enum PlayerAgeBracket: String, CaseIterable, Codable, Identifiable, Sendable {
+    case under25 = "under_25"
+    case age25to39 = "25_39"
+    case age40to54 = "40_54"
+    case age55Plus = "55_plus"
+
+    public var id: String { rawValue }
+
+    public var shortBadge: String {
+        switch self {
+        case .under25: "🐣 -25 ans"
+        case .age25to39: "🕹️ 25–39 ans"
+        case .age40to54: "📼 40–54 ans"
+        case .age55Plus: "🪩 55+ ans"
+        }
+    }
+
+    public var subtitle: String {
+        switch self {
+        case .under25: "2000s – 2020s"
+        case .age25to39: "90s – 2010s"
+        case .age40to54: "70s – 90s"
+        case .age55Plus: "60s – 80s"
+        }
+    }
+
+    public var preferredDecades: [QuizDecade] {
+        switch self {
+        case .under25:
+            return [.twoThousands, .twentyTens]
+        case .age25to39:
+            return [.nineties, .twoThousands, .twentyTens]
+        case .age40to54:
+            return [.seventies, .eighties, .nineties]
+        case .age55Plus:
+            return [.sixties, .seventies, .eighties]
+        }
+    }
+}
+
 // MARK: - Player & Lobby Registry
 
 public enum PlayerPlatform: String, Codable, Sendable {
@@ -67,6 +142,7 @@ public struct QuizPlayer: Codable, Equatable, Identifiable, Sendable {
     public var name: String
     public var color: PlayerColor
     public var avatarEmoji: String
+    public var ageBracket: PlayerAgeBracket?
     public var score: Int
     public var streak: Int
     public var isHost: Bool
@@ -90,11 +166,16 @@ public struct QuizPlayer: Codable, Equatable, Identifiable, Sendable {
     public var correctAnswersCount: Int
     public var soloWinsCount: Int
 
+    public var effectiveAgeBracket: PlayerAgeBracket {
+        ageBracket ?? .age40to54
+    }
+
     public init(
         id: String,
         name: String,
         color: PlayerColor,
         avatarEmoji: String,
+        ageBracket: PlayerAgeBracket? = .age40to54,
         score: Int = 0,
         streak: Int = 0,
         isHost: Bool = false,
@@ -122,6 +203,7 @@ public struct QuizPlayer: Codable, Equatable, Identifiable, Sendable {
         self.name = name
         self.color = color
         self.avatarEmoji = avatarEmoji
+        self.ageBracket = ageBracket
         self.score = score
         self.streak = streak
         self.isHost = isHost
@@ -169,6 +251,7 @@ public struct PlayerLobbyRegistry: Sendable {
         name: String,
         requestedColor: PlayerColor?,
         avatarEmoji: String?,
+        ageBracket: PlayerAgeBracket? = nil,
         isHost: Bool,
         platform: PlayerPlatform = .iosBonjour
     ) -> QuizPlayer {
@@ -187,6 +270,9 @@ public struct PlayerLobbyRegistry: Sendable {
             if let emoji = avatarEmoji, !emoji.isEmpty {
                 player.avatarEmoji = emoji
             }
+            if let ageBracket {
+                player.ageBracket = ageBracket
+            }
             player.isReady = true
             players[existingIndex] = player
             return player
@@ -203,6 +289,7 @@ public struct PlayerLobbyRegistry: Sendable {
                 name: displayName,
                 color: chosenColor,
                 avatarEmoji: emoji,
+                ageBracket: ageBracket ?? .age40to54,
                 isHost: isHost,
                 isReady: true,
                 platform: platform
@@ -599,6 +686,7 @@ public struct QuizMCQQuestion: Codable, Equatable, Identifiable, Sendable {
     public var id: String
     public var theme: QuizThemePack
     public var preferredRound: QuizRoundKind
+    public var decade: QuizDecade?
     public var funnyTitle: String
     public var prompt: String
     public var choices: [String]
@@ -613,6 +701,7 @@ public struct QuizMCQQuestion: Codable, Equatable, Identifiable, Sendable {
         id: String,
         theme: QuizThemePack,
         preferredRound: QuizRoundKind = .cashSpeed,
+        decade: QuizDecade? = nil,
         funnyTitle: String,
         prompt: String,
         choices: [String],
@@ -626,6 +715,7 @@ public struct QuizMCQQuestion: Codable, Equatable, Identifiable, Sendable {
         self.id = id
         self.theme = theme
         self.preferredRound = preferredRound
+        self.decade = decade
         self.funnyTitle = funnyTitle
         self.prompt = prompt
         self.choices = choices
@@ -938,6 +1028,7 @@ public struct ClientToHostMessage: Codable, Equatable, Sendable {
     public var playerName: String?
     public var requestedColor: PlayerColor?
     public var avatarEmoji: String?
+    public var ageBracket: PlayerAgeBracket?
     public var platform: PlayerPlatform?
     public var choiceIndex: Int?
     public var betStars: Int?
@@ -953,6 +1044,7 @@ public struct ClientToHostMessage: Codable, Equatable, Sendable {
         playerName: String? = nil,
         requestedColor: PlayerColor? = nil,
         avatarEmoji: String? = nil,
+        ageBracket: PlayerAgeBracket? = nil,
         platform: PlayerPlatform? = nil,
         choiceIndex: Int? = nil,
         betStars: Int? = nil,
@@ -967,6 +1059,7 @@ public struct ClientToHostMessage: Codable, Equatable, Sendable {
         self.playerName = playerName
         self.requestedColor = requestedColor
         self.avatarEmoji = avatarEmoji
+        self.ageBracket = ageBracket
         self.platform = platform
         self.choiceIndex = choiceIndex
         self.betStars = betStars

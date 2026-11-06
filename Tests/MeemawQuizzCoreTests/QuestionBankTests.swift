@@ -94,4 +94,30 @@ final class QuestionBankTests: XCTestCase {
         XCTAssertEqual(usedMCQs.count, 108) // 12 games * 9 core MCQs
         XCTAssertEqual(usedCouci.count, 12) // 12 games * 1 Couci-Couça round
     }
+
+    func testDecadeQuestionsCoverAllThemesAndDecadesAndAdaptShowDeck() {
+        let singleThemes: [QuizThemePack] = QuizThemePack.allCases.filter { $0 != .grandMix }
+        for theme in singleThemes {
+            let qs = QuestionBank.questions(for: theme)
+            for decade in QuizDecade.allCases {
+                let decadeQs = qs.filter { $0.decade == decade }
+                XCTAssertEqual(decadeQs.count, 3, "Theme \(theme.rawValue) should have 3 questions for decade \(decade.rawValue)")
+                for dq in decadeQs {
+                    XCTAssertNotNil(dq.audioCueID, "Question \(dq.id) must have an audioCueID")
+                }
+            }
+        }
+
+        let deck55Plus = QuestionBank.buildShowDeck(
+            for: .grandMix,
+            preferredDecades: Set(PlayerAgeBracket.age55Plus.preferredDecades)
+        )
+        let matchedCount = (deck55Plus.cashQuestions + deck55Plus.ttmcQuestions + deck55Plus.soloQuestions)
+            .filter { q in
+                guard let dec = q.decade else { return false }
+                return PlayerAgeBracket.age55Plus.preferredDecades.contains(dec)
+            }
+            .count
+        XCTAssertGreaterThanOrEqual(matchedCount, 4, "Deck adapted for 55+ should prioritize 60s-80s questions")
+    }
 }

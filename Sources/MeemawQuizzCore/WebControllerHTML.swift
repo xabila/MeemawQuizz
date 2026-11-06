@@ -121,8 +121,10 @@ public enum WebControllerHTML {
           </div>
 
           <div id="profileCard" class="card">
-            <div style="font-weight:900;font-size:16px;text-transform:uppercase;">1. Ton Pseudo & Ta Couleur</div>
+            <div style="font-weight:900;font-size:16px;text-transform:uppercase;">1. Ton Pseudo, Ton Âge & Ta Couleur</div>
             <input type="text" id="playerName" maxlength="15" placeholder="Entre ton prénom..." />
+            <div style="font-weight:900;font-size:12px;text-transform:uppercase;margin-bottom:6px;opacity:0.85;">🎂 Ta Tranche d'Âge (adapte les questions 60s–2020s) :</div>
+            <div id="ageGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px;"></div>
             <div class="colors-grid" id="colorsGrid"></div>
             <button class="btn-primary" onclick="sendProfile()">✅ Rejoindre / Mettre à jour</button>
           </div>
@@ -147,9 +149,16 @@ public enum WebControllerHTML {
               { id: 'cyan',   label: 'Cyan',   hex: '#00ACC1', emoji: '🦄' },
               { id: 'red',    label: 'Rouge',  hex: '#E11D48', emoji: '🐞' }
             ];
+            const AGE_BRACKETS = [
+              { id: 'under_25',    label: '-25 ans',   emoji: '🐣', sub: '2000s–20s' },
+              { id: 'age_25_39',   label: '25–39 ans', emoji: '🕹️', sub: '90s–2000s' },
+              { id: 'age_40_54',   label: '40–54 ans', emoji: '📼', sub: '80s–90s' },
+              { id: 'age_55_plus', label: '55+ ans',   emoji: '🪩', sub: '60s–70s' }
+            ];
             let playerID = localStorage.getItem('mq_pid') || ('web_' + Math.random().toString(36).slice(2, 9));
             localStorage.setItem('mq_pid', playerID);
             let selectedColor = localStorage.getItem('mq_color') || 'cyan';
+            let selectedAge = localStorage.getItem('mq_age') || 'age_40_54';
             let selectedEmoji = '🦄';
             let ws = null;
             let lastState = null;
@@ -190,7 +199,11 @@ public enum WebControllerHTML {
             function renderColors(availableList) {
               const grid = document.getElementById('colorsGrid');
               const me = (lastState?.players || []).find(p => p.id === playerID);
-              if (me) { selectedColor = me.color; selectedEmoji = me.avatarEmoji; }
+              if (me) {
+                selectedColor = me.color;
+                selectedEmoji = me.avatarEmoji;
+                if (me.ageBracket) selectedAge = me.ageBracket;
+              }
               grid.innerHTML = COLORS.map(c => {
                 const isMine = (me && me.color === c.id) || (selectedColor === c.id);
                 const isFree = !availableList || availableList.includes(c.id) || (me && me.color === c.id);
@@ -199,6 +212,27 @@ public enum WebControllerHTML {
                   <span style="font-size:20px">${c.emoji}</span><span>${c.label}</span>
                 </div>`;
               }).join('');
+              const ageGrid = document.getElementById('ageGrid');
+              if (ageGrid) {
+                ageGrid.innerHTML = AGE_BRACKETS.map(a => {
+                  const isSel = (selectedAge === a.id);
+                  const bg = isSel ? '#FF4D94' : '#FFF8F0';
+                  const fg = isSel ? '#FFFFFF' : '#1A1A1A';
+                  return `<div onclick="pickAge('${a.id}')" style="background:${bg};color:${fg};border:2.5px solid #1A1A1A;border-radius:12px;padding:7px 4px;text-align:center;font-weight:900;font-size:11px;box-shadow:0 2.5px 0 #1A1A1A;cursor:pointer;">
+                    <div style="font-size:17px;">${a.emoji}</div>
+                    <div>${a.label}</div>
+                    <div style="font-size:9px;opacity:0.85;">${a.sub}</div>
+                  </div>`;
+                }).join('');
+              }
+            }
+
+            function pickAge(aid) {
+              selectedAge = aid;
+              localStorage.setItem('mq_age', aid);
+              beep(660, 50);
+              renderColors(lastState?.availableColors);
+              sendProfile();
             }
 
             function pickColor(cid, emoji) {
@@ -251,7 +285,7 @@ public enum WebControllerHTML {
             function sendProfile() {
               const name = document.getElementById('playerName').value.trim() || 'Invité';
               localStorage.setItem('mq_name', name);
-              sendMsg({ action: 'join_profile', playerName: name, requestedColor: selectedColor, avatarEmoji: selectedEmoji });
+              sendMsg({ action: 'join_profile', playerName: name, requestedColor: selectedColor, avatarEmoji: selectedEmoji, ageBracket: selectedAge });
             }
 
             function wipeBisou() {
