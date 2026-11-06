@@ -77,13 +77,35 @@ struct MeemawTVStageView: View {
 
     // MARK: - 1. Top TV Show Header Bar
 
+    private var isTVTimedStage: Bool {
+        switch snap.stage {
+        case .ttmcBetting, .cashAnswering, .soloBuzzOpen, .soloPlayerAnswering,
+             .couciCoucaItem, .justePifAnswering, .drawLiveGuessing,
+             .esquissePromptEntry, .esquisseDrawing, .esquisseGuessing, .jackAttackActive:
+            return snap.timeRemainingSec > 0
+        default:
+            return false
+        }
+    }
+
+    private var tvMaxStageTime: Int {
+        switch snap.stage {
+        case .ttmcBetting: return 15
+        case .couciCoucaItem: return 8
+        case .soloBuzzOpen: return 12
+        case .drawLiveGuessing, .esquisseDrawing: return 45
+        default: return 20
+        }
+    }
+
     private func tvTopHeaderBar(scale: CGFloat) -> some View {
         HStack(spacing: 14 * scale) {
             HStack(spacing: 10 * scale) {
-                Text("👵📺")
-                    .font(.system(size: 28 * scale))
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: 11 * scale, height: 11 * scale)
                 Text("MEEMAW QUIZZ SHOW")
-                    .font(.system(size: 24 * scale, weight: .black, design: .rounded))
+                    .font(.system(size: 22 * scale, weight: .black, design: .rounded))
                     .foregroundStyle(.white)
             }
             .padding(.horizontal, 18 * scale)
@@ -102,32 +124,32 @@ struct MeemawTVStageView: View {
             if snap.stage != .lobby {
                 Text(snap.roundKind.badgeTitle)
                     .font(.system(size: 17 * scale, weight: .black, design: .rounded))
-                    .foregroundStyle(PopArt.ink)
+                    .foregroundStyle(.white)
                     .padding(.horizontal, 16 * scale)
                     .padding(.vertical, 9 * scale)
-                    .background(PopArt.yellow, in: Capsule())
+                    .background(PopArt.blue, in: Capsule())
                     .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 3))
             }
 
             Spacer()
 
-            if snap.timeRemainingSec > 0 && (snap.stage == .ttmcBetting || snap.stage == .cashAnswering || snap.stage == .soloBuzzOpen || snap.stage == .soloPlayerAnswering || snap.stage == .couciCoucaItem || snap.stage == .drawLiveGuessing || snap.stage == .esquissePromptEntry || snap.stage == .esquisseDrawing || snap.stage == .esquisseGuessing) {
+            if isTVTimedStage {
                 HStack(spacing: 8 * scale) {
                     Image(systemName: "timer")
                         .font(.system(size: 20 * scale, weight: .black))
                     Text(String(format: "%.1fs", snap.timeRemainingSec))
                         .font(.system(size: 24 * scale, weight: .black, design: .monospaced))
                 }
-                .foregroundStyle(snap.timeRemainingSec <= 3.5 ? .white : PopArt.ink)
+                .foregroundStyle(snap.timeRemainingSec <= 4.0 ? .white : PopArt.ink)
                 .padding(.horizontal, 18 * scale)
                 .padding(.vertical, 8 * scale)
-                .background(snap.timeRemainingSec <= 3.5 ? PopArt.redError : PopArt.white, in: Capsule())
+                .background(snap.timeRemainingSec <= 4.0 ? PopArt.redError : PopArt.yellow, in: Capsule())
                 .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 3.5))
             }
 
             if snap.questionNumber > 0 && snap.stage != .finalPodium {
                 Text("Q\(snap.questionNumber)/\(snap.totalQuestions)")
-                    .font(.system(size: 19 * scale, weight: .black, design: .rounded))
+                    .font(.system(size: 19 * scale, weight: .black, design: .monospaced))
                     .foregroundStyle(PopArt.ink)
                     .padding(.horizontal, 14 * scale)
                     .padding(.vertical, 9 * scale)
@@ -153,21 +175,41 @@ struct MeemawTVStageView: View {
                 backgroundColor: PopArt.white,
                 shadowOffset: 5 * scale
             ) {
-                HStack(spacing: 14 * scale) {
-                    VStack(alignment: .leading, spacing: 4 * scale) {
-                        Text("🎙️ MEEMAW EN DIRECT")
-                            .font(.system(size: 13 * scale, weight: .black, design: .rounded))
-                            .foregroundStyle(PopArt.orange)
-                        Text(snap.meemawSpeech)
-                            .font(.system(size: 21 * scale, weight: .heavy, design: .rounded))
-                            .foregroundStyle(PopArt.ink)
-                            .lineLimit(3)
-                            .minimumScaleFactor(0.75)
+                VStack(alignment: .leading, spacing: 8 * scale) {
+                    HStack(spacing: 14 * scale) {
+                        VStack(alignment: .leading, spacing: 4 * scale) {
+                            HStack(spacing: 8 * scale) {
+                                Text("🔴 MEEMAW EN DIRECT")
+                                    .font(.system(size: 12 * scale, weight: .black, design: .rounded))
+                                    .foregroundStyle(.white)
+                                    .padding(.horizontal, 10 * scale)
+                                    .padding(.vertical, 3 * scale)
+                                    .background(PopArt.redError, in: Capsule())
+                                    .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 1.8))
+
+                                Text("PLATEAU STUDIO")
+                                    .font(.system(size: 11 * scale, weight: .black, design: .monospaced))
+                                    .foregroundStyle(PopArt.orange)
+                            }
+                            Text(snap.meemawSpeech)
+                                .font(.system(size: 21 * scale, weight: .heavy, design: .rounded))
+                                .foregroundStyle(PopArt.ink)
+                                .lineLimit(2)
+                                .minimumScaleFactor(0.75)
+                        }
+                        Spacer()
                     }
-                    Spacer()
+
+                    if isTVTimedStage {
+                        StudioTimerProgressBar(
+                            timeRemaining: Int(ceil(snap.timeRemainingSec)),
+                            maxTime: tvMaxStageTime,
+                            height: max(6, 10 * scale)
+                        )
+                    }
                 }
                 .padding(.horizontal, 20 * scale)
-                .padding(.vertical, 14 * scale)
+                .padding(.vertical, 12 * scale)
             }
         }
     }
@@ -714,12 +756,8 @@ struct MeemawTVStageView: View {
     // MARK: - 3D. Raclette Quizz & Quoizzi-Quoissa Stage (DisOrDat)
 
     private static let tvItemCardColors: [Color] = [
-        Color(hex: "#FFF3E0"),
-        Color(hex: "#E0F7FA"),
-        Color(hex: "#F3E5F5"),
-        Color(hex: "#FFE4E8"),
-        Color(hex: "#ECFDF5"),
-        Color(hex: "#FEF9C3")
+        PopArt.white,
+        PopArt.cream
     ]
 
     private func tvCouciCoucaStage(round: QuizDisOrDatRound, scale: CGFloat) -> some View {
@@ -752,7 +790,7 @@ struct MeemawTVStageView: View {
                 }
                 .frame(width: 280 * scale)
 
-                // Center Item Card (Changes color on every item!)
+                // Center Item Card (Cohesive Studio Ivory & Gold)
                 PopArtCard(
                     cornerRadius: 28 * scale,
                     borderWidth: 4.5,
@@ -766,12 +804,23 @@ struct MeemawTVStageView: View {
                             .multilineTextAlignment(.center)
 
                         if let item = currentItem {
-                            Text("QUESTION \(activeIdx + 1) / \(round.items.count)")
-                                .font(.system(size: 16 * scale, weight: .black))
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 16 * scale)
-                                .padding(.vertical, 6 * scale)
-                                .background(PopArt.ink, in: Capsule())
+                            HStack(spacing: 8 * scale) {
+                                Text("QUESTION \(activeIdx + 1) / \(round.items.count)")
+                                    .font(.system(size: 15 * scale, weight: .black))
+                                    .foregroundStyle(.white)
+                                    .padding(.horizontal, 14 * scale)
+                                    .padding(.vertical, 6 * scale)
+                                    .background(PopArt.ink, in: Capsule())
+
+                                HStack(spacing: 5 * scale) {
+                                    ForEach(0..<round.items.count, id: \.self) { dotIdx in
+                                        Circle()
+                                            .fill(dotIdx < activeIdx ? PopArt.greenSuccess : (dotIdx == activeIdx ? PopArt.yellow : PopArt.ink.opacity(0.18)))
+                                            .frame(width: 11 * scale, height: 11 * scale)
+                                            .overlay(Circle().strokeBorder(PopArt.ink, lineWidth: 1.5))
+                                    }
+                                }
+                            }
 
                             Text(item.text)
                                 .font(.system(size: 30 * scale, weight: .black, design: .rounded))
@@ -1304,6 +1353,44 @@ struct MeemawTVStageView: View {
 
     // MARK: - 3F. Final TV Podium Stage
 
+    private func tvPodiumStepColumn(award: PodiumAward, medal: String, stepHeight: CGFloat, stepColor: Color, scale: CGFloat) -> some View {
+        VStack(spacing: 6 * scale) {
+            Text(award.avatarEmoji)
+                .font(.system(size: (award.rank == 1 ? 42 : 34) * scale))
+
+            Text(award.playerName)
+                .font(.system(size: (award.rank == 1 ? 20 : 17) * scale, weight: .black, design: .rounded))
+                .foregroundStyle(PopArt.ink)
+                .lineLimit(1)
+
+            Text("\(award.score) PTS")
+                .font(.system(size: 14 * scale, weight: .black, design: .monospaced))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 10 * scale)
+                .padding(.vertical, 3 * scale)
+                .background(PopArt.ink, in: Capsule())
+
+            VStack(spacing: 4 * scale) {
+                Text(medal)
+                    .font(.system(size: (award.rank == 1 ? 30 : 24) * scale))
+                Text(award.funnyTitle)
+                    .font(.system(size: 12 * scale, weight: .black, design: .rounded))
+                    .foregroundStyle(award.rank == 1 ? PopArt.ink : .white)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .padding(.horizontal, 6 * scale)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: stepHeight * scale)
+            .background(stepColor, in: RoundedRectangle(cornerRadius: 16 * scale, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16 * scale, style: .continuous)
+                    .strokeBorder(PopArt.ink, lineWidth: 3 * scale)
+            )
+        }
+        .frame(maxWidth: .infinity)
+    }
+
     private func tvFinalPodiumStage(scale: CGFloat) -> some View {
         PopArtCard(
             cornerRadius: 28 * scale,
@@ -1313,57 +1400,88 @@ struct MeemawTVStageView: View {
         ) {
             VStack(spacing: 14 * scale) {
                 Text("🏆 LE GRAND PODIUM DE MEEMAW 🏆")
-                    .font(.system(size: 30 * scale, weight: .black, design: .rounded))
+                    .font(.system(size: 28 * scale, weight: .black, design: .rounded))
                     .foregroundStyle(PopArt.ink)
 
+                if snap.podiumAwards.count >= 2 {
+                    HStack(alignment: .bottom, spacing: 14 * scale) {
+                        if snap.podiumAwards.indices.contains(1) {
+                            tvPodiumStepColumn(
+                                award: snap.podiumAwards[1],
+                                medal: "🥈 #2",
+                                stepHeight: 92,
+                                stepColor: PopArt.blue,
+                                scale: scale
+                            )
+                        }
+                        if snap.podiumAwards.indices.contains(0) {
+                            tvPodiumStepColumn(
+                                award: snap.podiumAwards[0],
+                                medal: "🥇 #1",
+                                stepHeight: 122,
+                                stepColor: PopArt.yellow,
+                                scale: scale
+                            )
+                        }
+                        if snap.podiumAwards.indices.contains(2) {
+                            tvPodiumStepColumn(
+                                award: snap.podiumAwards[2],
+                                medal: "🥉 #3",
+                                stepHeight: 76,
+                                stepColor: PopArt.orange,
+                                scale: scale
+                            )
+                        }
+                    }
+                    .padding(.horizontal, 18 * scale)
+                }
+
                 ScrollView(.vertical, showsIndicators: false) {
-                    VStack(spacing: 10 * scale) {
+                    VStack(spacing: 8 * scale) {
                         ForEach(snap.podiumAwards) { award in
                             HStack(spacing: 16 * scale) {
                                 Text("#\(award.rank)")
-                                    .font(.system(size: 26 * scale, weight: .black, design: .rounded))
+                                    .font(.system(size: 22 * scale, weight: .black, design: .rounded))
                                     .foregroundStyle(award.rank == 1 ? PopArt.ink : .white)
-                                    .frame(width: 58 * scale, height: 58 * scale)
+                                    .frame(width: 48 * scale, height: 48 * scale)
                                     .background(award.rank == 1 ? PopArt.yellow : PopArt.color(for: award.playerColor), in: Circle())
                                     .overlay(Circle().strokeBorder(PopArt.ink, lineWidth: 3))
 
                                 Text(award.avatarEmoji)
-                                    .font(.system(size: 34 * scale))
+                                    .font(.system(size: 30 * scale))
 
-                                VStack(alignment: .leading, spacing: 3 * scale) {
+                                VStack(alignment: .leading, spacing: 2 * scale) {
                                     Text(award.playerName)
-                                        .font(.system(size: 22 * scale, weight: .black, design: .rounded))
+                                        .font(.system(size: 20 * scale, weight: .black, design: .rounded))
                                         .foregroundStyle(PopArt.ink)
-                                    Text(award.funnyTitle)
-                                        .font(.system(size: 16 * scale, weight: .heavy, design: .rounded))
+                                    Text("\(award.funnyTitle) • \(award.subtitle)")
+                                        .font(.system(size: 14 * scale, weight: .bold, design: .rounded))
                                         .foregroundStyle(PopArt.orange)
-                                    Text(award.subtitle)
-                                        .font(.system(size: 13 * scale, weight: .bold))
-                                        .foregroundStyle(PopArt.ink.opacity(0.6))
+                                        .lineLimit(1)
                                 }
 
                                 Spacer()
 
                                 Text("\(award.score) PTS")
-                                    .font(.system(size: 26 * scale, weight: .black, design: .monospaced))
+                                    .font(.system(size: 22 * scale, weight: .black, design: .monospaced))
                                     .foregroundStyle(PopArt.ink)
-                                    .padding(.horizontal, 18 * scale)
-                                    .padding(.vertical, 10 * scale)
+                                    .padding(.horizontal, 16 * scale)
+                                    .padding(.vertical, 8 * scale)
                                     .background(PopArt.yellow, in: Capsule())
-                                    .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 3))
+                                    .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2.5))
                             }
-                            .padding(.horizontal, 18 * scale)
-                            .padding(.vertical, 10 * scale)
-                            .background(Color(hex: "#FFFDF9"), in: RoundedRectangle(cornerRadius: 18 * scale))
+                            .padding(.horizontal, 16 * scale)
+                            .padding(.vertical, 8 * scale)
+                            .background(Color(hex: "#FFFDF9"), in: RoundedRectangle(cornerRadius: 16 * scale))
                             .overlay(
-                                RoundedRectangle(cornerRadius: 18 * scale)
-                                    .strokeBorder(PopArt.ink, lineWidth: 2.5)
+                                RoundedRectangle(cornerRadius: 16 * scale)
+                                    .strokeBorder(PopArt.ink, lineWidth: 2.2)
                             )
                         }
                     }
                 }
             }
-            .padding(22 * scale)
+            .padding(20 * scale)
         }
     }
 

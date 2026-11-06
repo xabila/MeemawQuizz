@@ -7,7 +7,9 @@ import UIKit
 
 enum PopArt {
     static let studioNavy = Color(hex: "#111E48")
+    static let studioNavyDeep = Color(hex: "#081029")
     static let studioRoyal = Color(hex: "#1E3A8A")
+    static let studioGoldRim = Color(hex: "#FDE68A")
     static let orange = Color(hex: "#F97316")      // Warm Copper-Amber ("QUIZ" card & Meemaw hair)
     static let orangeLight = Color(hex: "#FB923C")
     static let cream = Color(hex: "#FFFDF8")       // Clean Warm Ivory surface
@@ -23,6 +25,12 @@ enum PopArt {
 
     static func color(for playerColor: PlayerColor) -> Color {
         Color(hex: playerColor.hex)
+    }
+
+    @MainActor
+    static func triggerLightHaptic() {
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.impactOccurred()
     }
 }
 
@@ -83,7 +91,7 @@ struct PopArtTVBackground: View {
                 colors: [
                     Color(hex: "#1E3A8A"),
                     Color(hex: "#132356"),
-                    Color(hex: "#0D183A")
+                    Color(hex: "#0A1330")
                 ],
                 startPoint: .top,
                 endPoint: .bottom
@@ -93,20 +101,95 @@ struct PopArtTVBackground: View {
             // Subtle Golden Marquee Spotlight Glow at top center (like the App Icon arch)
             RadialGradient(
                 colors: [
-                    PopArt.yellow.opacity(0.22),
-                    PopArt.orange.opacity(0.08),
+                    PopArt.yellow.opacity(0.28),
+                    PopArt.orange.opacity(0.10),
                     Color.clear
                 ],
                 center: .top,
-                startRadius: 10,
-                endRadius: 380
+                startRadius: 8,
+                endRadius: 420
             )
             .ignoresSafeArea()
 
-            HalftonePattern(dotColor: PopArt.yellow.opacity(0.06), dotSize: 3.5, spacing: 18)
+            // Left & Right TV Studio Stage Rim Lights
+            RadialGradient(
+                colors: [
+                    PopArt.cyan.opacity(0.18),
+                    Color.clear
+                ],
+                center: .topLeading,
+                startRadius: 10,
+                endRadius: 320
+            )
+            .ignoresSafeArea()
+
+            RadialGradient(
+                colors: [
+                    PopArt.orange.opacity(0.15),
+                    Color.clear
+                ],
+                center: .bottomTrailing,
+                startRadius: 10,
+                endRadius: 340
+            )
+            .ignoresSafeArea()
+
+            HalftonePattern(dotColor: PopArt.yellow.opacity(0.065), dotSize: 3.5, spacing: 18)
                 .drawingGroup()
                 .ignoresSafeArea()
         }
+    }
+}
+
+// MARK: - Studio Timer Progress Bar (Impeccable Live Countdown)
+
+struct StudioTimerProgressBar: View {
+    let timeRemaining: Int
+    var maxTime: Int = 20
+    var height: CGFloat = 10
+
+    private var fraction: CGFloat {
+        guard maxTime > 0 else { return 0 }
+        return min(1.0, max(0.0, CGFloat(timeRemaining) / CGFloat(maxTime)))
+    }
+
+    private var barColor: Color {
+        if timeRemaining <= 5 {
+            return PopArt.redError
+        } else if timeRemaining <= 10 {
+            return PopArt.yellow
+        } else {
+            return PopArt.greenSuccess
+        }
+    }
+
+    var body: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                Capsule()
+                    .fill(PopArt.ink.opacity(0.16))
+
+                Capsule()
+                    .fill(
+                        LinearGradient(
+                            colors: [barColor.opacity(0.9), barColor],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .frame(width: max(height, geo.size.width * fraction))
+                    .overlay(
+                        Capsule()
+                            .strokeBorder(Color.white.opacity(0.35), lineWidth: 1)
+                    )
+                    .animation(.easeOut(duration: 0.35), value: timeRemaining)
+            }
+            .overlay(
+                Capsule()
+                    .strokeBorder(PopArt.ink, lineWidth: 2)
+            )
+        }
+        .frame(height: height)
     }
 }
 
@@ -124,6 +207,19 @@ struct PopArtCard<Content: View>: View {
             .background(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                     .fill(backgroundColor)
+                    .overlay(
+                        // Subtle top inner specular highlight for tactile enameled studio plaque feel
+                        RoundedRectangle(cornerRadius: max(4, cornerRadius - borderWidth), style: .continuous)
+                            .strokeBorder(
+                                LinearGradient(
+                                    colors: [Color.white.opacity(0.55), Color.white.opacity(0.0)],
+                                    startPoint: .top,
+                                    endPoint: .center
+                                ),
+                                lineWidth: 1.5
+                            )
+                            .padding(borderWidth * 0.75)
+                    )
                     .background(
                         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                             .fill(PopArt.ink)
@@ -148,6 +244,18 @@ struct PopArtActionButtonStyle: ButtonStyle {
             .background(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                     .fill(backgroundColor)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: max(4, cornerRadius - 3), style: .continuous)
+                            .strokeBorder(
+                                LinearGradient(
+                                    colors: [Color.white.opacity(0.42), Color.clear],
+                                    startPoint: .top,
+                                    endPoint: .center
+                                ),
+                                lineWidth: 1.5
+                            )
+                            .padding(2.5)
+                    )
                     .background(
                         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                             .fill(PopArt.ink)
@@ -159,7 +267,13 @@ struct PopArtActionButtonStyle: ButtonStyle {
                     .strokeBorder(PopArt.ink, lineWidth: 3)
             )
             .offset(y: configuration.isPressed ? 4 : 0)
-            .animation(.spring(response: 0.2, dampingFraction: 0.72), value: configuration.isPressed)
+            .scaleEffect(configuration.isPressed ? 0.985 : 1.0)
+            .animation(.spring(response: 0.18, dampingFraction: 0.68), value: configuration.isPressed)
+            .onChange(of: configuration.isPressed) { _, pressed in
+                if pressed {
+                    PopArt.triggerLightHaptic()
+                }
+            }
     }
 }
 
@@ -264,6 +378,13 @@ struct MeemawGuestStarAvatar: View {
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
+            if isSpeaking {
+                Circle()
+                    .stroke(PopArt.yellow.opacity(0.65), lineWidth: 3)
+                    .frame(width: size + 8, height: size + 8)
+                    .shadow(color: PopArt.yellow.opacity(0.5), radius: 8)
+            }
+
             Circle()
                 .fill(
                     RadialGradient(
@@ -288,18 +409,34 @@ struct MeemawGuestStarAvatar: View {
             }
 
             Circle()
-                .strokeBorder(PopArt.ink, lineWidth: 4)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [PopArt.studioGoldRim, PopArt.yellow, PopArt.orange],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 2.5
+                )
+                .frame(width: size - 5, height: size - 5)
+
+            Circle()
+                .strokeBorder(PopArt.ink, lineWidth: 3.5)
                 .frame(width: size, height: size)
 
             if isSpeaking {
-                Text("🎙️")
-                    .font(.system(size: max(12, size * 0.16)))
-                    .padding(4)
-                    .background(PopArt.redError, in: Circle())
-                    .overlay(Circle().strokeBorder(PopArt.ink, lineWidth: 2))
-                    .offset(x: 2, y: 2)
+                HStack(spacing: 2) {
+                    Image(systemName: "waveform")
+                        .font(.system(size: max(9, size * 0.12), weight: .black))
+                        .foregroundStyle(.white)
+                }
+                .padding(max(4, size * 0.06))
+                .background(PopArt.redError, in: Circle())
+                .overlay(Circle().strokeBorder(PopArt.ink, lineWidth: 2))
+                .offset(x: 2, y: 2)
+                .transition(.scale.combined(with: .opacity))
             }
         }
         .frame(width: size, height: size)
+        .animation(.spring(response: 0.28, dampingFraction: 0.75), value: isSpeaking)
     }
 }
