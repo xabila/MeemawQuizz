@@ -3,23 +3,25 @@ import MeemawQuizzCore
 import SwiftUI
 import UIKit
 
-// MARK: - Meemaw TV Quiz Show Studio Design System (Aligned with App Icon: Royal Studio Blue, Spotlight Gold & Copper Amber)
+// MARK: - Meemaw TV Quiz Show Studio Design System (100% Aligned with App Icon: Royal Studio Blue, Marquee Gold, Copper-Orange & Buzzer Red)
 
 enum PopArt {
-    static let studioNavy = Color(hex: "#121A2F")
-    static let studioRoyal = Color(hex: "#1B2A4A")
-    static let orange = Color(hex: "#D97736")      // Warm Terracotta-Amber (refined, non-neon)
-    static let orangeLight = Color(hex: "#E8955B")
-    static let cream = Color(hex: "#F6F4EE")       // Soft Warm Alabaster surface
-    static let ink = Color(hex: "#182235")         // Deep Slate-Navy text & border (softer than pure black)
-    static let white = Color(hex: "#FCFBF8")       // Warm Ivory-White (no harsh screen glare)
-    static let greenSuccess = Color(hex: "#238A66") // Refined Sage-Emerald
-    static let redError = Color(hex: "#C84B5F")    // Softened Coral-Crimson
-    static let yellow = Color(hex: "#F2CD78")      // Soft Champagne Gold (replaces loud bright yellow)
-    static let cyan = Color(hex: "#3A7CA5")        // Calm Steel-Blue
-    static let purple = Color(hex: "#4A588A")      // Muted Slate-Indigo
-    static let pink = Color(hex: "#B85672")        // Muted Rose-Berry
-    static let blue = Color(hex: "#385E9D")        // Calm Studio Blue
+    static let studioDeep = Color(hex: "#050E30")  // Deep Midnight Stage Blue (bottom of App Icon)
+    static let studioNavy = Color(hex: "#0B1D56")  // Mid Royal Studio Blue (App Icon backdrop)
+    static let studioRoyal = Color(hex: "#173B9A") // Bright Royal Studio Blue (top of App Icon)
+    static let goldTrim = Color(hex: "#D99B38")    // Warm Brass/Gold Trim (App Icon marquee arch & lapels)
+    static let orange = Color(hex: "#F26B1D")      // Warm Copper-Orange (Meemaw hair & "QUIZ" card in App Icon)
+    static let orangeLight = Color(hex: "#FB8C3E")
+    static let cream = Color(hex: "#FFFBF2")       // Warm Champagne Ivory surface
+    static let ink = Color(hex: "#081438")         // Deep Royal Navy-Black border
+    static let white = Color(hex: "#FFFFFF")       // Crisp Studio White (Meemaw shirt collar)
+    static let greenSuccess = Color(hex: "#10B981") // Emerald Green (Green card in Meemaw's hand)
+    static let redError = Color(hex: "#E11D48")    // Glossy TV Buzzer Crimson Red (App Icon desk buzzer)
+    static let yellow = Color(hex: "#F5C451")      // Spotlight Marquee Gold (Microphone, Bow Tie & Arch bulbs)
+    static let cyan = Color(hex: "#0EA5E9")        // Podium Rim Cyan-Blue (App Icon glowing desk rim)
+    static let purple = Color(hex: "#1E40AF")      // Deep Royal Blazer Blue (replaces off-brand purple)
+    static let pink = Color(hex: "#D92332")        // Studio Buzzer Red (replaces off-brand neon pink)
+    static let blue = Color(hex: "#1D4ED8")        // Meemaw Glitter Royal Blue Blazer
 
     static func color(for playerColor: PlayerColor) -> Color {
         Color(hex: playerColor.hex)
@@ -84,63 +86,74 @@ struct PopArtTVBackground: View {
 
     var body: some View {
         ZStack {
-            // Calm, deep velvet studio navy background (Impeccable quieter palette)
+            // Exact App Icon Royal TV Studio Blue gradient (#173B9A -> #0B1D56 -> #050E30)
             LinearGradient(
                 colors: [
-                    Color(hex: "#192642"),
-                    Color(hex: "#111A2E"),
-                    Color(hex: "#0B1120")
+                    PopArt.studioRoyal,
+                    PopArt.studioNavy,
+                    PopArt.studioDeep
                 ],
                 startPoint: .top,
                 endPoint: .bottom
             )
             .ignoresSafeArea()
 
-            // Gentle, understated warm top ambient light
+            // Top Golden Marquee Arch Spotlight Glow (matching the App Icon's golden bulb arch)
             RadialGradient(
                 colors: [
-                    PopArt.yellow.opacity(0.11),
-                    PopArt.orange.opacity(0.04),
+                    PopArt.yellow.opacity(0.28),
+                    PopArt.orange.opacity(0.12),
                     Color.clear
                 ],
                 center: .top,
-                startRadius: 10,
-                endRadius: 360
+                startRadius: 12,
+                endRadius: 380
             )
             .ignoresSafeArea()
 
-            HalftonePattern(dotColor: PopArt.white.opacity(0.025), dotSize: 3, spacing: 20)
+            // Bottom Podium Cyan Rim Glow (matching the App Icon's glowing cyan studio desk)
+            RadialGradient(
+                colors: [
+                    PopArt.cyan.opacity(0.18),
+                    PopArt.blue.opacity(0.08),
+                    Color.clear
+                ],
+                center: .bottom,
+                startRadius: 10,
+                endRadius: 320
+            )
+            .ignoresSafeArea()
+
+            HalftonePattern(dotColor: PopArt.white.opacity(0.04), dotSize: 3.5, spacing: 18)
                 .drawingGroup()
                 .ignoresSafeArea()
         }
     }
 }
 
-// MARK: - Comic Card & Button Styles
+// MARK: - Studio Card & Button Styles (App Icon Gold & Royal Navy Trim)
 
 struct PopArtCard<Content: View>: View {
-    var cornerRadius: CGFloat = 18
-    var borderWidth: CGFloat = 2
+    var cornerRadius: CGFloat = 20
+    var borderWidth: CGFloat = 2.5
     var backgroundColor: Color = PopArt.white
-    var shadowOffset: CGFloat = 3
+    var shadowOffset: CGFloat = 4
     @ViewBuilder let content: Content
 
     var body: some View {
-        let effectiveBorder = min(2.2, borderWidth)
-        let effectiveShadow = min(3.5, shadowOffset)
         content
             .background(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                     .fill(backgroundColor)
                     .background(
                         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                            .fill(PopArt.ink.opacity(0.45))
-                            .offset(x: 0, y: effectiveShadow)
+                            .fill(PopArt.ink.opacity(0.65))
+                            .offset(x: 0, y: shadowOffset)
                     )
             )
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .strokeBorder(PopArt.ink.opacity(0.82), lineWidth: effectiveBorder)
+                    .strokeBorder(PopArt.ink, lineWidth: borderWidth)
             )
     }
 }
@@ -148,7 +161,7 @@ struct PopArtCard<Content: View>: View {
 struct PopArtActionButtonStyle: ButtonStyle {
     var backgroundColor: Color = PopArt.orange
     var foregroundColor: Color = PopArt.ink
-    var cornerRadius: CGFloat = 15
+    var cornerRadius: CGFloat = 16
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -158,13 +171,13 @@ struct PopArtActionButtonStyle: ButtonStyle {
                     .fill(backgroundColor)
                     .background(
                         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                            .fill(PopArt.ink.opacity(0.45))
-                            .offset(y: configuration.isPressed ? 1 : 3)
+                            .fill(PopArt.ink.opacity(0.7))
+                            .offset(y: configuration.isPressed ? 1 : 3.5)
                     )
             )
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .strokeBorder(PopArt.ink.opacity(0.82), lineWidth: 2)
+                    .strokeBorder(PopArt.ink, lineWidth: 2.2)
             )
             .offset(y: configuration.isPressed ? 2 : 0)
             .animation(.easeOut(duration: 0.14), value: configuration.isPressed)
@@ -264,7 +277,7 @@ final class MascotPlayerUIView: UIView {
     }
 }
 
-// MARK: - Meemaw Guest Star Animated Avatar (Single Stable Portrait / Video Loop)
+// MARK: - Meemaw Guest Star Animated Avatar (App Icon Golden Marquee Stage Ring)
 
 struct MeemawGuestStarAvatar: View {
     let pose: String
@@ -275,44 +288,101 @@ struct MeemawGuestStarAvatar: View {
         named: "meemaw_dictation_talk_talk.mov"
     )
 
+    private var poseBadgeEmoji: String {
+        if isSpeaking { return "🎙️" }
+        if pose.contains("boxing") { return "🥊" }
+        if pose.contains("trophy") || pose.contains("celebrate") || pose.contains("victory") { return "🏆" }
+        if pose.contains("vitesse") { return "⚡️" }
+        if pose.contains("duel") { return "🎯" }
+        return "🎙️"
+    }
+
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
+            // Outer App Icon Golden Marquee Arch Ring
             Circle()
                 .fill(
-                    RadialGradient(
-                        colors: [PopArt.yellow, PopArt.orange],
-                        center: .center,
-                        startRadius: 4,
-                        endRadius: size * 0.55
+                    LinearGradient(
+                        colors: [Color(hex: "#FFE082"), PopArt.yellow, PopArt.goldTrim],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
                     )
                 )
                 .frame(width: size, height: size)
+                .shadow(color: PopArt.yellow.opacity(isSpeaking ? 0.55 : 0.25), radius: isSpeaking ? 8 : 4, y: 2)
+
+            // Inner Royal Studio Blue & Gold Halo
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [PopArt.yellow, PopArt.orange, PopArt.studioRoyal],
+                        center: .center,
+                        startRadius: 2,
+                        endRadius: size * 0.5
+                    )
+                )
+                .frame(width: size - 8, height: size - 8)
 
             if let url = Self.talkVideoURL {
                 MascotVideoLoopView(url: url, isPlaying: isSpeaking, rate: 0.72)
-                    .frame(width: size - 8, height: size - 8)
+                    .frame(width: size - 10, height: size - 10)
                     .clipShape(Circle())
             } else {
-                Image("meemaw_salut")
+                Image("meemaw_studio_icon")
                     .resizable()
                     .scaledToFill()
-                    .frame(width: size - 8, height: size - 8)
+                    .frame(width: size - 10, height: size - 10)
                     .clipShape(Circle())
             }
 
+            // Crisp Studio Ring Border
             Circle()
-                .strokeBorder(PopArt.ink, lineWidth: 4)
+                .strokeBorder(PopArt.ink, lineWidth: max(2.5, size * 0.032))
                 .frame(width: size, height: size)
 
-            if isSpeaking {
-                Text("🎙️")
-                    .font(.system(size: max(12, size * 0.16)))
-                    .padding(4)
-                    .background(PopArt.redError, in: Circle())
-                    .overlay(Circle().strokeBorder(PopArt.ink, lineWidth: 2))
-                    .offset(x: 2, y: 2)
-            }
+            // Inner Gold Pinstripe
+            Circle()
+                .strokeBorder(PopArt.yellow, lineWidth: max(1.5, size * 0.02))
+                .frame(width: size - 5, height: size - 5)
+
+            // Studio Mic / Pose Badge
+            Text(poseBadgeEmoji)
+                .font(.system(size: max(12, size * 0.17)))
+                .padding(max(4, size * 0.045))
+                .background(isSpeaking ? PopArt.redError : PopArt.blue, in: Circle())
+                .overlay(Circle().strokeBorder(PopArt.yellow, lineWidth: 2))
+                .shadow(color: PopArt.ink.opacity(0.5), radius: 2, y: 1)
+                .offset(x: 2, y: 2)
         }
         .frame(width: size, height: size)
+    }
+}
+
+// MARK: - Meemaw 3D Studio Character Artwork (App Icon, Boxing Referee, Score Clipboard, Trophy)
+
+struct MeemawPoseIllustration: View {
+    var assetName: String = "meemaw_studio_icon"
+    var size: CGFloat = 72
+    var isCircularStage: Bool = false
+
+    var body: some View {
+        if isCircularStage {
+            Image(assetName)
+                .resizable()
+                .scaledToFill()
+                .frame(width: size, height: size)
+                .clipShape(RoundedRectangle(cornerRadius: size * 0.24, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: size * 0.24, style: .continuous)
+                        .strokeBorder(PopArt.yellow, lineWidth: 2.5)
+                )
+                .shadow(color: PopArt.ink.opacity(0.45), radius: 4, y: 2)
+        } else {
+            Image(assetName)
+                .resizable()
+                .scaledToFit()
+                .frame(width: size, height: size)
+                .shadow(color: PopArt.ink.opacity(0.35), radius: 3, y: 2)
+        }
     }
 }
