@@ -570,6 +570,7 @@ struct PlayerControllerView: View {
         let iconText: String = {
             switch mode {
             case .fullQuizShow: return "📺"
+            case .carPlayRoadTrip: return "🚗"
             case .drawSomethingOnly: return "🎨"
             case .esquisseParty: return "✏️"
             }
@@ -577,6 +578,7 @@ struct PlayerControllerView: View {
         let cleanTitle: String = {
             switch mode {
             case .fullQuizShow: return "Grand Quizz TV (+ Dessin)"
+            case .carPlayRoadTrip: return "Mode Voiture / CarPlay (Sans Dessin)"
             case .drawSomethingOnly: return "Draw Something"
             case .esquisseParty: return "Esquissé ! (1 Mot Simple)"
             }
@@ -584,6 +586,7 @@ struct PlayerControllerView: View {
         let cleanSubtitle: String = {
             switch mode {
             case .fullQuizShow: return "Quizz général, Buzzer, Cash, TTMC et épreuves de dessin"
+            case .carPlayRoadTrip: return "Diffuse questions, choix A/B/C/D et scores sur l'écran « À l'écoute » CarPlay !"
             case .drawSomethingOnly: return "Un joueur dessine, les autres tapent le mot avec les lettres"
             case .esquisseParty: return "Téléphone arabe en dessin avec 1 seul mot facile"
             }
@@ -627,7 +630,7 @@ struct PlayerControllerView: View {
             .buttonStyle(.plain)
 
             // Single clean Dropdown Menu for Theme Selection (instead of 7 rainbow buttons)
-            if mode == .fullQuizShow && isModeSelected {
+            if (mode == .fullQuizShow || mode == .carPlayRoadTrip) && isModeSelected {
                 Divider().overlay(PopArt.ink.opacity(0.15))
 
                 HStack {
@@ -663,6 +666,36 @@ struct PlayerControllerView: View {
                         .background(PopArt.white, in: Capsule())
                         .overlay(Capsule().strokeBorder(PopArt.ink, lineWidth: 2))
                     }
+                }
+
+                if mode == .carPlayRoadTrip {
+                    HStack(spacing: 10) {
+                        if let carCard = CarPlayNowPlayingManager.shared.latestArtworkImage {
+                            Image(uiImage: carCard)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 58, height: 58)
+                                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                        .strokeBorder(PopArt.ink, lineWidth: 2)
+                                )
+                        }
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(MeemawShowAudioEngine.shared.isCarPlayAudioActive ? "🟢 CarPlay détecté !" : "🚗 Écran « À l'écoute » CarPlay actif")
+                                .font(.system(size: 12, weight: .black, design: .rounded))
+                                .foregroundStyle(PopArt.blue)
+                            Text("Ouvre « À l'écoute » sur l'écran de la voiture : la carte de la question, les choix A/B/C/D et les scores s'y affichent (bouton ⏭️ au volant = étape suivante).")
+                                .font(.system(size: 10.5, weight: .bold, design: .rounded))
+                                .foregroundStyle(PopArt.ink.opacity(0.78))
+                        }
+                    }
+                    .padding(8)
+                    .background(PopArt.white, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .strokeBorder(PopArt.ink.opacity(0.35), lineWidth: 1.5)
+                    )
                 }
             }
         }

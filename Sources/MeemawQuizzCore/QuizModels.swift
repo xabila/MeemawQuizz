@@ -449,6 +449,7 @@ public enum QuizThemePack: String, CaseIterable, Codable, Identifiable, Sendable
 
 public enum ShowGameMode: String, CaseIterable, Codable, Identifiable, Sendable {
     case fullQuizShow = "full_quiz_show"
+    case carPlayRoadTrip = "carplay_road_trip"
     case drawSomethingOnly = "draw_something_only"
     case esquisseParty = "esquisse_party"
 
@@ -458,12 +459,14 @@ public enum ShowGameMode: String, CaseIterable, Codable, Identifiable, Sendable 
         if AppLanguage.isEnglish {
             switch self {
             case .fullQuizShow: return "📺 Full TV Quiz Show (+ Drawing)"
+            case .carPlayRoadTrip: return "🚗 CarPlay / Road-Trip Mode (No Drawing)"
             case .drawSomethingOnly: return "🎨 100% Draw Something"
             case .esquisseParty: return "📞 Sketch Relay! (1 Easy Word)"
             }
         }
         switch self {
         case .fullQuizShow: return "📺 Grand Show Quizz (+ Dessin)"
+        case .carPlayRoadTrip: return "🚗 Mode Voiture / CarPlay (Sans Dessin)"
         case .drawSomethingOnly: return "🎨 100% Draw Something"
         case .esquisseParty: return "📞 Esquissé ! (1 Mot Facile)"
         }
@@ -473,12 +476,14 @@ public enum ShowGameMode: String, CaseIterable, Codable, Identifiable, Sendable 
         if AppLanguage.isEnglish {
             switch self {
             case .fullQuizShow: return "📺 FULL SHOW"
+            case .carPlayRoadTrip: return "🚗 CARPLAY / CAR"
             case .drawSomethingOnly: return "🎨 DRAW SOMETHING"
             case .esquisseParty: return "📞 SKETCH RELAY!"
             }
         }
         switch self {
         case .fullQuizShow: return "📺 SHOW COMPLET"
+        case .carPlayRoadTrip: return "🚗 VOITURE / CARPLAY"
         case .drawSomethingOnly: return "🎨 DRAW SOMETHING"
         case .esquisseParty: return "📞 ESQUISSÉ !"
         }
@@ -488,12 +493,14 @@ public enum ShowGameMode: String, CaseIterable, Codable, Identifiable, Sendable 
         if AppLanguage.isEnglish {
             switch self {
             case .fullQuizShow: return "Speed Cash, Bet Your Brain, Jukebox, Closest Guess, Draw Something, Solo, Cheesy Quizz & Jack Attack!"
+            case .carPlayRoadTrip: return "100% Audio & CarPlay 'Now Playing' display: Speed Cash, Bet Your Brain, Jukebox, Closest Guess, Solo & Cheesy Quizz (zero drawing)!"
             case .drawSomethingOnly: return "Take turns drawing live on the TV while everyone else unscrambles the secret word on their phone!"
             case .esquisseParty: return "1 easy word to draw (Sun, Pizza, Fish...) ➔ Neighbor guesses 1 word ➔ Final drawing & Comic Book Showcase!"
             }
         }
         switch self {
         case .fullQuizShow: return "Quizz Rapide, Tu Te Mets Combien, Jukebox, Pinceau Draw Something, Solo & Raclette !"
+        case .carPlayRoadTrip: return "100 % Quizz Audio & Écran « À l'écoute » CarPlay : Cash Rapide, Tu Te Mets Combien, Jukebox, Juste Pif, Solo & Raclette (sans dessin) !"
         case .drawSomethingOnly: return "Chacun dessine à tour de rôle en direct sur la TV, les autres trouvent le mot avec les lettres mélangées !"
         case .esquisseParty: return "1 seul mot facile à dessiner (Soleil, Pizza, Poisson...) ➔ Le voisin devine 1 mot ➔ Dessin final & Grand Défilé BD !"
         }
@@ -502,6 +509,7 @@ public enum ShowGameMode: String, CaseIterable, Codable, Identifiable, Sendable 
     public var accentHex: String {
         switch self {
         case .fullQuizShow: "#FF8C42"
+        case .carPlayRoadTrip: "#2563EB"
         case .drawSomethingOnly: "#10B981"
         case .esquisseParty: "#FF4D94"
         }

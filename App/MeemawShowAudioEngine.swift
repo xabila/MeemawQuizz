@@ -47,6 +47,7 @@ final class MeemawShowAudioEngine: NSObject {
     private var didResolveVoice = false
     private var onVoiceCompletion: (() -> Void)?
     private var audioSessionReady = false
+    private(set) var isCarPlayAudioActive: Bool = false
 
     private override init() {
         super.init()
@@ -57,9 +58,25 @@ final class MeemawShowAudioEngine: NSObject {
         guard !audioSessionReady else { return }
         audioSessionReady = true
         let session = AVAudioSession.sharedInstance()
-        try? session.setCategory(.playback, mode: .default, options: [.allowAirPlay, .mixWithOthers])
+        try? session.setCategory(.playback, mode: .default, options: [.allowAirPlay, .allowBluetoothA2DP])
         try? session.setActive(true)
+        UIApplication.shared.beginReceivingRemoteControlEvents()
+        refreshCarPlayAudioStatus()
+        NotificationCenter.default.addObserver(
+            forName: AVAudioSession.routeChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.refreshCarPlayAudioStatus()
+            }
+        }
         preloadCommonJingles()
+    }
+
+    func refreshCarPlayAudioStatus() {
+        let outputs = AVAudioSession.sharedInstance().currentRoute.outputs
+        isCarPlayAudioActive = outputs.contains { $0.portType == .carAudio }
     }
 
     private func preloadCommonJingles() {

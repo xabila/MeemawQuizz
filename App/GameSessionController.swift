@@ -259,6 +259,28 @@ final class GameSessionController {
                 }
             }
         }
+
+        CarPlayNowPlayingManager.shared.onNextStepCommand = { [weak self] in
+            guard let self, self.role == .hostAndPlayer1 else { return }
+            if self.stage == .lobby || self.stage == .finalPodium {
+                self.startNewShow()
+            } else {
+                self.skipToNextStep()
+            }
+        }
+
+        CarPlayNowPlayingManager.shared.onPlayOrReplayCommand = { [weak self] in
+            guard let self, self.role == .hostAndPlayer1 else { return }
+            if self.stage == .lobby || self.stage == .finalPodium {
+                self.startNewShow()
+            } else if let q = self.activeQuestion {
+                let cueID = q.audioCueID ?? "q_\(q.id)"
+                self.audio.playMeemawStudioOrFallback(
+                    studioFilename: "\(cueID).m4a",
+                    fallbackText: "\(q.funnyTitle). \(q.prompt)"
+                )
+            }
+        }
     }
 
     func startHostingSession() {
@@ -699,7 +721,7 @@ final class GameSessionController {
             advanceToNextPhaseStep()
             return
 
-        case .fullQuizShow:
+        case .fullQuizShow, .carPlayRoadTrip:
             break
         }
 
@@ -735,45 +757,85 @@ final class GameSessionController {
         usedDisOrDatIDs.insert(activeDeck.couciCoucaRound.id)
         usedDisOrDatIDs.insert(activeDeck.jackAttackRound.id)
 
-        phaseQueue = [
-            // Manche 1 : 3 questions Cash Rapide (+ Sponsor caché !)
-            .roundIntro(.cashSpeed),
-            .cashQuestion(activeDeck.cashQuestions[0], isDoubleFinale: false),
-            .cashQuestion(activeDeck.cashQuestions[1], isDoubleFinale: false),
-            .cashQuestion(activeDeck.cashQuestions[2], isDoubleFinale: false),
-            // Manche 2 : 3 questions Tu Te Mets Combien ?
-            .roundIntro(.tuTeMetsCombien),
-            .ttmcQuestion(activeDeck.ttmcQuestions[0]),
-            .ttmcQuestion(activeDeck.ttmcQuestions[1]),
-            .ttmcQuestion(activeDeck.ttmcQuestions[2]),
-            // Manche 3 : 3 questions Jukebox Express
-            .roundIntro(.jukeboxExpress),
-            .jukeboxQuestion(activeDeck.jukeboxQuestions[0]),
-            .jukeboxQuestion(activeDeck.jukeboxQuestions[1]),
-            .jukeboxQuestion(activeDeck.jukeboxQuestions[2]),
-            // Manche 4 : 3 questions Le Juste Pif (Estimation numérique au plus proche)
-            .roundIntro(.leJustePif),
-            .justePifQuestion(activeDeck.justePifQuestions[0]),
-            .justePifQuestion(activeDeck.justePifQuestions[1]),
-            .justePifQuestion(activeDeck.justePifQuestions[2]),
-            // Manche 5 : 2 tours de Draw Something
-            .roundIntro(.drawSomething),
-            .drawSomethingTurn,
-            .drawSomethingTurn,
-            // Manche 6 : 3 questions LE SOLO
-            .roundIntro(.leSolo),
-            .soloQuestion(activeDeck.soloQuestions[0]),
-            .soloQuestion(activeDeck.soloQuestions[1]),
-            .soloQuestion(activeDeck.soloQuestions[2]),
-            // Manche 7 : La Raclette Quizz (6 questions rapides Gauche / Droite / Les Deux)
-            .roundIntro(.couciCouca),
-            .couciCouca(activeDeck.couciCoucaRound, .couciCouca),
-            // Grande Finale : Le Jack Attack de Meemaw (5 vagues d'associations au buzzer)
-            .roundIntro(.jackAttack),
-            .jackAttackRound(activeDeck.jackAttackRound),
-            .podium
-        ]
-        totalQuestions = 19
+        if selectedGameMode == .carPlayRoadTrip {
+            phaseQueue = [
+                // Manche 1 : 3 questions Cash Rapide (+ Sponsor caché !)
+                .roundIntro(.cashSpeed),
+                .cashQuestion(activeDeck.cashQuestions[0], isDoubleFinale: false),
+                .cashQuestion(activeDeck.cashQuestions[1], isDoubleFinale: false),
+                .cashQuestion(activeDeck.cashQuestions[2], isDoubleFinale: false),
+                // Manche 2 : 3 questions Tu Te Mets Combien ?
+                .roundIntro(.tuTeMetsCombien),
+                .ttmcQuestion(activeDeck.ttmcQuestions[0]),
+                .ttmcQuestion(activeDeck.ttmcQuestions[1]),
+                .ttmcQuestion(activeDeck.ttmcQuestions[2]),
+                // Manche 3 : 3 questions Jukebox Express
+                .roundIntro(.jukeboxExpress),
+                .jukeboxQuestion(activeDeck.jukeboxQuestions[0]),
+                .jukeboxQuestion(activeDeck.jukeboxQuestions[1]),
+                .jukeboxQuestion(activeDeck.jukeboxQuestions[2]),
+                // Manche 4 : 3 questions Le Juste Pif
+                .roundIntro(.leJustePif),
+                .justePifQuestion(activeDeck.justePifQuestions[0]),
+                .justePifQuestion(activeDeck.justePifQuestions[1]),
+                .justePifQuestion(activeDeck.justePifQuestions[2]),
+                // Manche 5 : 3 questions LE SOLO
+                .roundIntro(.leSolo),
+                .soloQuestion(activeDeck.soloQuestions[0]),
+                .soloQuestion(activeDeck.soloQuestions[1]),
+                .soloQuestion(activeDeck.soloQuestions[2]),
+                // Manche 6 : La Raclette Quizz
+                .roundIntro(.couciCouca),
+                .couciCouca(activeDeck.couciCoucaRound, .couciCouca),
+                // Grande Finale Voiture : 3 questions La Rafale Finale (Points ×2)
+                .roundIntro(.finaleDouble),
+                .cashQuestion(activeDeck.finaleDoubleQuestions[0], isDoubleFinale: true),
+                .cashQuestion(activeDeck.finaleDoubleQuestions[1], isDoubleFinale: true),
+                .cashQuestion(activeDeck.finaleDoubleQuestions[2], isDoubleFinale: true),
+                .podium
+            ]
+            totalQuestions = 19
+        } else {
+            phaseQueue = [
+                // Manche 1 : 3 questions Cash Rapide (+ Sponsor caché !)
+                .roundIntro(.cashSpeed),
+                .cashQuestion(activeDeck.cashQuestions[0], isDoubleFinale: false),
+                .cashQuestion(activeDeck.cashQuestions[1], isDoubleFinale: false),
+                .cashQuestion(activeDeck.cashQuestions[2], isDoubleFinale: false),
+                // Manche 2 : 3 questions Tu Te Mets Combien ?
+                .roundIntro(.tuTeMetsCombien),
+                .ttmcQuestion(activeDeck.ttmcQuestions[0]),
+                .ttmcQuestion(activeDeck.ttmcQuestions[1]),
+                .ttmcQuestion(activeDeck.ttmcQuestions[2]),
+                // Manche 3 : 3 questions Jukebox Express
+                .roundIntro(.jukeboxExpress),
+                .jukeboxQuestion(activeDeck.jukeboxQuestions[0]),
+                .jukeboxQuestion(activeDeck.jukeboxQuestions[1]),
+                .jukeboxQuestion(activeDeck.jukeboxQuestions[2]),
+                // Manche 4 : 3 questions Le Juste Pif (Estimation numérique au plus proche)
+                .roundIntro(.leJustePif),
+                .justePifQuestion(activeDeck.justePifQuestions[0]),
+                .justePifQuestion(activeDeck.justePifQuestions[1]),
+                .justePifQuestion(activeDeck.justePifQuestions[2]),
+                // Manche 5 : 2 tours de Draw Something
+                .roundIntro(.drawSomething),
+                .drawSomethingTurn,
+                .drawSomethingTurn,
+                // Manche 6 : 3 questions LE SOLO
+                .roundIntro(.leSolo),
+                .soloQuestion(activeDeck.soloQuestions[0]),
+                .soloQuestion(activeDeck.soloQuestions[1]),
+                .soloQuestion(activeDeck.soloQuestions[2]),
+                // Manche 7 : La Raclette Quizz (6 questions rapides Gauche / Droite / Les Deux)
+                .roundIntro(.couciCouca),
+                .couciCouca(activeDeck.couciCoucaRound, .couciCouca),
+                // Grande Finale : Le Jack Attack de Meemaw (5 vagues d'associations au buzzer)
+                .roundIntro(.jackAttack),
+                .jackAttackRound(activeDeck.jackAttackRound),
+                .podium
+            ]
+            totalQuestions = 19
+        }
         questionNumber = 0
         currentStepIndex = -1
 
@@ -2777,6 +2839,7 @@ final class GameSessionController {
         let snapshot = buildCurrentSnapshot()
         cachedHostSnapshot = snapshot
         lanServer.broadcast(snapshot)
+        CarPlayNowPlayingManager.shared.update(with: snapshot)
     }
 
     // MARK: - QR Code Generator for TV Lobby (Cached to avoid CIContext re-creation per frame)
