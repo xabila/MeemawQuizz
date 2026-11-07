@@ -120,4 +120,41 @@ final class QuestionBankTests: XCTestCase {
             .count
         XCTAssertGreaterThanOrEqual(matchedCount, 4, "Deck adapted for 55+ should prioritize 60s-80s questions")
     }
+
+    func testEveryQuestionAndStudioCueHasMatchingMP3FileOnDisk() {
+        let repoRoot = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let audioDir = repoRoot.appendingPathComponent("App/Resources/MeemawQuizzAudio")
+        let fm = FileManager.default
+
+        func assertAudioFileExists(_ baseName: String, context: String) {
+            let cleanBase = (baseName as NSString).deletingPathExtension
+            let mp3Path = audioDir.appendingPathComponent("\(cleanBase).mp3").path
+            let m4aPath = audioDir.appendingPathComponent("\(cleanBase).m4a").path
+            XCTAssertTrue(
+                fm.fileExists(atPath: mp3Path) || fm.fileExists(atPath: m4aPath),
+                "Missing studio audio file '\(cleanBase).mp3' for \(context)"
+            )
+        }
+
+        for cue in MeemawPunchlines.studioCues {
+            assertAudioFileExists(cue.filename, context: "studioCue \(cue.id)")
+        }
+
+        for q in QuestionBank.questions(for: .grandMix) {
+            let cueID = q.audioCueID ?? "q_\(q.id)"
+            assertAudioFileExists(cueID, context: "question prompt \(q.id)")
+            assertAudioFileExists("\(cueID)_roast", context: "question roast \(q.id)")
+            assertAudioFileExists("\(cueID)_win", context: "question win \(q.id)")
+            assertAudioFileExists("\(cueID)_ttmc", context: "question ttmc \(q.id)")
+        }
+
+        for dod in QuestionBank.allDisOrDatRounds {
+            if let cueID = dod.audioCueID {
+                assertAudioFileExists(cueID, context: "Couci-Couça \(dod.id)")
+            }
+        }
+    }
 }

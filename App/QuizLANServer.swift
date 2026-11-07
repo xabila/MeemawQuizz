@@ -21,7 +21,7 @@ final class QuizLANServer: NSObject, NetServiceDelegate {
     private var serverSocketFD: Int32 = -1
     private var acceptSource: DispatchSourceRead?
     private var netService: NetService?
-    private var interfaceMonitorTimer: Timer?
+    private var interfaceMonitorTask: Task<Void, Never>?
     private var connections: [UUID: ClientPeerConnection] = [:]
 
     private(set) var listeningPort: UInt16 = 8420
@@ -49,8 +49,8 @@ final class QuizLANServer: NSObject, NetServiceDelegate {
     }
 
     func stop() {
-        interfaceMonitorTimer?.invalidate()
-        interfaceMonitorTimer = nil
+        interfaceMonitorTask?.cancel()
+        interfaceMonitorTask = nil
 
         for (_, peer) in connections {
             peer.cancel()
@@ -71,19 +71,7 @@ final class QuizLANServer: NSObject, NetServiceDelegate {
     }
 
     var joinURLString: String {
-        let status = Self.detectNetworkAddresses()
-        let ip: String
-        if forceHotspotIP {
-            ip = status.hotspotIP ?? "172.20.10.1"
-        } else if let hotspot = status.hotspotIP {
-            ip = hotspot
-        } else if let wifi = status.wifiIP {
-            ip = wifi
-        } else {
-            // En extérieur sur 4G/5G sans Wi-Fi : l'IP du Partage de connexion iOS est toujours 172.20.10.1
-            ip = "172.20.10.1"
-        }
-        return "http://\(ip):\(listeningPort)"
+        "http://\(detectedIP):\(listeningPort)"
     }
 
     func refreshNetworkAddressAndNotifyIfNeeded(forceNotify: Bool = false) {
@@ -113,10 +101,12 @@ final class QuizLANServer: NSObject, NetServiceDelegate {
     }
 
     private func startInterfaceMonitor() {
-        interfaceMonitorTimer?.invalidate()
-        interfaceMonitorTimer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { [weak self] _ in
-            Task { @MainActor [weak self] in
-                self?.refreshNetworkAddressAndNotifyIfNeeded()
+        interfaceMonitorTask?.cancel()
+        interfaceMonitorTask = Task { @MainActor [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(1500))
+                guard let self, !Task.isCancelled else { return }
+                self.refreshNetworkAddressAndNotifyIfNeeded()
             }
         }
     }

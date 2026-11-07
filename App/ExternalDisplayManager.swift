@@ -58,7 +58,7 @@ final class ExternalDisplayManager {
     }
 
     fileprivate var externalWindow: UIWindow?
-    private var routePollTimer: Timer?
+    private var routePollTask: Task<Void, Never>?
     private var didStartMonitoring = false
     private var sceneAccessoryRegistration: AnyObject?
     private weak var sceneAccessoryRegistrar: UIViewController?
@@ -113,29 +113,42 @@ final class ExternalDisplayManager {
         }
         didStartMonitoring = true
         updateAirPlayStatus()
+        Self.registerDisplayObservers()
 
+        routePollTask?.cancel()
+        routePollTask = Task { @MainActor [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(1000))
+                guard let self, !Task.isCancelled else { return }
+                self.updateAirPlayStatus()
+            }
+        }
+    }
+
+    nonisolated private static func registerDisplayObservers() {
         NotificationCenter.default.addObserver(
             forName: UIScene.willConnectNotification,
             object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            Task { @MainActor [weak self] in
-                self?.attachExternalDisplayIfAvailable()
+            queue: nil
+        ) { _ in
+            Task { @MainActor in
+                ExternalDisplayManager.shared.attachExternalDisplayIfAvailable()
             }
         }
 
         NotificationCenter.default.addObserver(
             forName: UIScene.didDisconnectNotification,
             object: nil,
-            queue: .main
-        ) { [weak self] notification in
+            queue: nil
+        ) { notification in
             let disconnectedSceneID = (notification.object as? AnyObject).map(ObjectIdentifier.init)
-            Task { @MainActor [weak self] in
-                if let extScene = self?.externalWindow?.windowScene,
+            Task { @MainActor in
+                let mgr = ExternalDisplayManager.shared
+                if let extScene = mgr.externalWindow?.windowScene,
                    ObjectIdentifier(extScene) == disconnectedSceneID {
-                    self?.detachExternalDisplay()
-                } else if (self?.activeScreens.count ?? 1) <= 1 {
-                    self?.detachExternalDisplay()
+                    mgr.detachExternalDisplay()
+                } else if mgr.activeScreens.count <= 1 {
+                    mgr.detachExternalDisplay()
                 }
             }
         }
@@ -143,17 +156,10 @@ final class ExternalDisplayManager {
         NotificationCenter.default.addObserver(
             forName: AVAudioSession.routeChangeNotification,
             object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            Task { @MainActor [weak self] in
-                self?.updateAirPlayStatus()
-            }
-        }
-
-        routePollTimer?.invalidate()
-        routePollTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            Task { @MainActor [weak self] in
-                self?.updateAirPlayStatus()
+            queue: nil
+        ) { _ in
+            Task { @MainActor in
+                ExternalDisplayManager.shared.updateAirPlayStatus()
             }
         }
     }

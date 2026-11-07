@@ -10,8 +10,10 @@
 		08E1199AA6C2D187197FCF73 /* PlayerControllerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DBCCE6624058C8D5BB7CA8A /* PlayerControllerView.swift */; };
 		1D8C32400161DB7AC3CE9B3A /* MeemawPopArtTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DFDBBAAAF7B024CDD70B63D /* MeemawPopArtTheme.swift */; };
 		2010D928DE6DCAC754B4EAE0 /* GameSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A430BCFA0EB99B54A151D04 /* GameSessionController.swift */; };
+		232173C74FD31B458FD67391 /* PlayerControllerView+Drawing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A9132CFF6E749C8A0025A56 /* PlayerControllerView+Drawing.swift */; };
 		3DB87D39243BE0FE4655EC24 /* MeemawShowAudioEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9E3B9A5AE7AF9532309C514 /* MeemawShowAudioEngine.swift */; };
 		4B1986A113F4EDB982E59E55 /* ExternalDisplayManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A89DA912C53EF790C31A2153 /* ExternalDisplayManager.swift */; };
+		544B576AA67B1414D34267D7 /* GameSessionController+Drawing.swift in Sources */ = {isa = PBXBuildFile; fileRef = E574873C49A20529AD1EA01A /* GameSessionController+Drawing.swift */; };
 		6CDF96D486D50B9563D4EA0B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4D93408F83219D558C219497 /* Assets.xcassets */; };
 		74ECA3A36FE7898DE6E3B39C /* CarPlayNowPlayingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C3A4FD0C9B5B0C35E4BBCCB /* CarPlayNowPlayingManager.swift */; };
 		8CE42F3DEFF49F4B8E97E943 /* MeemawQuizzApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E7198FA8445043F3CB39E4 /* MeemawQuizzApp.swift */; };
@@ -27,6 +29,7 @@
 		09750ECCBDAE8E6801CE4E67 /* MeemawTVStageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeemawTVStageView.swift; sourceTree = "<group>"; };
 		1D23121AE9E4AD6E753B0C14 /* QuizBonjourClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizBonjourClient.swift; sourceTree = "<group>"; };
 		1DFDBBAAAF7B024CDD70B63D /* MeemawPopArtTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeemawPopArtTheme.swift; sourceTree = "<group>"; };
+		3A9132CFF6E749C8A0025A56 /* PlayerControllerView+Drawing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlayerControllerView+Drawing.swift"; sourceTree = "<group>"; };
 		3C3A4FD0C9B5B0C35E4BBCCB /* CarPlayNowPlayingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarPlayNowPlayingManager.swift; sourceTree = "<group>"; };
 		4D93408F83219D558C219497 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		5A430BCFA0EB99B54A151D04 /* GameSessionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSessionController.swift; sourceTree = "<group>"; };
@@ -39,6 +42,7 @@
 		A90456197D6E19AFCC26E368 /* AirPlayRoutePickerButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AirPlayRoutePickerButton.swift; sourceTree = "<group>"; };
 		A9E3B9A5AE7AF9532309C514 /* MeemawShowAudioEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeemawShowAudioEngine.swift; sourceTree = "<group>"; };
 		C1CB524490553AC3CC550C89 /* MeemawQuizzAudio */ = {isa = PBXFileReference; lastKnownFileType = folder; name = MeemawQuizzAudio; path = App/Resources/MeemawQuizzAudio; sourceTree = SOURCE_ROOT; };
+		E574873C49A20529AD1EA01A /* GameSessionController+Drawing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameSessionController+Drawing.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -69,11 +73,13 @@
 				3C3A4FD0C9B5B0C35E4BBCCB /* CarPlayNowPlayingManager.swift */,
 				A89DA912C53EF790C31A2153 /* ExternalDisplayManager.swift */,
 				5A430BCFA0EB99B54A151D04 /* GameSessionController.swift */,
+				E574873C49A20529AD1EA01A /* GameSessionController+Drawing.swift */,
 				1DFDBBAAAF7B024CDD70B63D /* MeemawPopArtTheme.swift */,
 				99E7198FA8445043F3CB39E4 /* MeemawQuizzApp.swift */,
 				A9E3B9A5AE7AF9532309C514 /* MeemawShowAudioEngine.swift */,
 				09750ECCBDAE8E6801CE4E67 /* MeemawTVStageView.swift */,
 				7DBCCE6624058C8D5BB7CA8A /* PlayerControllerView.swift */,
+				3A9132CFF6E749C8A0025A56 /* PlayerControllerView+Drawing.swift */,
 				1D23121AE9E4AD6E753B0C14 /* QuizBonjourClient.swift */,
 				7F78E727753D2080FA165151 /* QuizLANServer.swift */,
 				B17B2A3D3B04AC1C8A4C2E10 /* Resources */,
@@ -186,11 +192,13 @@
 				EDF8150BB808A5036C1E4670 /* AirPlayRoutePickerButton.swift in Sources */,
 				74ECA3A36FE7898DE6E3B39C /* CarPlayNowPlayingManager.swift in Sources */,
 				4B1986A113F4EDB982E59E55 /* ExternalDisplayManager.swift in Sources */,
+				544B576AA67B1414D34267D7 /* GameSessionController+Drawing.swift in Sources */,
 				2010D928DE6DCAC754B4EAE0 /* GameSessionController.swift in Sources */,
 				1D8C32400161DB7AC3CE9B3A /* MeemawPopArtTheme.swift in Sources */,
 				8CE42F3DEFF49F4B8E97E943 /* MeemawQuizzApp.swift in Sources */,
 				3DB87D39243BE0FE4655EC24 /* MeemawShowAudioEngine.swift in Sources */,
 				97C86DBB710D2C789A92DF69 /* MeemawTVStageView.swift in Sources */,
+				232173C74FD31B458FD67391 /* PlayerControllerView+Drawing.swift in Sources */,
 				08E1199AA6C2D187197FCF73 /* PlayerControllerView.swift in Sources */,
 				F88C664D45E425A7682A0236 /* QuizBonjourClient.swift in Sources */,
 				CA0C8418EE67512325B32888 /* QuizLANServer.swift in Sources */,
@@ -284,7 +292,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 21;
+				CURRENT_PROJECT_VERSION = 22;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5WJLNQMPLH;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -345,7 +353,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 21;
+				CURRENT_PROJECT_VERSION = 22;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 5WJLNQMPLH;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;

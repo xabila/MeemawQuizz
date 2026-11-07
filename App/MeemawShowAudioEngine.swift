@@ -122,10 +122,12 @@ final class MeemawShowAudioEngine: NSObject {
                     return direct
                 }
             }
+            #if DEBUG && targetEnvironment(simulator)
             let devPath = "/Users/xabi/DEV/MeemawQuizz/App/Resources/MeemawQuizzAudio/\(candidateFilename)"
             if FileManager.default.fileExists(atPath: devPath) {
                 return URL(fileURLWithPath: devPath)
             }
+            #endif
         }
         return nil
     }
