@@ -27,47 +27,57 @@ final class CarPlayNowPlayingManager {
     func configureRemoteCommandsIfNeeded() {
         guard !commandsConfigured else { return }
         commandsConfigured = true
+        Self.installRemoteCommandHandlers()
+    }
 
+    nonisolated private static func installRemoteCommandHandlers() {
         let center = MPRemoteCommandCenter.shared()
 
         center.playCommand.isEnabled = true
-        center.playCommand.addTarget { [weak self] _ in
+        center.playCommand.addTarget { _ in
             Task { @MainActor in
-                self?.onPlayOrReplayCommand?()
+                CarPlayNowPlayingManager.shared.onPlayOrReplayCommand?()
             }
             return .success
         }
 
         center.pauseCommand.isEnabled = true
-        center.pauseCommand.addTarget { [weak self] _ in
+        center.pauseCommand.addTarget { _ in
             Task { @MainActor in
-                self?.onPlayOrReplayCommand?()
+                CarPlayNowPlayingManager.shared.onPlayOrReplayCommand?()
             }
             return .success
         }
 
         center.togglePlayPauseCommand.isEnabled = true
-        center.togglePlayPauseCommand.addTarget { [weak self] _ in
+        center.togglePlayPauseCommand.addTarget { _ in
             Task { @MainActor in
-                self?.onPlayOrReplayCommand?()
+                CarPlayNowPlayingManager.shared.onPlayOrReplayCommand?()
             }
             return .success
         }
 
         center.nextTrackCommand.isEnabled = true
-        center.nextTrackCommand.addTarget { [weak self] _ in
+        center.nextTrackCommand.addTarget { _ in
             Task { @MainActor in
-                self?.onNextStepCommand?()
+                CarPlayNowPlayingManager.shared.onNextStepCommand?()
             }
             return .success
         }
 
         center.previousTrackCommand.isEnabled = true
-        center.previousTrackCommand.addTarget { [weak self] _ in
+        center.previousTrackCommand.addTarget { _ in
             Task { @MainActor in
-                self?.onPlayOrReplayCommand?()
+                CarPlayNowPlayingManager.shared.onPlayOrReplayCommand?()
             }
             return .success
+        }
+    }
+
+    nonisolated private static func makeArtwork(from image: UIImage, size: CGSize) -> MPMediaItemArtwork {
+        nonisolated(unsafe) let safeImage = image
+        return MPMediaItemArtwork(boundsSize: size) { _ in
+            safeImage
         }
     }
 
@@ -111,8 +121,7 @@ final class CarPlayNowPlayingManager {
         ]
 
         if let img = latestArtworkImage {
-            let artwork = MPMediaItemArtwork(boundsSize: img.size) { _ in img }
-            info[MPMediaItemPropertyArtwork] = artwork
+            info[MPMediaItemPropertyArtwork] = Self.makeArtwork(from: img, size: img.size)
         }
 
         MPNowPlayingInfoCenter.default().nowPlayingInfo = info

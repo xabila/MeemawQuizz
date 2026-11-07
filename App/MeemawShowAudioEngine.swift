@@ -62,16 +62,20 @@ final class MeemawShowAudioEngine: NSObject {
         try? session.setActive(true)
         UIApplication.shared.beginReceivingRemoteControlEvents()
         refreshCarPlayAudioStatus()
+        Self.registerRouteChangeObserver()
+        preloadCommonJingles()
+    }
+
+    nonisolated private static func registerRouteChangeObserver() {
         NotificationCenter.default.addObserver(
             forName: AVAudioSession.routeChangeNotification,
             object: nil,
-            queue: .main
-        ) { [weak self] _ in
+            queue: nil
+        ) { _ in
             Task { @MainActor in
-                self?.refreshCarPlayAudioStatus()
+                MeemawShowAudioEngine.shared.refreshCarPlayAudioStatus()
             }
         }
-        preloadCommonJingles()
     }
 
     func refreshCarPlayAudioStatus() {
