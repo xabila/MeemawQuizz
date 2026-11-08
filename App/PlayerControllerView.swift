@@ -362,7 +362,7 @@ struct PlayerControllerView: View {
 
                         VStack(alignment: .leading, spacing: 5) {
                             HStack(spacing: 6) {
-                                Text("🎙️ LE SHOW DE MEEMAW")
+                                Text("🎙️ MEEMAW QUIZZ")
                                     .font(.system(size: 11, weight: .black, design: .rounded))
                                     .foregroundStyle(PopArt.ink)
                                     .padding(.horizontal, 10)
